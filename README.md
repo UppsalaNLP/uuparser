@@ -1,5 +1,5 @@
-# BIST Parsers
-## Transition based dependency parsers using BiLSTM feature extractors.
+# UUParser
+## Transition based dependency parser for Universal Dependencies using BiLSTM feature extractors.
 This parser is based on [Eli Kiperwasser's transition-based parser](http://github.com/elikip/bist-parser).
 
 We adapted the parser to Universal Dependencies as well as extended it as described in this paper:
@@ -8,7 +8,7 @@ Miryam de Lhoneux, Yan Shao, Ali Basirat, Eliyahu Kiperwasser, Sara Stymne, Yoav
 
 ####TODO: ADD link TO OUR SHARED TASK PAPER when it's out
 
-The techniques behind the original parser are described in the paper [Simple and Accurate Dependency Parsing Using Bidirectional LSTM Feature Representations](https://www.transacl.org/ojs/index.php/tacl/article/viewFile/885/198). Futher materials could be found [here](http://elki.cc/#/article/Simple%20and%20Accurate%20Dependency%20Parsing%20Using%20Bidirectional%20LSTM%20Feature%20Representations).
+The techniques behind the original parser are described in the paper [Simple and Accurate Dependency Parsing Using Bidirectional LSTM Feature Representations](https://www.transacl.org/ojs/index.php/tacl/article/viewFile/885/198). 
 
 #### Required software
 
