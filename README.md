@@ -6,8 +6,6 @@ We adapted the parser to Universal Dependencies as well as extended it as descri
 
 Miryam de Lhoneux, Yan Shao, Ali Basirat, Eliyahu Kiperwasser, Sara Stymne, Yoav Goldberg, and Joakim Nivre. 2017. From raw text to Universal Dependencies - look, no tags! In Proceedings of the CoNLL 2017 Shared Task: Multilingual Parsing from Raw Text to Universal Dependencies. Associa-tion for Computational Linguistics.
 
-####TODO: ADD link TO OUR SHARED TASK PAPER when it's out
-
 The techniques behind the original parser are described in the paper [Simple and Accurate Dependency Parsing Using Bidirectional LSTM Feature Representations](https://www.transacl.org/ojs/index.php/tacl/article/viewFile/885/198). 
 
 #### Required software
@@ -42,9 +40,13 @@ The parser will store the resulting conll file in the out directory (`--outdir`)
 
 If you make use of this software for research purposes, we'll appreciate citing the following:
 
-Miryam de Lhoneux, Yan Shao, Ali Basirat, Eliyahu Kiperwasser, Sara Stymne, Yoav Goldberg, and Joakim Nivre. 2017. From raw text to Universal Dependencies - look, no tags! In Proceedings of the CoNLL 2017 Shared Task: Multilingual Parsing from Raw Text to Universal Dependencies. Associa-tion for Computational Linguistics.
-
-####TODO: add the bib entry
+    @InProceedings{uu-conll17,
+        author    = {Miryam de Lhoneux and Yan Shao and Ali Basirat and Eliyahu Kiperwasser and Sara Stymne and Yoav Goldberg and Joakim Nivre},
+        title     = {From Raw Text to Universal Dependencies -- Look, No Tags!},
+        booktitle = {Proceedings of the CoNLL 2017 Shared Task: Multilingual Parsing from Raw Text to Universal Dependencies. },
+        year      = {2017},
+        address = {Vancouver, Canada}
+    }
 
 And the original parser paper:
 
