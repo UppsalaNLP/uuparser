@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+ <title>MaltParser - Introduction</title>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="robots" content="index,follow" />
+ <meta name="revisit-after" content="7 days" />
+ <meta name="keywords" content="MaltParser, dependency, Nivre, inductive, data-driven, parsing" />
+ <meta name="description" content="Introduction to MaltParser that is a system for data-driven dependency parsing" />
+ <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+ <link rel="stylesheet" type="text/css" href="print.css" media="print" />
+ <link rel="canonical" href="http://www.maltparser.org/intro.html" />
+ <script type="text/javascript">
+	 var _gaq = _gaq || [];
+	 _gaq.push(['_setAccount', 'UA-22905106-2']);
+	 _gaq.push(['_trackPageview']);
+	 (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	 })();
+ </script>
+</head>
+<body>
+<h1>MaltParser</h1>
+<div id="navtop">
+Modified: June 4 2016
+</div>
+<div id="leftcol">
+ <div id="navcol">
+ <ul><li class="none"><a href="/" accesskey="1">Home</a></li></ul>
+ <h5>Get MaltParser</h5>
+ <ul>
+  <li class="none"><a href="download.html">Download</a></li>
+  <li class="none"><a href="changes.html" accesskey="2">Changes</a></li>
+  <li class="none"><a href="license.html" accesskey="8">License</a></li>
+ </ul>
+ <h5>Documentation</h5>
+ <ul>
+  <li class="none"><a href="intro.html">Introduction</a></li>
+  <li class="none"><a href="install.html">Installing MaltParser</a></li>
+  <li class="none"><a href="userguide.html" accesskey="6">User guide</a></li>
+  <li class="none"><a href="options.html">Options (short version)</a></li>
+  <li class="none"><a href="optiondesc.html">Options (long version)</a></li>
+  <li class="none"><a href="api/index.html">JavaDoc</a></li>
+ </ul>
+ <h5>Resources</h5>
+  <ul>
+   <li class="none"><a href="mco/mco.html">Pre-trained models</a></li>
+   <li class="none"><a href="publications.html">Publications</a></li>
+   <li class="none"><a href="conll.html">CoNLL Shared Task</a></li>
+   <li class="none"><a href="malteval.html">MaltEval</a></li>
+  </ul>
+  <h5>Contact</h5>
+  <ul><li class="none"><a href="contact.html" accesskey="7">Contact</a></li></ul>
+ </div>
+</div>
+
+<div id="bodycol">
+        <div class="section">
+        <h2>Introduction</h2>
+<p>MaltParser is a system for data-driven dependency parsing, which can be 
+used to induce a parsing model from treebank data and to parse new data using an induced model. MaltParser is developed by 
+<a href="http://hall.maltparser.org" target="_blank" onclick="_gaq.push(['_trackEvent', 'Person', 'OutLink', 'Johan Hall']);">Johan Hall</a>, Jens Nilsson and 
+<a href="http://stp.lingfil.uu.se/~nivre/" target="_blank" onclick="_gaq.push(['_trackEvent', 'Person', 'OutLink', 'Joakim Nivre']);">Joakim Nivre</a> at V&auml;xj&ouml; University and Uppsala University, Sweden.</p>     
+
+<p>MaltParser 1.0.0 and later releases constitute a complete reimplementation of MaltParser in Java and are distributed with an open source license. 
+The previous versions 0.1-0.4 of MaltParser were implemented in C. The Java implementation (version 1.0.0 and later releases) 
+replaces the C implementation (version 0.x) and MaltParser 0.x will not be supported and updated any more. </p>
+
+<h3>Inductive Dependency Parsing</h3>
+
+<p>MaltParser can be characterized as a data-driven parser-generator. While a traditional parser-generator constructs a parser given a grammar, 
+a data-driven parser-generator constructs a parser given a treebank. MaltParser is an implementation of inductive dependency parsing, where the 
+syntactic analysis of a sentence amounts to the derivation of a dependency structure, and where inductive machine learning is used to guide 
+the parser at nondeterministic choice points (Nivre, 2006). The parsing methodology is based on three essential components:</p>
+<ol>
+<li>Deterministic parsing algorithms for building labeled dependency graphs (Kudo and Matsumoto,2002; Yamada and Matsumoto, 2003; Nivre,2003)</li>
+<li>History-based models for predicting the next parser action at nondeterministic choice points (Black et al., 1992; Magerman, 1995; Ratnaparkhi, 1997; Collins, 1999)</li>
+<li>Discriminative learning to map histories to parser actions (Kudo and Matsumoto, 2002; Yamada and Matsumoto, 2003; Nivre et al., 2004; Hall et al., 2006)</li>
+</ol>
+
+<h2>MaltParser 1.9.0</h2>
+<p>MaltParser implements nine deterministic parsing algorithms:</p>
+<ul>
+<li>Nivre arc-eager</li>
+<li>Nivre arc-standard</li>
+<li>Covington non-projective</li>
+<li>Covington projective</li>
+<li>Stack projective</li>
+<li>Stack swap-eager</li>
+<li>Stack swap-lazy</li>
+<li>Planar (implemented by Carlos Gómez-Rodríguez)</li>
+<li>2-planar (implemented by Carlos Gómez-Rodríguez)</li>
+</ul>
+
+<p>MaltParser allows users to define feature models of arbitrary complexity.</p>
+<p>MaltParser currently includes two machine learning packages (thanks to Sofia Cassel for her work on LIBLINEAR):</p>
+<ul>
+<li>LIBSVM - A Library for Support Vector Machines (Chang, 2001).</li>
+<li>LIBLINEAR -- A Library for Large Linear Classification (Fan et al., 2008).</li>
+</ul>
+<p>MaltParser can also be turned into a phrase structure parser that recovers 
+both continuous and discontinuous phrases with both phrase labels and grammatical functions (Hall and Nivre, 2008a; Hall and Nivre, 2008b).</p>
+
+<h2 id="ref">References</h2>
+<ul>
+<li class="pub">Black, E., F. Jelinek, J. D. Lafferty, D. M. Magerman, R. L. Mercer and S. Roukos (1992). Towards history-based grammars: Using richer 
+models for probabilistic parsing. In <em>Proceedings of the 5th DARPA Speech and Natural Language Workshop</em>, pp. 31-37</li>
+<li class="pub">Chang, C.-C. and C.-J. Lin (2001). LIBSVM: A Library for Support Vector Machines. [<a href="http://www.csie.ntu.edu.tw/~cjlin/papers/libsvm.pdf">pdf</a>]</li>
+<li class="pub">Collins, M. (1999). <em>Head-Driven Statistical Models for Natural Language Parsing</em>. Ph. D. thesis, University of Pennsylvania.</li>
+<li class="pub">Covington, M. A. (2001). A Fundamental Algorithm for Dependency Parsing. In <em>Proceedings of the 39th Annual ACM Southeast Conference</em>, pp. 95-102.</li>
+<li class="pub">Fan, R.-E., Chang, K.-W., Hsieh, C.-J., Wang, X.-R.  and Lin, C.-J.. LIBLINEAR: A library for large linear classification  Journal of Machine Learning Research 9(2008), 1871-1874. </li>
+<li class="pub">Hall, J., J. Nivre and J. Nilsson (2006). Discriminative Classifiers for Deterministic Dependency Parsing. In <em>Proceedings of the 21st International Conference on 
+Computational Linguistics and 44th Annual Meeting of the Association for Computational Linguistics</em>, pp. 316-323.</li>
+<li class="pub">Kudo, T. and Y. Matsumoto (2002). Japanese Dependency Analysis Using Cascaded Chunking. In <em>Proceedings of the Sixth Workshop on 
+Computational Language Learning (CoNLL)</em>, pp. 63-69.</li>
+<li class="pub">Magerman, D. M. (1995). Statistical decision-tree models for parsing. In <em>Proceedings of the 33rd Annual Meeting of 
+the Association for Computational Linguistics (ACL)</em>, pp. 276-283.</li>
+<li class="pub">Nivre, J. (2003). An Efficient Algorithm for Projective Dependency Parsing. In <em>Proceedings of the 8th International Workshop on 
+Parsing Technologies (IWPT 03)</em>, pp. 149-160.</li>
+<li class="pub">Nivre, J. (2006) <em>Inductive Dependency Parsing. Springer</em>.</li>
+<li class="pub">Nivre, J., Hall, J. and Nilsson, J. (2004) Memory-Based Dependency Parsing. In Ng, H. T. and Riloff, E. (eds.) <em>Proceedings of 
+the Eighth Conference on Computational Natural Language Learning (CoNLL)</em>, pp. 49-56.</li> 
+<li class="pub">Ratnaparkhi, A. (1997). A linear observed time statistical parser based on maximum entropy models. In <em>Proceedings of 
+the Second Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>, pp. 1-10.</li>
+<li class="pub">Yamada, H. and Y. Matsumoto (2003). Statistical Dependency Analysis with Support Vector Machines. In <em>Proceedings of 
+the 8th International Workshop on Parsing Technologies (IWPT)</em>, pp. 195-206.</li>
+<li class="pub">Hall, J. and J. Nivre (2008a) A Dependency-Driven Parser for German Dependency and Constituency Representations.
+In <em>Proceedings of the ACL Workshop on Parsing German (PaGe08)</em>, June 20, 2008, Columbus, Ohio, US.</li>
+<li class="pub">Hall, J. and J. Nivre (2008b) Parsing Discontinuous Phrase Structure with Grammatical Functions.
+ In <em>Proceedings of the 6th International Conference on Natural Language Processing (GoTAL 2008)</em>, August 25-27, 2008, Gothenburg, Sweden.</li>
+<li class="pub">Eryigit, G., Nivre, J. and Oflazer, K. (2008) Dependency Parsing of Turkish. 
+<em>Computational Linguistics</em> 34(3), 357-389.</li>
+<li class="pub">Nivre, J. (2008) Algorithms for Deterministic Incremental Dependency Parsing.
+<em>Computational Linguistics</em> 34(4), 513-553.</li>
+<li class="pub">Hall, J., Nilsson, J. and Nivre, J. (2010) Single Malt or Blended? A Study in 
+Multilingual Parser Optimization. In Bunt, H., Merlo, P. and Nivre, J. (eds.) 
+<em>New Trends in Parsing Technology</em>. Springer.</li>
+<li class="pub">Nivre, J. (2009) Non-Projective Dependency Parsing in Expected Linear Time. In <em>Proceedings of the Joint 
+Conference of the 47th Annual Meeting of the ACL and the 4th International Joint Conference on Natural Language Processing of the AFNLP</em>, 351-359.</li>
+<li class="pub">Nivre, J., Kuhlmann, M. and Hall, J. (2009) An Improved Oracle for Dependency Parsing with Online Reordering. In 
+<em>Proceedings of the 11th International Conference on Parsing Technologies (IWPT)</em>, 73-76.</li>
+</ul>
+
+<p id="footer">Copyright &copy; Johan Hall, Jens Nilsson and Joakim Nivre</p>
+</div></div>
+
+</body>
+</html>

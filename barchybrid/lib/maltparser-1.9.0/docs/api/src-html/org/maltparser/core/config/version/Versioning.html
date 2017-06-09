@@ -1,0 +1,332 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.core.config.version;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.io.File;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Date;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.jar.JarEntry;<a name="line.5"></a>
+<span class="sourceLineNo">006</span><a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.maltparser.core.helper.SystemInfo;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.maltparser.core.helper.SystemLogger;<a name="line.8"></a>
+<span class="sourceLineNo">009</span><a name="line.9"></a>
+<span class="sourceLineNo">010</span>public class Versioning {<a name="line.10"></a>
+<span class="sourceLineNo">011</span>        private String maltParserVersion;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>        private String parserModelVersion;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>        private File mcoPath;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>        private String configName;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>        private String newConfigName;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>        private String configType;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>        <a name="line.17"></a>
+<span class="sourceLineNo">018</span>        private String featureModelXML;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>        private String inputFormatXML;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>        <a name="line.20"></a>
+<span class="sourceLineNo">021</span>        public static String[] availableVersions = {"1.0.0", "1.0.1", "1.0.2", "1.0.3", "1.1", "1.2", "1.3", "1.3.1", "1.4", "1.4.1"};<a name="line.21"></a>
+<span class="sourceLineNo">022</span>        public static boolean[] supportVersions = {false, false, false, false, false, false, true, true, true};<a name="line.22"></a>
+<span class="sourceLineNo">023</span>        <a name="line.23"></a>
+<span class="sourceLineNo">024</span>        public Versioning(String configName, String configType, File mcoPath, String parserModelVersion) {<a name="line.24"></a>
+<span class="sourceLineNo">025</span>                setConfigName(configName);<a name="line.25"></a>
+<span class="sourceLineNo">026</span>                setConfigType(configType);<a name="line.26"></a>
+<span class="sourceLineNo">027</span>                setMcoPath(mcoPath);<a name="line.27"></a>
+<span class="sourceLineNo">028</span>                setMaltParserVersion(SystemInfo.getVersion());<a name="line.28"></a>
+<span class="sourceLineNo">029</span>                setParserModelVersion(parserModelVersion);<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                setNewConfigName(configName+"."+maltParserVersion);<a name="line.30"></a>
+<span class="sourceLineNo">031</span>        }<a name="line.31"></a>
+<span class="sourceLineNo">032</span><a name="line.32"></a>
+<span class="sourceLineNo">033</span>        public JarEntry getJarEntry(JarEntry in) {<a name="line.33"></a>
+<span class="sourceLineNo">034</span>                if (maltParserVersion.equals(parserModelVersion)) {<a name="line.34"></a>
+<span class="sourceLineNo">035</span>                        return in;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>                }<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                String entryName = in.getName().replace(configName+File.separator, newConfigName+File.separator);<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                if (entryName.endsWith(".info")) {<a name="line.38"></a>
+<span class="sourceLineNo">039</span>                        return new JarEntry(entryName.replace(File.separator+configName+"_", File.separator+newConfigName+"_"));<a name="line.39"></a>
+<span class="sourceLineNo">040</span>                }<a name="line.40"></a>
+<span class="sourceLineNo">041</span>                return new JarEntry(entryName);<a name="line.41"></a>
+<span class="sourceLineNo">042</span>        }<a name="line.42"></a>
+<span class="sourceLineNo">043</span>        <a name="line.43"></a>
+<span class="sourceLineNo">044</span>        public boolean hasChanges(JarEntry in, JarEntry out) {<a name="line.44"></a>
+<span class="sourceLineNo">045</span>                if (maltParserVersion.equals(parserModelVersion)) {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>                        return false;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>                }<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                if (in.getName().endsWith(".info") || in.getName().endsWith(".sop")) {<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                        return true;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>                }<a name="line.50"></a>
+<span class="sourceLineNo">051</span>                return false;<a name="line.51"></a>
+<span class="sourceLineNo">052</span>        }<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        <a name="line.53"></a>
+<span class="sourceLineNo">054</span>        public String modifyJarEntry(JarEntry in, JarEntry out, StringBuilder sb) {<a name="line.54"></a>
+<span class="sourceLineNo">055</span>                if (maltParserVersion.equals(parserModelVersion)) {<a name="line.55"></a>
+<span class="sourceLineNo">056</span>                        return sb.toString();<a name="line.56"></a>
+<span class="sourceLineNo">057</span>                }<a name="line.57"></a>
+<span class="sourceLineNo">058</span>                if (in.getName().endsWith(".info")) {<a name="line.58"></a>
+<span class="sourceLineNo">059</span>                        final StringBuilder outString = new StringBuilder();<a name="line.59"></a>
+<span class="sourceLineNo">060</span>                        String[] lines = sb.toString().split("\\n");<a name="line.60"></a>
+<span class="sourceLineNo">061</span>                        for (int i = 0; i &lt; lines.length; i++) {<a name="line.61"></a>
+<span class="sourceLineNo">062</span>                                if (lines[i].startsWith("Configuration name:")) {<a name="line.62"></a>
+<span class="sourceLineNo">063</span>                                        outString.append("Configuration name:   ");<a name="line.63"></a>
+<span class="sourceLineNo">064</span>                                        outString.append(configName);<a name="line.64"></a>
+<span class="sourceLineNo">065</span>                                        outString.append('.');<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                                        outString.append(maltParserVersion);<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                                        outString.append('\n');<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                                } else if (lines[i].startsWith("Created:")) {<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                                        outString.append(lines[i]);<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                                        outString.append('\n');<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                                        outString.append("Converted:            ");<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                                        outString.append(new Date(System.currentTimeMillis()));<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                                        outString.append('\n');<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                                } else if (lines[i].startsWith("Version:")) {<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                                        outString.append("Version:                       ");<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                                        outString.append(maltParserVersion);<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                                        outString.append('\n');<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                                        outString.append("Created by:                    ");<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                                        outString.append(parserModelVersion);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                                        outString.append('\n');<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                                } else if (lines[i].startsWith("  name (  -c)                           ")) {<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                                        outString.append("  name (  -c)                           ");<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                                        outString.append(newConfigName);<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                                        outString.append('\n');<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                } else if (lines[i].startsWith("  format ( -if)                         /appdata/dataformat/")) {<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                                        outString.append("  format ( -if)                         ");<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                                        int index = lines[i].lastIndexOf("/");<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                                        outString.append(lines[i].substring(index + 1));<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                                        outString.append('\n');<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                                } else if (lines[i].startsWith("  format ( -of)                         /appdata/dataformat/")) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                                        outString.append("  format ( -of)                         ");<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                                        int index = lines[i].lastIndexOf("/");<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                                        outString.append(lines[i].substring(index + 1));<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                                        outString.append('\n');<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                                } else if (lines[i].startsWith("--guide-features (  -F)                 /appdata/features/")) {<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                                        outString.append("--guide-features (  -F)                 ");<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                                        int index = lines[i].lastIndexOf("/");<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                                        outString.append(lines[i].substring(index + 1));<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                                        outString.append('\n');<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                                } else {<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                                        outString.append(lines[i]);<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                                        outString.append('\n');<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                                }<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                        }<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                        return outString.toString();<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                } else if (in.getName().endsWith(".sop")) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                        final StringBuilder outString = new StringBuilder();<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                        String[] lines = sb.toString().split("\\n");<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                        for (int i = 0; i &lt; lines.length; i++) {<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                                int index = lines[i].indexOf('\t');<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                                int container = 0;<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                                if (index &gt; -1) {<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                                        container = Integer.parseInt(lines[i].substring(0,index));<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                                }<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                                if (lines[i].startsWith(container+"\tguide\tfeatures")) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                                        int tabIndex = lines[i].lastIndexOf('\t');<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                                        if (lines[i].substring(tabIndex+1).startsWith("/appdata/features/")) {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                                                int slashIndex = lines[i].lastIndexOf("/");<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                                                String xmlFile = lines[i].substring(slashIndex+1);<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                                                String path = lines[i].substring(tabIndex+1, slashIndex);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                                                setFeatureModelXML(path + "/libsvm/" +  xmlFile);<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                                                outString.append(container);<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                                                outString.append("\tguide\tfeatures\t");<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                                                outString.append(xmlFile);<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                                                outString.append('\n');<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                                        } else {<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                                                outString.append(lines[i]);<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                                                outString.append('\n');<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                                        }<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                                } else if (lines[i].startsWith(container+"\tinput\tformat")) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                                        int tabIndex = lines[i].lastIndexOf('\t');<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                                        if (lines[i].substring(tabIndex+1).startsWith("/appdata/dataformat/")) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                                                int slashIndex = lines[i].lastIndexOf("/");<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                                                String xmlFile = lines[i].substring(slashIndex+1);<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                                                String path = lines[i].substring(tabIndex+1, slashIndex);<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                                                setInputFormatXML(path + "/" +  xmlFile);<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                                                outString.append(container);<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                                                outString.append("\tinput\tformat\t");<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                                                outString.append(xmlFile);<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                                                outString.append('\n');<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                                        } else {<a name="line.141"></a>
+<span class="sourceLineNo">142</span>                                                outString.append(lines[i]);<a name="line.142"></a>
+<span class="sourceLineNo">143</span>                                                outString.append('\n');<a name="line.143"></a>
+<span class="sourceLineNo">144</span>                                        }<a name="line.144"></a>
+<span class="sourceLineNo">145</span>                                } else if (earlierVersion("1.3")) {<a name="line.145"></a>
+<span class="sourceLineNo">146</span>                                        if (lines[i].startsWith(container+"\tnivre\tpost_processing")) {<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                                        } else if (lines[i].startsWith(container+"\tmalt0.4\tbehavior")) {<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                                                if (lines[i].endsWith("true")) {<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                                                        SystemLogger.logger().info("MaltParser "+maltParserVersion+" doesn't support MaltParser 0.4 emulation.");<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                                                }<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                                        } else if (lines[i].startsWith(container+"\tsinglemalt\tparsing_algorithm")) {<a name="line.151"></a>
+<span class="sourceLineNo">152</span>                                                outString.append(container);<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                                                outString.append("\tsinglemalt\tparsing_algorithm\t");<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                                                if (lines[i].endsWith("NivreStandard")) {<a name="line.154"></a>
+<span class="sourceLineNo">155</span>                                                        outString.append("class org.maltparser.parser.algorithm.nivre.NivreArcStandardFactory");        <a name="line.155"></a>
+<span class="sourceLineNo">156</span>                                                } else if (lines[i].endsWith("NivreEager")) {<a name="line.156"></a>
+<span class="sourceLineNo">157</span>                                                        outString.append("class org.maltparser.parser.algorithm.nivre.NivreArcEagerFactory");<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                                                } else if (lines[i].endsWith("CovingtonNonProjective")) {<a name="line.158"></a>
+<span class="sourceLineNo">159</span>                                                        outString.append("class org.maltparser.parser.algorithm.covington.CovingtonNonProjFactory");<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                                                } else if (lines[i].endsWith("CovingtonProjective")) {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                                                        outString.append("class org.maltparser.parser.algorithm.covington.CovingtonProjFactory");<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                                                }<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                                                outString.append('\n');<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                                        }<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                                } else {<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                                        outString.append(lines[i]);<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                                        outString.append('\n');<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                                }<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                        }<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                        return outString.toString();<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                }<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                return sb.toString();<a name="line.172"></a>
+<span class="sourceLineNo">173</span>        }<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        <a name="line.174"></a>
+<span class="sourceLineNo">175</span>        <a name="line.175"></a>
+<span class="sourceLineNo">176</span>        public boolean earlierVersion(String version) {<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                boolean e = false;<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                for (int i = 0; i &lt; availableVersions.length; i++) {<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                        if (availableVersions[i].equals(version)) {<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                                break;<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                        } else if (availableVersions[i].equals(parserModelVersion)) {<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                                e = true;<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                        }<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                }<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                return e;<a name="line.185"></a>
+<span class="sourceLineNo">186</span>        }<a name="line.186"></a>
+<span class="sourceLineNo">187</span>        <a name="line.187"></a>
+<span class="sourceLineNo">188</span>        public boolean support(String version) {<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                for (int i = 0; i &lt; availableVersions.length; i++) {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                        if (availableVersions[i].equals(version)) {<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                                return supportVersions[i];<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                        } <a name="line.192"></a>
+<span class="sourceLineNo">193</span>                }<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                return false;<a name="line.194"></a>
+<span class="sourceLineNo">195</span>        }<a name="line.195"></a>
+<span class="sourceLineNo">196</span>        <a name="line.196"></a>
+<span class="sourceLineNo">197</span>        public String getFeatureModelXML() {<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                return featureModelXML;<a name="line.198"></a>
+<span class="sourceLineNo">199</span>        }<a name="line.199"></a>
+<span class="sourceLineNo">200</span><a name="line.200"></a>
+<span class="sourceLineNo">201</span>        public void setFeatureModelXML(String featureModelXML) {<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                this.featureModelXML = featureModelXML;<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        }<a name="line.203"></a>
+<span class="sourceLineNo">204</span><a name="line.204"></a>
+<span class="sourceLineNo">205</span>        public String getInputFormatXML() {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                return inputFormatXML;<a name="line.206"></a>
+<span class="sourceLineNo">207</span>        }<a name="line.207"></a>
+<span class="sourceLineNo">208</span><a name="line.208"></a>
+<span class="sourceLineNo">209</span>        public void setInputFormatXML(String inputFormatXML) {<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                this.inputFormatXML = inputFormatXML;<a name="line.210"></a>
+<span class="sourceLineNo">211</span>        }<a name="line.211"></a>
+<span class="sourceLineNo">212</span><a name="line.212"></a>
+<span class="sourceLineNo">213</span>        public String getNewConfigName() {<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                return newConfigName;<a name="line.214"></a>
+<span class="sourceLineNo">215</span>        }<a name="line.215"></a>
+<span class="sourceLineNo">216</span><a name="line.216"></a>
+<span class="sourceLineNo">217</span>        public void setNewConfigName(String newConfigName) {<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                this.newConfigName = newConfigName;<a name="line.218"></a>
+<span class="sourceLineNo">219</span>        }<a name="line.219"></a>
+<span class="sourceLineNo">220</span><a name="line.220"></a>
+<span class="sourceLineNo">221</span>        public String getConfigName() {<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                return configName;<a name="line.222"></a>
+<span class="sourceLineNo">223</span>        }<a name="line.223"></a>
+<span class="sourceLineNo">224</span><a name="line.224"></a>
+<span class="sourceLineNo">225</span>        public void setConfigName(String configName) {<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                this.configName = configName;<a name="line.226"></a>
+<span class="sourceLineNo">227</span>        }<a name="line.227"></a>
+<span class="sourceLineNo">228</span><a name="line.228"></a>
+<span class="sourceLineNo">229</span>        public String getConfigType() {<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                return configType;<a name="line.230"></a>
+<span class="sourceLineNo">231</span>        }<a name="line.231"></a>
+<span class="sourceLineNo">232</span><a name="line.232"></a>
+<span class="sourceLineNo">233</span>        public void setConfigType(String configType) {<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                this.configType = configType;<a name="line.234"></a>
+<span class="sourceLineNo">235</span>        }<a name="line.235"></a>
+<span class="sourceLineNo">236</span><a name="line.236"></a>
+<span class="sourceLineNo">237</span>        public File getMcoPath() {<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                return mcoPath;<a name="line.238"></a>
+<span class="sourceLineNo">239</span>        }<a name="line.239"></a>
+<span class="sourceLineNo">240</span><a name="line.240"></a>
+<span class="sourceLineNo">241</span>        public void setMcoPath(File mcoPath) {<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                this.mcoPath = mcoPath;<a name="line.242"></a>
+<span class="sourceLineNo">243</span>        }<a name="line.243"></a>
+<span class="sourceLineNo">244</span><a name="line.244"></a>
+<span class="sourceLineNo">245</span>        public String getMaltParserVersion() {<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                return maltParserVersion;<a name="line.246"></a>
+<span class="sourceLineNo">247</span>        }<a name="line.247"></a>
+<span class="sourceLineNo">248</span><a name="line.248"></a>
+<span class="sourceLineNo">249</span>        public void setMaltParserVersion(String maltParserVersion) {<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                this.maltParserVersion = maltParserVersion;<a name="line.250"></a>
+<span class="sourceLineNo">251</span>        }<a name="line.251"></a>
+<span class="sourceLineNo">252</span><a name="line.252"></a>
+<span class="sourceLineNo">253</span>        public String getParserModelVersion() {<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                return parserModelVersion;<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        }<a name="line.255"></a>
+<span class="sourceLineNo">256</span><a name="line.256"></a>
+<span class="sourceLineNo">257</span>        public void setParserModelVersion(String parserModelVersion) {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                this.parserModelVersion = parserModelVersion;<a name="line.258"></a>
+<span class="sourceLineNo">259</span>        }<a name="line.259"></a>
+<span class="sourceLineNo">260</span>}<a name="line.260"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.core.feature.spec;<a name="line.1"></a>
+<span class="sourceLineNo">002</span>import java.util.Iterator;<a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.LinkedHashMap;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.maltparser.core.exception.MaltChainedException;<a name="line.5"></a>
+<span class="sourceLineNo">006</span><a name="line.6"></a>
+<span class="sourceLineNo">007</span>/**<a name="line.7"></a>
+<span class="sourceLineNo">008</span>*<a name="line.8"></a>
+<span class="sourceLineNo">009</span>*<a name="line.9"></a>
+<span class="sourceLineNo">010</span>* @author Johan Hall<a name="line.10"></a>
+<span class="sourceLineNo">011</span>*/<a name="line.11"></a>
+<span class="sourceLineNo">012</span>public class SpecificationModel implements Iterable&lt;SpecificationSubModel&gt; {<a name="line.12"></a>
+<span class="sourceLineNo">013</span>        private final String specModelName;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>        private final LinkedHashMap&lt;String, SpecificationSubModel&gt; subModelMap;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>        <a name="line.15"></a>
+<span class="sourceLineNo">016</span>        public SpecificationModel() throws MaltChainedException {<a name="line.16"></a>
+<span class="sourceLineNo">017</span>                this(null);<a name="line.17"></a>
+<span class="sourceLineNo">018</span>        }<a name="line.18"></a>
+<span class="sourceLineNo">019</span>        <a name="line.19"></a>
+<span class="sourceLineNo">020</span>        public SpecificationModel(String _specModelName) throws MaltChainedException {<a name="line.20"></a>
+<span class="sourceLineNo">021</span>                this.specModelName = _specModelName;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>                this.subModelMap = new LinkedHashMap&lt;String, SpecificationSubModel&gt;();<a name="line.22"></a>
+<span class="sourceLineNo">023</span>        }<a name="line.23"></a>
+<span class="sourceLineNo">024</span>        <a name="line.24"></a>
+<span class="sourceLineNo">025</span>        public void add(String featureSpec) throws MaltChainedException {<a name="line.25"></a>
+<span class="sourceLineNo">026</span>                this.add("MAIN", featureSpec);<a name="line.26"></a>
+<span class="sourceLineNo">027</span>        }<a name="line.27"></a>
+<span class="sourceLineNo">028</span>        <a name="line.28"></a>
+<span class="sourceLineNo">029</span>        public void add(String subModelName, String featureSpec) throws MaltChainedException {<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                if (subModelName == null || subModelName.length() &lt; 1  || subModelName.toUpperCase().equals("MAIN")) {<a name="line.30"></a>
+<span class="sourceLineNo">031</span>                        if (!subModelMap.containsKey("MAIN")) {<a name="line.31"></a>
+<span class="sourceLineNo">032</span>                                subModelMap.put("MAIN", new SpecificationSubModel("MAIN"));<a name="line.32"></a>
+<span class="sourceLineNo">033</span>                        }<a name="line.33"></a>
+<span class="sourceLineNo">034</span>                        subModelMap.get("MAIN").add(featureSpec);<a name="line.34"></a>
+<span class="sourceLineNo">035</span>                } else {<a name="line.35"></a>
+<span class="sourceLineNo">036</span>                        if (!subModelMap.containsKey(subModelName.toUpperCase())) {<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                                subModelMap.put(subModelName.toUpperCase(), new SpecificationSubModel(subModelName.toUpperCase()));<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                        }<a name="line.38"></a>
+<span class="sourceLineNo">039</span>                        subModelMap.get(subModelName.toUpperCase()).add(featureSpec);<a name="line.39"></a>
+<span class="sourceLineNo">040</span>                }<a name="line.40"></a>
+<span class="sourceLineNo">041</span>        }<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>        public String getSpecModelName() {<a name="line.43"></a>
+<span class="sourceLineNo">044</span>                return specModelName;<a name="line.44"></a>
+<span class="sourceLineNo">045</span>        }<a name="line.45"></a>
+<span class="sourceLineNo">046</span>        <a name="line.46"></a>
+<span class="sourceLineNo">047</span>        public Iterator&lt;SpecificationSubModel&gt; iterator() {<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                return subModelMap.values().iterator();<a name="line.48"></a>
+<span class="sourceLineNo">049</span>        }<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        <a name="line.50"></a>
+<span class="sourceLineNo">051</span>        public int size() {<a name="line.51"></a>
+<span class="sourceLineNo">052</span>                return subModelMap.size();<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        }<a name="line.53"></a>
+<span class="sourceLineNo">054</span>        <a name="line.54"></a>
+<span class="sourceLineNo">055</span>        public SpecificationSubModel getSpecSubModel(String subModelName) {<a name="line.55"></a>
+<span class="sourceLineNo">056</span>                return subModelMap.get(subModelName);<a name="line.56"></a>
+<span class="sourceLineNo">057</span>        }<a name="line.57"></a>
+<span class="sourceLineNo">058</span>        <a name="line.58"></a>
+<span class="sourceLineNo">059</span>        public String toString() {<a name="line.59"></a>
+<span class="sourceLineNo">060</span>                StringBuilder sb = new StringBuilder();<a name="line.60"></a>
+<span class="sourceLineNo">061</span><a name="line.61"></a>
+<span class="sourceLineNo">062</span>                for (SpecificationSubModel subModel : this) {<a name="line.62"></a>
+<span class="sourceLineNo">063</span>                        if (subModel.size() &gt; 0) { <a name="line.63"></a>
+<span class="sourceLineNo">064</span>                                if (subModelMap.size() != 1 || subModel.getSubModelName().equalsIgnoreCase("MAIN")) {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>                                        sb.append(subModel.getSubModelName());<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                                        sb.append('\n');<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                                }<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                                sb.append(subModel.toString());<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                        }<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                }<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                return sb.toString();<a name="line.71"></a>
+<span class="sourceLineNo">072</span>        }<a name="line.72"></a>
+<span class="sourceLineNo">073</span>}<a name="line.73"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

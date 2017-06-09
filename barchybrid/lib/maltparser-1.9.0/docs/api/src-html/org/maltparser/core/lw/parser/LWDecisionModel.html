@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.core.lw.parser;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.Set;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.maltparser.core.exception.MaltChainedException;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.maltparser.core.feature.FeatureModel;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.maltparser.core.feature.FeatureVector;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.maltparser.core.feature.value.SingleFeatureValue;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.maltparser.core.helper.HashMap;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.maltparser.parser.history.action.ComplexDecisionAction;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.maltparser.parser.history.action.SingleDecision;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.maltparser.parser.history.container.TableContainer.RelationToNextDecision;<a name="line.12"></a>
+<span class="sourceLineNo">013</span><a name="line.13"></a>
+<span class="sourceLineNo">014</span>/**<a name="line.14"></a>
+<span class="sourceLineNo">015</span>* A lightweight version of the decision models, the guide model and the instance models located in org.maltparser.parser.guide.{decision,instance} and<a name="line.15"></a>
+<span class="sourceLineNo">016</span>* can only be used in parsing mode. It is also limited to predict at most two decisions.<a name="line.16"></a>
+<span class="sourceLineNo">017</span>* <a name="line.17"></a>
+<span class="sourceLineNo">018</span>* @author Johan Hall<a name="line.18"></a>
+<span class="sourceLineNo">019</span>*/<a name="line.19"></a>
+<span class="sourceLineNo">020</span>public final class LWDecisionModel {<a name="line.20"></a>
+<span class="sourceLineNo">021</span>        private final String classifierName;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>        private final HashMap&lt;String, LWClassifier&gt; classifiers;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>        <a name="line.23"></a>
+<span class="sourceLineNo">024</span>        public LWDecisionModel(McoModel mcoModel, boolean _excludeNullValues, String _classifierName) {<a name="line.24"></a>
+<span class="sourceLineNo">025</span>                this.classifierName = _classifierName;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>                this.classifiers = new HashMap&lt;String, LWClassifier&gt;();<a name="line.26"></a>
+<span class="sourceLineNo">027</span>                Set&lt;String&gt; mcoEntryObjectKeys = mcoModel.getMcoEntryObjectKeys();<a name="line.27"></a>
+<span class="sourceLineNo">028</span>                for (String key : mcoEntryObjectKeys) {<a name="line.28"></a>
+<span class="sourceLineNo">029</span>                        if (key.endsWith(".moo")) {<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                                String prefixFileName = key.substring(0,key.length()-4);<a name="line.30"></a>
+<span class="sourceLineNo">031</span>                                classifiers.put(prefixFileName, new LWClassifier(mcoModel, prefixFileName, _excludeNullValues));<a name="line.31"></a>
+<span class="sourceLineNo">032</span>                        }<a name="line.32"></a>
+<span class="sourceLineNo">033</span>                }<a name="line.33"></a>
+<span class="sourceLineNo">034</span>        }<a name="line.34"></a>
+<span class="sourceLineNo">035</span>        <a name="line.35"></a>
+<span class="sourceLineNo">036</span>        public boolean predict(FeatureModel featureModel, ComplexDecisionAction decision, boolean one_prediction) throws MaltChainedException {<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                if (decision.numberOfDecisions() &gt; 2) {<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                        throw new MaltChainedException("Number of decisions is greater than two,  which is unsupported in the light-weight parser (lw.parser)");<a name="line.38"></a>
+<span class="sourceLineNo">039</span>                }<a name="line.39"></a>
+<span class="sourceLineNo">040</span>                featureModel.update();<a name="line.40"></a>
+<span class="sourceLineNo">041</span>                boolean success = true;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>                for (int i = 0; i &lt; decision.numberOfDecisions(); i++) {<a name="line.42"></a>
+<span class="sourceLineNo">043</span>                        LWClassifier classifier = null;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>                        final SingleDecision singleDecision = decision.getSingleDecision(i);<a name="line.44"></a>
+<span class="sourceLineNo">045</span>                        final StringBuilder classifierString = new StringBuilder();<a name="line.45"></a>
+<span class="sourceLineNo">046</span>                        <a name="line.46"></a>
+<span class="sourceLineNo">047</span>                        final StringBuilder decisionModelString = new StringBuilder();<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                        if (singleDecision.getRelationToNextDecision() == RelationToNextDecision.BRANCHED) {<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                                decisionModelString.append("bdm");<a name="line.49"></a>
+<span class="sourceLineNo">050</span>                        } else if (singleDecision.getRelationToNextDecision() == RelationToNextDecision.SEQUANTIAL) {<a name="line.50"></a>
+<span class="sourceLineNo">051</span>                                decisionModelString.append("sdm");<a name="line.51"></a>
+<span class="sourceLineNo">052</span>                        } else {<a name="line.52"></a>
+<span class="sourceLineNo">053</span>                                decisionModelString.append("odm");<a name="line.53"></a>
+<span class="sourceLineNo">054</span>                        }<a name="line.54"></a>
+<span class="sourceLineNo">055</span>                        decisionModelString.append(i);<a name="line.55"></a>
+<span class="sourceLineNo">056</span>                        String decisionSymbol = "";<a name="line.56"></a>
+<span class="sourceLineNo">057</span>                        if (i == 1 &amp;&amp; singleDecision.getRelationToNextDecision() == RelationToNextDecision.BRANCHED) {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>                                decisionSymbol = singleDecision.getDecisionSymbol();<a name="line.58"></a>
+<span class="sourceLineNo">059</span>                                decisionModelString.append(decisionSymbol);<a name="line.59"></a>
+<span class="sourceLineNo">060</span>                        }<a name="line.60"></a>
+<span class="sourceLineNo">061</span>                        decisionModelString.append('.');<a name="line.61"></a>
+<span class="sourceLineNo">062</span>                        FeatureVector featureVector = featureModel.getFeatureVector(decisionSymbol, singleDecision.getTableContainer().getTableContainerName());<a name="line.62"></a>
+<span class="sourceLineNo">063</span>                        <a name="line.63"></a>
+<span class="sourceLineNo">064</span>                        if (featureModel.hasDivideFeatureFunction()) {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>                                SingleFeatureValue featureValue =(SingleFeatureValue)featureModel.getDivideFeatureFunction().getFeatureValue();<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                                classifierString.append(decisionModelString);<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                                classifierString.append(String.format("%03d", featureValue.getIndexCode()));<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                                classifierString.append('.');<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                                classifierString.append(classifierName);<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                                classifier = classifiers.get(classifierString.toString());<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                                if (classifier != null) {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                                        FeatureVector dividefeatureVector = featureModel.getFeatureVector("/" + featureVector.getSpecSubModel().getSubModelName());<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                                        success = classifier.predict(dividefeatureVector, singleDecision, one_prediction) &amp;&amp; success;<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                                        continue;<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                                } <a name="line.75"></a>
+<span class="sourceLineNo">076</span>                                classifierString.setLength(0);<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                        }<a name="line.77"></a>
+<span class="sourceLineNo">078</span><a name="line.78"></a>
+<span class="sourceLineNo">079</span>                        classifierString.append(decisionModelString);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                        classifierString.append(classifierName);<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                        classifier = classifiers.get(classifierString.toString());<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                        if (classifier != null) {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                                success = classifier.predict(featureVector, singleDecision, one_prediction) &amp;&amp; success;<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                        } else {<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                singleDecision.addDecision(1);<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                        } <a name="line.86"></a>
+<span class="sourceLineNo">087</span>                        if (!singleDecision.continueWithNextDecision()) {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                                break;<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                        }<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                }<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                return success;<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        }<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        <a name="line.93"></a>
+<span class="sourceLineNo">094</span>        public boolean predictFromKBestList(FeatureModel featureModel, ComplexDecisionAction decision) throws MaltChainedException {<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                predict(featureModel, decision, false);<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                if (decision.numberOfDecisions() == 1) {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                        return decision.getSingleDecision(0).updateFromKBestList();<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                } else if (decision.numberOfDecisions() &gt; 2) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                        throw new MaltChainedException("Number of decisions is greater than two,  which is unsupported in the light-weight parser (lw.parser)");<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                }<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                boolean success = false;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                if (decision.getSingleDecision(0).continueWithNextDecision()) {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                        success = decision.getSingleDecision(1).updateFromKBestList();<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                }<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                return success;<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>}<a name="line.107"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

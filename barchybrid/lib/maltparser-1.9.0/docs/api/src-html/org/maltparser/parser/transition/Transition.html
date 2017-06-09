@@ -1,0 +1,184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.parser.transition;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span><a name="line.3"></a>
+<span class="sourceLineNo">004</span>/**<a name="line.4"></a>
+<span class="sourceLineNo">005</span> * Transition contains one individual transition. For example, Nivre arc-eager algorithms have the unlabeled <a name="line.5"></a>
+<span class="sourceLineNo">006</span> * transition &lt;code&gt;SH&lt;/code&gt;, &lt;code&gt;RE&lt;/code&gt; and the labeled transition&lt;code&gt;RA&lt;/code&gt;, &lt;code&gt;LA&lt;/code&gt;. These<a name="line.6"></a>
+<span class="sourceLineNo">007</span> * transition will be four individual transition.<a name="line.7"></a>
+<span class="sourceLineNo">008</span> * <a name="line.8"></a>
+<span class="sourceLineNo">009</span> * @author Joakim Nivre<a name="line.9"></a>
+<span class="sourceLineNo">010</span> * @author Johan Hall<a name="line.10"></a>
+<span class="sourceLineNo">011</span>*/<a name="line.11"></a>
+<span class="sourceLineNo">012</span>public class Transition implements Comparable&lt;Transition&gt; {<a name="line.12"></a>
+<span class="sourceLineNo">013</span>        /**<a name="line.13"></a>
+<span class="sourceLineNo">014</span>         * Transition code<a name="line.14"></a>
+<span class="sourceLineNo">015</span>         */<a name="line.15"></a>
+<span class="sourceLineNo">016</span>        private final int code;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>        /**<a name="line.17"></a>
+<span class="sourceLineNo">018</span>         * Transition symbol<a name="line.18"></a>
+<span class="sourceLineNo">019</span>         */<a name="line.19"></a>
+<span class="sourceLineNo">020</span>        private final String symbol;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>        /**<a name="line.21"></a>
+<span class="sourceLineNo">022</span>         * &lt;code&gt;true&lt;/code&gt; if the transition is labeled, otherwise &lt;code&gt;false&lt;/code&gt;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>         */<a name="line.23"></a>
+<span class="sourceLineNo">024</span>        private final boolean labeled;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>        private final int cachedHash;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>        /**<a name="line.26"></a>
+<span class="sourceLineNo">027</span>         * Creates a transition <a name="line.27"></a>
+<span class="sourceLineNo">028</span>         * <a name="line.28"></a>
+<span class="sourceLineNo">029</span>         * @param code  Transition code<a name="line.29"></a>
+<span class="sourceLineNo">030</span>         * @param symbol        Transition name<a name="line.30"></a>
+<span class="sourceLineNo">031</span>         * @param labeled       &lt;code&gt;true&lt;/code&gt; if the transition is labeled, otherwise &lt;code&gt;false&lt;/code&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>         */<a name="line.32"></a>
+<span class="sourceLineNo">033</span>        public Transition(int code, String symbol, boolean labeled) {<a name="line.33"></a>
+<span class="sourceLineNo">034</span>                this.code = code;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>                this.symbol = symbol;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>                this.labeled = labeled;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                final int prime = 31;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                int result = prime + code;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>                result = prime * result + (labeled ? 1231 : 1237);<a name="line.39"></a>
+<span class="sourceLineNo">040</span>                this.cachedHash = prime * result + ((symbol == null) ? 0 : symbol.hashCode());<a name="line.40"></a>
+<span class="sourceLineNo">041</span>        }<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>        /**<a name="line.43"></a>
+<span class="sourceLineNo">044</span>         * Returns the transition code<a name="line.44"></a>
+<span class="sourceLineNo">045</span>         * <a name="line.45"></a>
+<span class="sourceLineNo">046</span>         * @return the transition code<a name="line.46"></a>
+<span class="sourceLineNo">047</span>         */<a name="line.47"></a>
+<span class="sourceLineNo">048</span>        public int getCode() {<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                return code;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        }<a name="line.50"></a>
+<span class="sourceLineNo">051</span>        <a name="line.51"></a>
+<span class="sourceLineNo">052</span>        /**<a name="line.52"></a>
+<span class="sourceLineNo">053</span>         * Returns the transition symbol<a name="line.53"></a>
+<span class="sourceLineNo">054</span>         * <a name="line.54"></a>
+<span class="sourceLineNo">055</span>         * @return      the transition symbol<a name="line.55"></a>
+<span class="sourceLineNo">056</span>         */<a name="line.56"></a>
+<span class="sourceLineNo">057</span>        public String getSymbol() {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>                return symbol;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>        }<a name="line.59"></a>
+<span class="sourceLineNo">060</span>        <a name="line.60"></a>
+<span class="sourceLineNo">061</span>        /**<a name="line.61"></a>
+<span class="sourceLineNo">062</span>         * Returns true if the transition is labeled, otherwise false<a name="line.62"></a>
+<span class="sourceLineNo">063</span>         * <a name="line.63"></a>
+<span class="sourceLineNo">064</span>         * @return &lt;code&gt;true&lt;/code&gt; if the transition is labeled, otherwise &lt;code&gt;false&lt;/code&gt;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>         */<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        public boolean isLabeled() {<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                return labeled;<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        }<a name="line.68"></a>
+<span class="sourceLineNo">069</span><a name="line.69"></a>
+<span class="sourceLineNo">070</span>        <a name="line.70"></a>
+<span class="sourceLineNo">071</span>        public int compareTo(Transition that) {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                final int BEFORE = -1;<a name="line.72"></a>
+<span class="sourceLineNo">073</span>            final int EQUAL = 0;<a name="line.73"></a>
+<span class="sourceLineNo">074</span>            final int AFTER = 1;<a name="line.74"></a>
+<span class="sourceLineNo">075</span>            if (this.code &lt; that.code) return BEFORE;<a name="line.75"></a>
+<span class="sourceLineNo">076</span>            if (this.code &gt; that.code) return AFTER;<a name="line.76"></a>
+<span class="sourceLineNo">077</span>            return EQUAL;<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        }<a name="line.78"></a>
+<span class="sourceLineNo">079</span>        <a name="line.79"></a>
+<span class="sourceLineNo">080</span>        @Override<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        public int hashCode() {<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                return cachedHash;<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        }<a name="line.83"></a>
+<span class="sourceLineNo">084</span><a name="line.84"></a>
+<span class="sourceLineNo">085</span>        @Override<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        public boolean equals(Object obj) {<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                if (this == obj)<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                        return true;<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                if (obj == null)<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                        return false;<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                if (getClass() != obj.getClass())<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                        return false;<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                Transition other = (Transition) obj;<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                if (code != other.code)<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                        return false;<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                if (labeled != other.labeled)<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                        return false;<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                if (symbol == null) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                        if (other.symbol != null)<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                                return false;<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                } else if (!symbol.equals(other.symbol))<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                        return false;<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                return true;<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        }<a name="line.104"></a>
+<span class="sourceLineNo">105</span><a name="line.105"></a>
+<span class="sourceLineNo">106</span>        /* (non-Javadoc)<a name="line.106"></a>
+<span class="sourceLineNo">107</span>         * @see java.lang.Object#toString()<a name="line.107"></a>
+<span class="sourceLineNo">108</span>         */<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        public String toString() {<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                return symbol + " [" + code +"] " + labeled;<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        }<a name="line.111"></a>
+<span class="sourceLineNo">112</span>}<a name="line.112"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

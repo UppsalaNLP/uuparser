@@ -1,0 +1,229 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.core.syntaxgraph;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.SortedMap;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.SortedSet;<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.maltparser.core.exception.MaltChainedException;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.maltparser.core.symbol.SymbolTable;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.maltparser.core.syntaxgraph.edge.Edge;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.maltparser.core.syntaxgraph.node.DependencyNode;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>/**<a name="line.10"></a>
+<span class="sourceLineNo">011</span>*<a name="line.11"></a>
+<span class="sourceLineNo">012</span>*<a name="line.12"></a>
+<span class="sourceLineNo">013</span>* @author Johan Hall<a name="line.13"></a>
+<span class="sourceLineNo">014</span>*/<a name="line.14"></a>
+<span class="sourceLineNo">015</span>public interface DependencyStructure extends TokenStructure, SecEdgeStructure {<a name="line.15"></a>
+<span class="sourceLineNo">016</span>        public DependencyNode addDependencyNode() throws MaltChainedException;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>        public DependencyNode addDependencyNode(int index) throws MaltChainedException;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>        /**<a name="line.18"></a>
+<span class="sourceLineNo">019</span>         * Returns the dependency node identified by &lt;i&gt;index&lt;/i&gt; if it exists, otherwise &lt;i&gt;null&lt;/i&gt;.<a name="line.19"></a>
+<span class="sourceLineNo">020</span>         * <a name="line.20"></a>
+<span class="sourceLineNo">021</span>         * @param index the index of the dependency node<a name="line.21"></a>
+<span class="sourceLineNo">022</span>         * @return the dependency node identified by &lt;i&gt;index&lt;/i&gt; if it exists, otherwise &lt;i&gt;null&lt;/i&gt;.<a name="line.22"></a>
+<span class="sourceLineNo">023</span>         * @throws MaltChainedException<a name="line.23"></a>
+<span class="sourceLineNo">024</span>         */<a name="line.24"></a>
+<span class="sourceLineNo">025</span>        public DependencyNode getDependencyNode(int index) throws MaltChainedException;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>        public int nDependencyNode();<a name="line.26"></a>
+<span class="sourceLineNo">027</span><a name="line.27"></a>
+<span class="sourceLineNo">028</span><a name="line.28"></a>
+<span class="sourceLineNo">029</span>        public int getHighestDependencyNodeIndex();<a name="line.29"></a>
+<span class="sourceLineNo">030</span>        /**<a name="line.30"></a>
+<span class="sourceLineNo">031</span>         * Adds an edge from the head to the dependent identified by the indices of the dependency nodes.<a name="line.31"></a>
+<span class="sourceLineNo">032</span>         * <a name="line.32"></a>
+<span class="sourceLineNo">033</span>         * @param headIndex the index of the head dependency node<a name="line.33"></a>
+<span class="sourceLineNo">034</span>         * @param dependentIndex the index of the dependent dependency node<a name="line.34"></a>
+<span class="sourceLineNo">035</span>         * @return the edge that have been added.<a name="line.35"></a>
+<span class="sourceLineNo">036</span>         * @throws MaltChainedException<a name="line.36"></a>
+<span class="sourceLineNo">037</span>         */<a name="line.37"></a>
+<span class="sourceLineNo">038</span>        public Edge addDependencyEdge(int headIndex, int dependentIndex) throws MaltChainedException;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>        /**<a name="line.39"></a>
+<span class="sourceLineNo">040</span>         * Replace the head of the dependent with a new head. The labels are not affected.<a name="line.40"></a>
+<span class="sourceLineNo">041</span>         * <a name="line.41"></a>
+<span class="sourceLineNo">042</span>         * @param newHeadIndex the index of the new head dependency node<a name="line.42"></a>
+<span class="sourceLineNo">043</span>         * @param dependentIndex the index of the dependent dependency node<a name="line.43"></a>
+<span class="sourceLineNo">044</span>         * @return the edge that have been moved.<a name="line.44"></a>
+<span class="sourceLineNo">045</span>         * @throws MaltChainedException<a name="line.45"></a>
+<span class="sourceLineNo">046</span>         */<a name="line.46"></a>
+<span class="sourceLineNo">047</span>        public Edge moveDependencyEdge(int newHeadIndex, int dependentIndex) throws MaltChainedException;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>        /**<a name="line.48"></a>
+<span class="sourceLineNo">049</span>         * Remove an edge from the head to the dependent identified by the indices of the dependency nodes.<a name="line.49"></a>
+<span class="sourceLineNo">050</span>         * @param headIndex the index of the head dependency node<a name="line.50"></a>
+<span class="sourceLineNo">051</span>         * @param dependentIndex the index of the dependent dependency node<a name="line.51"></a>
+<span class="sourceLineNo">052</span>         * @throws MaltChainedException<a name="line.52"></a>
+<span class="sourceLineNo">053</span>         */<a name="line.53"></a>
+<span class="sourceLineNo">054</span>        public void removeDependencyEdge(int headIndex, int dependentIndex) throws MaltChainedException;<a name="line.54"></a>
+<span class="sourceLineNo">055</span>        /**<a name="line.55"></a>
+<span class="sourceLineNo">056</span>         * Returns the number of edges<a name="line.56"></a>
+<span class="sourceLineNo">057</span>         * <a name="line.57"></a>
+<span class="sourceLineNo">058</span>         * @return  the number of edges<a name="line.58"></a>
+<span class="sourceLineNo">059</span>         */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>        public int nEdges();<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        public SortedSet&lt;Edge&gt; getEdges();<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        /**<a name="line.62"></a>
+<span class="sourceLineNo">063</span>         * Returns a sorted set of integers {0,s,..n} , where each index i identifies a dependency node. Index 0<a name="line.63"></a>
+<span class="sourceLineNo">064</span>         * should always be the root dependency node and index s is the first terminal node and index n is the<a name="line.64"></a>
+<span class="sourceLineNo">065</span>         * last terminal node.  <a name="line.65"></a>
+<span class="sourceLineNo">066</span>         * <a name="line.66"></a>
+<span class="sourceLineNo">067</span>         * @return a sorted set of integers<a name="line.67"></a>
+<span class="sourceLineNo">068</span>         */<a name="line.68"></a>
+<span class="sourceLineNo">069</span>        public SortedSet&lt;Integer&gt; getDependencyIndices();<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        /**<a name="line.70"></a>
+<span class="sourceLineNo">071</span>         * Returns the root of the dependency structure.<a name="line.71"></a>
+<span class="sourceLineNo">072</span>         * <a name="line.72"></a>
+<span class="sourceLineNo">073</span>         * @return the root of the dependency structure.<a name="line.73"></a>
+<span class="sourceLineNo">074</span>         */<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        public DependencyNode getDependencyRoot();<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        /**<a name="line.76"></a>
+<span class="sourceLineNo">077</span>         * Returns &lt;i&gt;true&lt;/i&gt; if the head edge of the dependency node with &lt;i&gt;index&lt;/i&gt; is labeled, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.77"></a>
+<span class="sourceLineNo">078</span>         * <a name="line.78"></a>
+<span class="sourceLineNo">079</span>         * @param index the index of the dependency node<a name="line.79"></a>
+<span class="sourceLineNo">080</span>         * @return &lt;i&gt;true&lt;/i&gt; if the head edge of the dependency node with &lt;i&gt;index&lt;/i&gt; is labeled, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.80"></a>
+<span class="sourceLineNo">081</span>         * @throws MaltChainedException<a name="line.81"></a>
+<span class="sourceLineNo">082</span>         */<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        public boolean hasLabeledDependency(int index) throws MaltChainedException;<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        /**<a name="line.84"></a>
+<span class="sourceLineNo">085</span>         * Returns &lt;i&gt;true&lt;/i&gt; if all nodes in the dependency structure are connected, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.85"></a>
+<span class="sourceLineNo">086</span>         * <a name="line.86"></a>
+<span class="sourceLineNo">087</span>         * @return &lt;i&gt;true&lt;/i&gt; if all nodes in the dependency structure are connected, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.87"></a>
+<span class="sourceLineNo">088</span>         */<a name="line.88"></a>
+<span class="sourceLineNo">089</span>        public boolean isConnected();<a name="line.89"></a>
+<span class="sourceLineNo">090</span>        /**<a name="line.90"></a>
+<span class="sourceLineNo">091</span>         * Returns &lt;i&gt;true&lt;/i&gt; if all edges in the dependency structure are projective, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.91"></a>
+<span class="sourceLineNo">092</span>         * <a name="line.92"></a>
+<span class="sourceLineNo">093</span>         * @return &lt;i&gt;true&lt;/i&gt; if all edges in the dependency structure are projective, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.93"></a>
+<span class="sourceLineNo">094</span>         * @throws MaltChainedException<a name="line.94"></a>
+<span class="sourceLineNo">095</span>         */<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        public boolean isProjective() throws MaltChainedException;<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        /**<a name="line.97"></a>
+<span class="sourceLineNo">098</span>         * Returns &lt;i&gt;true&lt;/i&gt; if all dependency nodes have at most one incoming edge, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.98"></a>
+<span class="sourceLineNo">099</span>         * <a name="line.99"></a>
+<span class="sourceLineNo">100</span>         * @return  &lt;i&gt;true&lt;/i&gt; if all dependency nodes have at most one incoming edge, otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.100"></a>
+<span class="sourceLineNo">101</span>         */<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        public boolean isSingleHeaded();<a name="line.102"></a>
+<span class="sourceLineNo">103</span>        /**<a name="line.103"></a>
+<span class="sourceLineNo">104</span>         * Returns &lt;i&gt;true&lt;/i&gt; if the dependency structure are a tree (isConnected() &amp;&amp; isSingleHeaded()), otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.104"></a>
+<span class="sourceLineNo">105</span>         * <a name="line.105"></a>
+<span class="sourceLineNo">106</span>         * @return &lt;i&gt;true&lt;/i&gt; if the dependency structure are a tree (isConnected() &amp;&amp; isSingleHeaded()), otherwise &lt;i&gt;false&lt;/i&gt;.<a name="line.106"></a>
+<span class="sourceLineNo">107</span>         */ <a name="line.107"></a>
+<span class="sourceLineNo">108</span>        public boolean isTree();<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        /**<a name="line.109"></a>
+<span class="sourceLineNo">110</span>         * Returns the number of non-projective edges in the dependency structure.<a name="line.110"></a>
+<span class="sourceLineNo">111</span>         * <a name="line.111"></a>
+<span class="sourceLineNo">112</span>         * @return the number of non-projective edges in the dependency structure.<a name="line.112"></a>
+<span class="sourceLineNo">113</span>         * @throws MaltChainedException<a name="line.113"></a>
+<span class="sourceLineNo">114</span>         */<a name="line.114"></a>
+<span class="sourceLineNo">115</span>        public int nNonProjectiveEdges() throws MaltChainedException;<a name="line.115"></a>
+<span class="sourceLineNo">116</span>        /**<a name="line.116"></a>
+<span class="sourceLineNo">117</span>         * Links all subtrees to the root of the dependency structure.<a name="line.117"></a>
+<span class="sourceLineNo">118</span>         * <a name="line.118"></a>
+<span class="sourceLineNo">119</span>         * @throws MaltChainedException<a name="line.119"></a>
+<span class="sourceLineNo">120</span>         */<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        public void linkAllTreesToRoot() throws MaltChainedException;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        <a name="line.122"></a>
+<span class="sourceLineNo">123</span>        <a name="line.123"></a>
+<span class="sourceLineNo">124</span>        public LabelSet getDefaultRootEdgeLabels() throws MaltChainedException;<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        /**<a name="line.125"></a>
+<span class="sourceLineNo">126</span>         * Returns the default edge label of the root as a string value.<a name="line.126"></a>
+<span class="sourceLineNo">127</span>         * <a name="line.127"></a>
+<span class="sourceLineNo">128</span>         * @param table the symbol table that identifies the label type.<a name="line.128"></a>
+<span class="sourceLineNo">129</span>         * @return the default edge label of the root.<a name="line.129"></a>
+<span class="sourceLineNo">130</span>         * @throws MaltChainedException<a name="line.130"></a>
+<span class="sourceLineNo">131</span>         */<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        public String getDefaultRootEdgeLabelSymbol(SymbolTable table) throws MaltChainedException;<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        /**<a name="line.133"></a>
+<span class="sourceLineNo">134</span>         * Returns the default edge label of the root as an integer value.<a name="line.134"></a>
+<span class="sourceLineNo">135</span>         * <a name="line.135"></a>
+<span class="sourceLineNo">136</span>         * @param table the symbol table that identifies the label type.<a name="line.136"></a>
+<span class="sourceLineNo">137</span>         * @return the default edge label of the root as an integer value.<a name="line.137"></a>
+<span class="sourceLineNo">138</span>         * @throws MaltChainedException<a name="line.138"></a>
+<span class="sourceLineNo">139</span>         */<a name="line.139"></a>
+<span class="sourceLineNo">140</span>        public int getDefaultRootEdgeLabelCode(SymbolTable table) throws MaltChainedException;<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        /**<a name="line.141"></a>
+<span class="sourceLineNo">142</span>         * Sets the default edge label of the root.<a name="line.142"></a>
+<span class="sourceLineNo">143</span>         * <a name="line.143"></a>
+<span class="sourceLineNo">144</span>         * @param table the symbol table that identifies the label type.<a name="line.144"></a>
+<span class="sourceLineNo">145</span>         * @param defaultRootSymbol the default root edge label<a name="line.145"></a>
+<span class="sourceLineNo">146</span>         * @throws MaltChainedException<a name="line.146"></a>
+<span class="sourceLineNo">147</span>         */<a name="line.147"></a>
+<span class="sourceLineNo">148</span>        public void setDefaultRootEdgeLabel(SymbolTable table, String defaultRootSymbol) throws MaltChainedException;<a name="line.148"></a>
+<span class="sourceLineNo">149</span>        /**<a name="line.149"></a>
+<span class="sourceLineNo">150</span>         * Sets the default edge label of the root according to the default root label option<a name="line.150"></a>
+<span class="sourceLineNo">151</span>         * <a name="line.151"></a>
+<span class="sourceLineNo">152</span>         * @param rootLabelOption the default root label option<a name="line.152"></a>
+<span class="sourceLineNo">153</span>         * @param edgeSymbolTables a sorted map that maps the symbol table name to the symbol table object.<a name="line.153"></a>
+<span class="sourceLineNo">154</span>         * @throws MaltChainedException<a name="line.154"></a>
+<span class="sourceLineNo">155</span>         */<a name="line.155"></a>
+<span class="sourceLineNo">156</span>        public void setDefaultRootEdgeLabels(String rootLabelOption, SortedMap&lt;String, SymbolTable&gt; edgeSymbolTables) throws MaltChainedException;<a name="line.156"></a>
+<span class="sourceLineNo">157</span>}<a name="line.157"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+From version MaltParser-1.8 there is a new interface to MaltParser located in org.maltparser.concurrent and contains following classes:
+* org.maltparser.concurrent.ConcurrentMaltParserModel
+* org.maltparser.concurrent.ConcurrentMaltParserService
+* org.maltparser.concurrent.ConcurrentUtils
+
+This interface can only be used during parsing time and can hopefully be used in a multi-threaded environment. If you need an interface to MaltParser 
+during training of parser models then you have to use the old interface (see below). 
+
+The concurrent interface uses a more "light-weighted" parser and hopefully supports almost all features. One know exception is feature propagation is not supported
+in the new "light-weighted" parser.
+
+To compile the examples in srcex/org/maltparser/examples
+--------------------------------------------------------
+javac -d classes -cp ../../maltparser-1.9.0.jar:. srcex/org/maltparser/examples/*.java
+
+To run the examples
+-------------------
+First you need to create a Swedish parser model swemalt-mini.mco by using MaltParser:  
+java -jar ../../maltparser-1.9.0.jar -w output -c swemalt-mini -i ../data/swemalt-mini/gold/sv-stb-dep-mini-train.conll -a stacklazy -m learn \
+-l liblinear -llo -s_4_-c_0.1 -d CPOSTAG -s Stack[0] -T 1000 -F ../data/swemalt-mini/swedish-swap.xml
+
+Note that swemalt-mini.mco is not the same as swemalt.mco you find on http://www.maltparser.org. swemalt-mini.mco is trained on approximately 5% of 
+the training data and will not perform as well as the pre-trained model found on http://www.maltparser.org.
+
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ParseSentence1
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ParseSentence2
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ParseSentence3
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ConcurrentExample1
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ConcurrentExample2
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ConcurrentExample3
+
+====================================================================================================================================================
+Before MaltParser-1.8 there was another interface to MaltParser.  Note that this interface
+can only be used in a single-threaded environment and the interface doesn't use the light-weighted parser.   
+
+To compile the old examples (srcex/org/maltparser/examples/old) used by MaltParser-1.7.2 and previous versions of MaltParser
+----------------------------------------------------------------------------------------------------------------------------
+javac -d classes -cp ../../maltparser-1.9.0.jar:. srcex/org/maltparser/examples/old/*.java
+
+To run the old examples
+-----------------------
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ReadWriteCoNLL ../data/talbanken05_test.conll out.conll ../../appdata/dataformat/conllx.xml UTF-8
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.CreateDependencyGraph
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.CreatePhraseStructureGraph
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.TrainingExperiment
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParsingExperiment
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParseSentence1
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParseSentence2
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParseSentence3

@@ -1,0 +1,1071 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="robots" content="index,follow" />
+ <meta name="revisit-after" content="14 days" />
+ <meta name="keywords" content="maltparser, malt, dependency, parser, feature, Nivre, treebank, parsing" />
+ <meta name="description" content="User guide to MaltParser, which is a system for data-driven dependency parsing." />
+ <title>MaltParser - User Guide</title>
+ <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+ <link rel="stylesheet" type="text/css" href="print.css" media="print" />
+ <link rel="canonical" href="http://www.maltparser.org/userguide.html" />
+ <script type="text/javascript">
+	 var _gaq = _gaq || [];
+	 _gaq.push(['_setAccount', 'UA-22905106-2']);
+	 _gaq.push(['_trackPageview']);
+	 (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	 })();
+ </script>
+</head>
+<body>
+<h1>MaltParser</h1>
+<div id="navtop">Modified: June 4 2016</div>
+<div id="leftcol">
+ <div id="navcol">
+ <ul><li class="none"><a href="/" accesskey="1">Home</a></li></ul>
+ <h5>Get MaltParser</h5>
+ <ul>
+  <li class="none"><a href="download.html">Download</a></li>
+  <li class="none"><a href="changes.html" accesskey="2">Changes</a></li>
+  <li class="none"><a href="license.html" accesskey="8">License</a></li>
+ </ul>
+ <h5>Documentation</h5>
+ <ul>
+  <li class="none"><a href="intro.html">Introduction</a></li>
+  <li class="none"><a href="install.html">Installing MaltParser</a></li>
+  <li class="none"><a href="userguide.html" accesskey="6">User guide</a></li>
+  <li class="none"><a href="options.html">Options (short version)</a></li>
+  <li class="none"><a href="optiondesc.html">Options (long version)</a></li>
+  <li class="none"><a href="api/index.html">JavaDoc</a></li>
+ </ul>
+ <h5>Resources</h5>
+  <ul>
+   <li class="none"><a href="mco/mco.html">Pre-trained models</a></li>
+   <li class="none"><a href="publications.html">Publications</a></li>
+   <li class="none"><a href="conll.html">CoNLL Shared Task</a></li>
+   <li class="none"><a href="malteval.html">MaltEval</a></li>
+  </ul>
+  <h5>Contact</h5>
+  <ul><li class="none"><a href="contact.html" accesskey="7">Contact</a></li></ul>
+ </div>
+</div>
+
+<div id="bodycol">
+        <div class="section">
+<h2 id="userguide">User guide</h2>
+<p>The user guide consists of the these sections:</p>
+<table>
+<tr><td><a href="#startusing">Start using MaltParser</a></td></tr>
+<tr><td><a href="#control">Controlling MaltParser</a></td></tr>
+<tr><td><a href="#config">Configuration</a></td></tr>
+<tr><td><a href="#inout">Input and output format</a></td></tr>
+<tr><td><a href="#parsingalg">Parsing algorithm</a></td></tr>
+<tr><td><a href="#featurespec">Feature model</a></td></tr>
+<tr><td><a href="#learner">Learner</a></td></tr>
+<tr><td><a href="#predstrate">Prediction strategy</a></td></tr>
+<tr><td><a href="#partial_trees">Parsing with partial trees</a></td></tr>
+<tr><td><a href="#propagation">Propagation</a></td></tr>
+<tr><td><a href="#api">MaltParser API</a></td></tr>
+<tr><td><a href="#opt">MaltParser optimization</a></td></tr>
+<tr><td><a href="#ref">References</a></td></tr>
+</table>
+
+<h3 id="startusing">Start using MaltParser</h3>
+<p>This section contains a short guide to get familiar with MaltParser. We start by running MaltParser without any arguments 
+by typing the following at the command line prompt (it is important that you are in the maltparser-1.9.0 directory):</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar
+</pre>
+<p>This command will display the following output:</p>
+<pre>
+-----------------------------------------------------------------------------
+                          MaltParser 1.9.0                             
+-----------------------------------------------------------------------------
+         MALT (Models and Algorithms for Language Technology) Group          
+             Vaxjo University and Uppsala University                         
+                             Sweden                                          
+-----------------------------------------------------------------------------
+
+Usage: 
+   java -jar maltparser-1.9.0.jar -f &lt;path to option file&gt; &lt;options&gt;
+   java -jar maltparser-1.9.0.jar -h for more help and options
+
+help                  (  -h) : Show options                                 
+-----------------------------------------------------------------------------
+option_file           (  -f) : Path to option file                          
+-----------------------------------------------------------------------------
+verbosity            *(  -v) : Verbosity level                              
+  debug      - Logging of debugging messages
+  error      - Logging of error events
+  fatal      - Logging of very severe error events
+  info       - Logging of informational messages
+  off        - Logging turned off  
+  warn       - Logging of harmful situations
+-----------------------------------------------------------------------------
+
+Documentation: docs/index.html
+</pre>
+<p>Here you can see the basic usage and options. To get all available options:</p>
+<pre>
+prompt>$ java -jar maltparser-1.9.0.jar -h
+</pre> 
+<p>All these options are also described in a <a href="options.html">short documentation</a> and in a <a href="optiondesc.html">full documentation</a>.</p>
+
+<h4 id="startusing_train">Train a parsing model</h4>
+<p>Now we are ready to train our first parsing model. In the directory <strong>examples/data</strong> there are two data files <strong>talbanken05_train.conll</strong> 
+and <strong>talbanken05_test.conll</strong>, which contain very small portions of the Swedish treebank <a href="http://stp.lingfil.uu.se/~nivre/research/Talbanken05.html" target="_blank">Talbanken05</a>. 
+The example data sets are formatted according to the <a href="http://ilk.uvt.nl/conll/#dataformat" target="_blank">CoNLL-X data format</a>. Note that
+these data sets are very small and that you need more training data to create a useful parsing model.</p>
+<p>To train a default parsing model with MaltParser type the following at the command line prompt:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c test -i examples/data/talbanken05_train.conll -m learn
+</pre>
+<p>This line tells MaltParser to create a parsing model named <strong>test.mco</strong> (also know as a Single Malt configuration file) from the data 
+in the file <strong>examples/data/talbanken05_train.conll</strong>. The parsing model gets its name from the configuration name, which is specified 
+by the option flag -c without the file suffix <strong>.mco</strong>. 
+The configuration name is a name of your own choice. The option flag -i tells the parser where to find the input data. The last option flag -m 
+specifies the processing mode <strong>learn</strong> (as opposed to <strong>parse</strong>), since in this case we want to induce a model by using the default 
+learning method (LIBSVM).</p>
+<p>MaltParser outputs the following information:</p>
+<pre>
+-----------------------------------------------------------------------------
+                          MaltParser 1.9.0                             
+-----------------------------------------------------------------------------
+         MALT (Models and Algorithms for Language Technology) Group          
+             Vaxjo University and Uppsala University                         
+                             Sweden                                          
+-----------------------------------------------------------------------------
+
+Started: Fri May 02 23:45:18 CEST 2014
+  Transition system    : Arc-Eager
+  Parser configuration : Nivre with allow_root=true, allow_reduce=false and enforce_tree=false
+  Oracle               : Arc-Eager
+  Data Format          : conllx.xml
+.          	      1	      0s	      5MB
+.          	     10	      0s	      6MB
+           	     32	      0s	      8MB
+Creating Liblinear model odm0.liblinear.moo
+- Read all training instances.
+- Train a parser model using LibLinear.
+- Optimize the memory usage
+- Save the Liblinear model odm0.liblinear.moo
+Learning time: 00:00:01 (1290 ms)
+Finished: Fri May 02 23:45:19 CEST 2014
+</pre>
+<p>Most of the logging information is self-explaining: it tells you that the parser is started at a certain time and date and that it reads sentences 
+from a specified file containing 32 sentences. It continues with information about the learning models that are created, in this case only
+one LIBSVM model. It then saves the symbol table and all options (which cannot be changed later during parsing) and stores everything in a configuration file
+named <strong>test.mco</strong>. Finally, the parser informs you about the learning time.</p> 
+
+<h4 id="startusing_parse">Parse data with your parsing model</h4>
+<p>We have now created a parsing model that we can use for parsing new sentences from the same language. It is important that unparsed sentences are 
+formatted according to the format that was used during training (except that the output columns for head and dependency relation are missing).
+In this case tokens are represented by the first six columns of the CoNLL-X data format. To parse type the following:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c test -i examples/data/talbanken05_test.conll -o out.conll -m parse
+</pre>
+<p>where <strong>-c test</strong> is the name of the configuration (the prefix file name of <strong>test.mco</strong>), <strong>-i examples/data/talbanken05_test.conll</strong> tells 
+the parser where to find the input data, <strong>-o out.conll</strong> is the output file name, and finally <strong>-m parse</strong> specifies that the parser should be 
+executed in parsing mode.</p>
+
+<h3 id="control">Controlling MaltParser</h3>
+<p>MaltParser can be controlled by specifying values for a range of different options. The values for these option can be specified in different ways:</p>
+
+<table class="bodyTable">
+<tr class="a"><th>Method</th><th>Description</th><th>Example</th></tr>
+<tr class="b"><td align="left">Command-line option flag</td><td align="left">Uses the option flag with a dash (<strong>-</strong>) before the option flag and a blank between the option flag and the value</td><td align="left">-c test</td></tr>
+<tr class="b"><td align="left">Command-line option group and option name</td><td align="left">Uses both the option group name and the option name to specify the option, with two dashes (<strong>--</strong>)
+before the option group name and one dash (<strong>-</strong>) to separate the option group name and the option name. The equality sign (<strong>=</strong>) is used for separating the option and the value.</td><td align="left">--config-name=test</td></tr>
+<tr class="b"><td align="left">Command-line option name</td><td align="left">Is a shorter version of <strong>Command-line option group and option name</strong> and can only be used when the option name is unambiguous. </td><td align="left">--name=test</td></tr>
+<tr class="b"><td align="left">Option file</td><td align="left">The option settings are specified in a option file, formatted in XML. 
+To tell MaltParser to read the option file the option flag <strong>-f</strong> is used. Note that command line option settings override the settings 
+in the option file if options are specified twice. </td>
+<td align="left">
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;experiment&gt;
+  &lt;optioncontainer&gt;
+    &lt;optiongroup groupname="config"&gt;
+      &lt;option name="name" value="test"/&gt;
+    &lt;/optiongroup&gt;
+  &lt;/optioncontainer&gt;
+&lt;/experiment&gt;
+</pre>
+</td></tr>
+</table>
+
+<p>All options are described in a <a href="options.html">short documentation</a> and a <a href="optiondesc.html">full documentation</a>.</p> 
+
+<h4 id="optionfile">Option file</h4>
+<p>An option file is useful when you have many options that differ from the default value, as is often the case when you are training a parsing model.</p> 
+
+<p>The option file should have the following XML format:</p>
+<table class="bodyTable">
+<tr class="a"><th>Element</th><th>Description</th></tr>
+<tr class="b"><td align="left">experiment</td><td>All other elements must be enclosed by an <strong>experiment</strong> element.</td></tr>
+<tr class="b"><td align="left">optioncontainer</td><td>It is possible to have one or more option containers, but MaltParser 1.9.0 only uses the first
+option container. Later releases may make use of multiple option containers, for instance, to build ensemble systems.</td></tr>
+<tr class="b"><td align="left">optiongroup</td><td>There can be one or more option group elements within an option container. The attribute <strong>groupname</strong>
+specifies the option group name (see description of all <a href="optiondesc.html">available options</a>).</td></tr>
+<tr class="b"><td align="left">option</td><td>An option group can consist of one or more option. The element <strong>option</strong> has
+two attributes: <strong>name</strong> that corresponds to an option name and <strong>value</strong> that is the value of the option. Please consult the description of all
+<a href="optiondesc.html">available options</a> to see all legal option names and values.</td></tr>
+</table>
+<p>Here is an example (examples/optionexample.xml):</p>
+
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;experiment&gt;
+	&lt;optioncontainer&gt;
+		&lt;optiongroup groupname="config"&gt;
+			&lt;option name="name" value="example1"/&gt;
+			&lt;option name="flowchart" value="learn"/&gt;
+		&lt;/optiongroup&gt;
+		&lt;optiongroup groupname="singlemalt"&gt;
+			&lt;option name="parsing_algorithm" value="nivrestandard"/&gt;
+		&lt;/optiongroup&gt;
+		&lt;optiongroup groupname="input"&gt;
+			&lt;option name="infile" value="examples/data/talbanken05_train.conll"/&gt;
+		&lt;/optiongroup&gt;
+		&lt;optiongroup groupname="nivre"&gt;
+		    &lt;option name="allow_root" value="false"/&gt;
+			&lt;option name="allow_reduce" value="false"/&gt;
+		&lt;/optiongroup&gt;
+	&lt;/optioncontainer&gt;
+&lt;/experiment&gt;
+</pre>
+<p>To run MaltParser with the above option file type:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar  -f examples/optionexample.xml
+</pre>
+<p>This command will create a configuration file <strong>example1.mco</strong> based on the settings in the option file. It is possible to override the options by
+command-line options, for example:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -f examples/optionexample.xml -a nivreeager
+</pre>
+<p>which will create a configuration based on the same setting except the parsing algorithm is now <strong>nivreeager</strong> instead of <strong>nivrestandard</strong>. If you
+want to create a configuration that has the same settings as the option file with command-line options, you need to type:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c example1 -m learn 
+                           -i examples/data/talbanken05_train.conll -a nivrestandard 
+                           -ne false -nr false 
+</pre>
+<p>To parse using one of the three configurations you simply type:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c example1 -m parse 
+                           -i examples/data/talbanken05_test.conll -o out1.conll
+</pre> 
+
+<h3 id="config">Configuration</h3>
+<p>The purpose of the configuration is to gather information about all settings and files into one file. During learning, the configuration is created and stored 
+in a configuration file with the file suffix <strong>.mco</strong>. This configuration file can later be reused whenever the trained model is used to parse new data.
+Potentially there can be several types of configuration, but MaltParser 1.9.0 only knows one type: the Single Malt configuration (<strong>singlemalt</strong>).</p>
+
+<h4  id="flow">Flow chart</h4>
+<p>MaltParser have seven pre-defined flow charts that describe what tasks MaltPasrer should perform. These seven flow charts are: </p>
+<table class="bodyTable">
+<tr class="a"><th>Name</th><th>Description</th></tr>
+<tr class="b"><td align="left">learn</td><td>Creates a Single Malt configuration and induces a parsing model from input data.</td></tr>
+<tr class="b"><td align="left">parse</td><td>Parses sentences using a Single Malt configuration.</td></tr>
+<tr class="b"><td align="left">info</td><td>Prints information about a configuration.</td></tr>
+<tr class="b"><td align="left">unpack</td><td>Unpacks a configuration into a directory with the same name.</td></tr>
+<tr class="b"><td align="left">proj</td><td>Creates a configuration and projectivizes input data without inducing a parsing model.</td></tr>
+<tr class="b"><td align="left">deproj</td><td>Deprojectivizes input data using a configuration.</td></tr>
+<tr class="b"><td align="left">convert</td><td>A simple data format converter</td></tr>
+</table>
+  
+
+<p>A Single Malt configuration creates a parsing model based on one set of option values. The <strong>learn</strong> and <strong>parse</strong> modes are explained above in <a href="#startusing_train">Train a parsing model</a> and 
+<a href="#startusing_parse">Parse data with your parsing model</a>, the other four modes are described below using the same example.</p>
+
+<h4 id="singlemalt_info">Get configuration information</h4>
+<p>Sometimes it is useful to get information about a configuration, for instance, to know which settings have been used when creating the 
+configuration. To get this information you type:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c test -m info
+</pre>
+<p>This will output a lot of information about the configuration:</p>
+<pre>
+-----------------------------------------------------------------------------
+                          MaltParser 1.9.0                             
+-----------------------------------------------------------------------------
+         MALT (Models and Algorithms for Language Technology) Group          
+             Vaxjo University and Uppsala University                         
+                             Sweden                                          
+-----------------------------------------------------------------------------
+
+Started: Fri May 02 23:49:37 CEST 2014
+CONFIGURATION
+Configuration name:   test
+Configuration type:   singlemalt
+Created:              Fri May 02 23:45:18 CEST 2014
+
+SYSTEM
+Operating system architecture: amd64
+Operating system name:         Linux
+JRE vendor name:               Oracle Corporation
+JRE version number:            1.7.0_55
+
+MALTPARSER
+Version:                       1.8
+Build date:                    May 2 2014
+
+SETTINGS
+2planar
+  reduceonswitch (-2pr)                 false
+config
+  workingdir (  -w)                     user.dir
+  name (  -c)                           test
+  logging ( -cl)                        info
+  flowchart (  -m)                      learn
+  type (  -t)                           singlemalt
+  logfile (-lfi)                        stdout
+  url (  -u)                            
+covington
+  allow_root ( -cr)                     true
+  allow_shift ( -cs)                    false
+graph
+  max_sentence_length (-gsl)            256
+  head_rules (-ghr)                     
+  root_label (-grl)                     ROOT
+guide
+  decision_settings (-gds)              T.TRANS+A.DEPREL
+  kbest_type ( -kt)                     rank
+  data_split_structure (  -s)           
+  learner (  -l)                        liblinear
+  kbest (  -k)                          -1
+  features (  -F)                       
+  classitem_separator (-gcs)            ~
+  data_split_column (  -d)              
+  data_split_threshold (  -T)           50
+input
+  infile (  -i)                         examples/data/talbanken05_train.conll
+  reader ( -ir)                         tab
+  iterations ( -it)                     1
+  charset ( -ic)                        UTF-8
+  reader_options (-iro)                 
+  format ( -if)                         /appdata/dataformat/conllx.xml
+lib
+  save_instance_files ( -li)            false
+  external ( -lx)                       
+  verbosity ( -lv)                      silent
+  options ( -lo)                        
+multiplanar
+  planar_root_handling (-prh)           normal
+nivre
+  allow_root ( -nr)                     true
+  enforce_tree ( -nt)                   false
+  allow_reduce ( -ne)                   false
+output
+  charset ( -oc)                        UTF-8
+  writer_options (-owo)                 
+  format ( -of)                         
+  writer ( -ow)                         tab
+  outfile (  -o)                        
+planar
+  no_covered_roots (-pcov)               false
+  connectedness (-pcon)                  none
+  acyclicity (-pacy)                     true
+pproj
+  covered_root (-pcr)                   none
+  marking_strategy ( -pp)               none
+  lifting_order (-plo)                  shortest
+singlemalt
+  parsing_algorithm (  -a)              nivreeager
+  null_value ( -nv)                     one
+  guide_model ( -gm)                    single
+  propagation ( -fp)                    
+  diagnostics ( -di)                    false
+  use_partial_tree ( -up)               false
+  diafile (-dif)                        stdout
+  mode ( -sm)                           parse
+
+DEPENDENCIES
+--guide-features (  -F)                 NivreEager.xml
+
+FEATURE MODEL
+MAIN
+InputColumn(FORM,Input[0])
+InputColumn(FORM,Input[1])
+InputColumn(FORM,Stack[0])
+InputColumn(FORM,head(Stack[0]))
+InputColumn(POSTAG,Input[0])
+InputColumn(POSTAG,Input[1])
+InputColumn(POSTAG,Input[2])
+InputColumn(POSTAG,Input[3])
+InputColumn(POSTAG,Stack[0])
+InputColumn(POSTAG,Stack[1])
+Merge(InputColumn(POSTAG,Input[0]),OutputColumn(DEPREL,ldep(Input[0])))
+Merge(InputColumn(POSTAG,Stack[0]),InputColumn(POSTAG,Input[0]))
+Merge(InputColumn(POSTAG,Stack[0]),OutputColumn(DEPREL,Stack[0]))
+Merge3(InputColumn(POSTAG,Input[0]),InputColumn(POSTAG,Input[1]),InputColumn(POSTAG,Input[2]))
+Merge3(InputColumn(POSTAG,Input[1]),InputColumn(POSTAG,Input[2]),InputColumn(POSTAG,Input[3]))
+Merge3(InputColumn(POSTAG,Stack[0]),InputColumn(POSTAG,Input[0]),InputColumn(POSTAG,Input[1]))
+Merge3(InputColumn(POSTAG,Stack[0]),OutputColumn(DEPREL,ldep(Stack[0])),OutputColumn(DEPREL,rdep(Stack[0])))
+Merge3(InputColumn(POSTAG,Stack[1]),InputColumn(POSTAG,Stack[0]),InputColumn(POSTAG,Input[0]))
+OutputColumn(DEPREL,Stack[0])
+OutputColumn(DEPREL,ldep(Input[0]))
+OutputColumn(DEPREL,ldep(Stack[0]))
+OutputColumn(DEPREL,rdep(Stack[0]))
+
+liblinear INTERFACE
+Finished: Fri May 02 23:49:37 CEST 2014
+</pre>
+<p>The information is grouped into different categories:</p>
+<table class="bodyTable">
+<tr class="a"><th>Category</th><th>Description</th></tr>
+<tr class="b"><td align="left">CONFIGURATION</td><td align="left">The name and type of the configuration and the date when it was created.</td></tr>
+<tr class="b"><td align="left">SYSTEM</td><td align="left">Information about the system that was used when creating the configuration, such as processor, operating system and 
+version of Java Runtime Environment (JRE).</td></tr>
+<tr class="b"><td align="left">MALTPARSER</td><td align="left">Version of MaltParser and when it was built.</td></tr>
+<tr class="b"><td align="left">SETTINGS</td><td align="left">All option settings divided into several categories.</td></tr>
+<tr class="b"><td align="left">DEPENDENCIES</td><td align="left">In some cases the parser self-corrects when an illegal combination of options is specified or some option is missing. 
+In the example above the feature specification file is not specified and the parser uses the default feature specification file for the Nivre arc-eager parsing algorithm.</td></tr>
+<tr class="b"><td align="left">FEATURE MODEL</td><td align="left">Outputs the content of the feature specification file.</td></tr>
+<tr class="b"><td align="left">&lt;LEARNER&gt; INTERFACE</td><td align="left">Information about the interface to the learner, in this case LIBSVM.</td></tr>
+<tr class="b"><td align="left">&lt;LEARNER&gt; SETTINGS</td><td align="left">All settings of specific learner options, in this case LIBSVM.</td></tr>
+</table>
+
+<h4 id="singlemalt_unpack">Unpack a configuration</h4>
+<p>It is possible to unpack the configuration file <strong>test.mco</strong> by typing:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c test -m unpack
+</pre>
+<p>This command will create a new directory <strong>test</strong> containing the following files:</p>
+<table class="bodyTable">
+<tr class="a"><th>File</th><th>Description</th></tr>
+<tr class="b"><td align="left">conllx.xml</td><td align="left">XML document describing the data format.</td></tr>
+<tr class="b"><td align="left">NivreEager.xml</td><td align="left">XML document containing the feature model specification.</td></tr>
+<tr class="b"><td align="left">odm0.libsvm.moo, odm0.libsvm.map</td><td align="left">The LIBSVM model that is used for predicting the next parsing action.</td></tr>
+<tr class="b"><td align="left">savedoptions.sop</td><td align="left">All option settings that cannot be changed during parsing.</td></tr>
+<tr class="b"><td align="left">symboltables.sym</td><td align="left">All distinct symbols in the training data, divided into different columns. 
+For example, the column POSTAG in the CoNLL-X format has its own symbol table with all distinct values occurring in the training data. </td></tr>
+<tr class="b"><td align="left">test_singlemalt.info</td><td align="left">Information about the configuration (same as described above).</td></tr>
+</table>
+
+<h4 id="singlemalt_proj">Projectivize input data</h4>
+<p>It is possible to projectivize an input file, with or without involving parsing.</p>
+<p>All non-projective arcs in the input file are replaced by projective arcs by applying a lifting operation. The lifts are encoded in the 
+dependency labels of the lifted arcs. The encoding scheme can be varied using the flag -pp (<a href="optiondesc.html#pproj-marking_strategy">marking_strategy</a>), and there are 
+currently five of them: <strong>none</strong>, <strong>baseline</strong>, <strong>head</strong>, <strong>path</strong> and <strong>head+path</strong>. (See Nivre &amp; Nilsson (2005) for 
+more details concerning the encoding schemes.) A dependency file can be projectivized using the <strong>head</strong> encoding by typing:</p> 
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c pproj -m proj
+                           -i examples/data/talbanken05_test.conll 
+                           -o projectivized.conll
+                           -pp head
+</pre>
+<p>There is one additional option for the projectivization called <strong>covered_root</strong>, which is mainly used for handling dangling punctuation. 
+Depending on the treebank, a punctuation token located in the middle of a sentence can attach directly to the root, which entails that all 
+arcs crossing the head arc of the punctuation token are non-projective. This, in turn, results in lots of (unnecessary) lifts, and can be 
+avoided by using the <a href="optiondesc.html#pproj-covered_root">covered_root</a> flag -pcr. This option has four values: <strong>none</strong>, <strong>left</strong>, <strong>right</strong> and <strong>head</strong>. 
+For the last three values, tokens like dangling punctuation are then attached to one of the tokens connected by the shortest arc 
+covering the token, either the leftmost (<strong>left</strong>), rightmost (<strong>right</strong>), or head (<strong>head</strong>) token of the covering arc. 
+This will prevent all the unnecessary lifts. </p>
+<p>The projecitivization and deprojectivization (below), including the encoding schemes, are know as pseudo-projective transformations and are
+described in more detail in Nivre &amp; Nilsson (2005). The only difference compared to Nivre &amp; Nilsson is that it is the most deeply nested 
+non-projective arc that is lifted first, not the shortest one.</p>
+
+<h4 id="singlemalt_deproj">Deprojectivize output data</h4>
+<p>MaltParser can also be used to deprojectivize a projective file containing pseudo-projective encoding, with or without involving parsing, 
+where it is assumed that the configuration <strong>pproj</strong> contains the same encoding scheme as during projectivization. It could look like this:</p>
+<pre>
+prompt> java -jar maltparser-1.9.0.jar -c pproj -m deproj
+                           -i projectivized.conll
+                           -o deprojectivized.conll
+</pre>
+<p>The file <strong>deprojectivized.conll</strong> will contain the deprojectivized data. Note that is is only the encoding schemes <strong>head</strong>, 
+<strong>path</strong> and <strong>head+path</strong> that actively try to recover the non-projective arcs.</p>
+
+<h3 id="inout">Input and output format</h3>
+<p>The format and encoding of the input and output data is controlled by the <strong>format</strong>, <strong>reader</strong>, <strong>writer</strong> and <strong>charset</strong> options
+in the <strong>input</strong> and <strong>output</strong> option group. The <a href="http://ilk.uvt.nl/conll/#dataformat" target="_blank">CoNLL-X</a>, <a href="http://universaldependencies.org/format.html" target="_blank">CoNLL-U</a> and
+<a href="http://stp.lingfil.uu.se/~nivre/research/MaltXML.html" target="_blank">Malt-TAB</a> data format specification files are already included in 
+the MaltParser jar-file (maltparser-1.9.0.jar) in the <strong>appdata/dataformat</strong> directory. The CoNLL-X data format specification file looks like this:</p>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;dataformat name="conllx"&gt;
+	&lt;column name="ID" category="INPUT" type="INTEGER"/&gt;
+	&lt;column name="FORM" category="INPUT" type="STRING"/&gt;
+	&lt;column name="LEMMA" category="INPUT" type="STRING"/&gt;
+	&lt;column name="CPOSTAG" category="INPUT" type="STRING"/&gt;
+	&lt;column name="POSTAG" category="INPUT" type="STRING"/&gt;
+	&lt;column name="FEATS" category="INPUT" type="STRING"/&gt;
+	&lt;column name="HEAD" category="HEAD" type="INTEGER"/&gt;
+	&lt;column name="DEPREL" category="DEPENDENCY_EDGE_LABEL" type="STRING"/&gt;
+	&lt;column name="PHEAD" category="IGNORE" type="INTEGER" default="_"/&gt;
+	&lt;column name="PDEPREL" category="IGNORE" type="STRING" default="_"/&gt;
+
+&lt;/dataformat&gt;
+</pre>
+<p>A data format specification file has two types of XML elements. First, there is the <strong>dataformat</strong> element with the attribute <strong>name</strong>, which 
+gives the data format a name. The <strong>dataformat</strong> element encloses one or more <strong>column</strong> elements, which contain information about individual columns.
+The <strong>column</strong> elements have three attributes:</p>
+
+<table class="bodyTable">
+<tr class="a"><th>Attribute</th><th>Description</th></tr>
+<tr class="b"><td align="left">name</td><td>The column name. Note that the column name can be used by an option and within a feature model specification as an identifier of the column.</td></tr>
+<tr class="b"><td align="left">category</td><td>The column category, one of the following:
+<table>
+<tr><td>INPUT</td><td>Input data in both learning and parsing mode, such as part-of-speech tags or word forms.</td></tr>
+<tr><td>DEPENDENCY_EDGE_LABEL</td><td>Column containing a dependency label. If the parser is to learn to produce labeled dependency graphs, these must be present in learning mode.</td></tr>
+<tr><td>OUTPUT</td><td>Same as DEPENDENCY_EDGE_LABEL, used by MaltParser version 1.0-1.1</td></tr>
+<tr><td>PHRASE_STRUCTURE_EDGE_LABEL</td><td>Column containing a phrase structure edge label.</td></tr>
+<tr><td>PHRASE_STRUCTURE_NODE_LABEL</td><td>Column containing a phrase category label.</td></tr>
+<tr><td>SECONDARY_EDGE_LABEL</td><td>Column containing a secondary edge label.</td></tr>
+<tr><td>HEAD</td><td>The HEAD column defines the unlabeled structure of a dependency graph and is also output data of the parser in parsing mode. </td></tr>
+<tr><td>IGNORE</td><td>The column value will be ignored and therefore will not be present in the output file.</td></tr>
+</table>
+</td></tr>
+<tr class="b"><td align="left">type</td><td>Defines the data type of the column and/or its treatment during learning and parsing:
+<table>
+<tr><td>STRING</td><td>The column value will be used as a string value in the feature model.</td></tr>
+<tr><td>INTEGER</td><td>The column value will be used as an integer value in the feature model.</td></tr>
+<tr><td>BOOLEAN</td><td>The column value will be used as a boolean value in the feature model.</td></tr>
+<tr><td>REAL</td><td>The column value will be used as a real value in the feature model.</td></tr>
+</table>
+</td></tr>
+<tr class="b"><td align="left">default</td><td>The default output for columns that have the column type IGNORE.</td></tr>
+</table>
+<p>It is possible to define your own input/output format and then supply the data format specification file with the <strong>format</strong> option.</p>
+<p>Currently, MaltParser only supports tab-separated data files, which means that a sentence in a data file in the CoNLL-X 
+data format could look like this:</p>
+<pre>
+1	Den	_	PO	PO	DP	2	SS	_	_
+2	blir	_	V	BV	PS	0	ROOT	_	_
+3	gemensam	_	AJ	AJ	_	2	SP	_	_
+4	fÃ¶r	_	PR	PR	_	2	OA	_	_
+5	alla	_	PO	PO	TP	6	DT	_	_
+6	inkomsttagare	_	N	NN	HS	4	PA	_	_
+7	oavsett	_	PR	PR	_	2	AA	_	_
+8	civilstÃ¥nd	_	N	NN	SS	7	PA	_	_
+9	.	_	P	IP	_	2	IP	_	_
+</pre>
+<p>Finally, the character encoding can be specified with the <strong>charset</strong> option and this option is used by MaltParser to define 
+the java class <a href="http://java.sun.com/javase/6/docs/api/" target="_blank">Charset</a>.</p>
+
+<h3 id="parsingalg">Parsing Algorithm</h3>
+<p>Any deterministic parsing algorithm compatible with the MaltParser architecture can be implemented in the MaltParser package. MaltParser 1.9.0
+contains three families of parsing algorithms: <strong>Nivre</strong>, <strong>Covington</strong> and <strong>Stack</strong>.</p>
+
+
+<h4>Nivre</h4>
+<p>Nivre's algorithm (Nivre 2003, Nivre 2004) is a linear-time algorithm limited to projective dependency structures. It can 
+be run in arc-eager (<strong>-a nivreeager</strong>) or arc-standard (<strong>-a nivrestandard</strong>) mode. In addition, 
+the <a href="optiondesc.html#nivre-allow_root">allow_root</a> option decides whether the parser will start parsing with 
+an artificial root token on the stack (true) or with an empty stack (false), and 
+the <a href="optiondesc.html#nivre-allow_reduce">allow_reduce</a> option decides whether the reduce transition is allowed even if the token on top 
+of the stack does not have a head (true) or whether only attached tokens can be reduced (false). The enforce_tree option can be used with the 
+arc-eager version to make sure that the output parse is a tree.</p>
+<p>Nivre's algorithm uses two data structures:</p>
+<ul>
+<li>A stack <strong>Stack</strong> of partially processed tokens, where <strong>Stack[i]</strong> is the i+1th token from the top of the stack, with the top being <strong>Stack[0]</strong>.</li>
+<li>A list <strong>Input</strong> of remaining input tokens, where <strong>Input[i]</strong> is the i+1th token in the list, with the first token being <strong>Input[0]</strong>.</li>
+</ul>
+<p><strong>NB: </strong> Please note that the allow_root and allow_reduce options replace the older root_handling option from version 1.7. In order 
+to replicate the behavior of older versions, use the following settings:</p>
+<ul>
+<li><strong>root_handling = normal</strong> corresponds to <strong>allow_root = true</strong> and <strong>allow_reduce = true</strong></li>
+<li><strong>root_handling = relaxed</strong> corresponds to <strong>allow_root = false</strong> and <strong>allow_reduce = true</strong></li>
+<li><strong>root_handling = strict</strong> corresponds to <strong>allow_root = false</strong> and <strong>allow_reduce = false</strong></li>
+</ul>
+
+<p>The new default behavior is <strong>allow_root = true</strong> and <strong>allow_reduce = false</strong>.</p> 
+
+<h4 id="covington">Covington</h4>
+<p>Covington's algorithm (Covington 2001) is a quadratic-time algorithm for unrestricted dependency structures, which proceeds by trying to 
+link each new token to each preceding token. It can be run in a projective (<strong>-a covproj</strong>) mode, where the linking operation is restricted to 
+projective dependency structures, or in a non-projective (<strong>-a covnonproj</strong>) mode, allowing non-projective (but acyclic) dependency structures. 
+In addition, there are two options, <a href="optiondesc.html#covington-allow_shift">allow shift</a> and <a href="optiondesc.html#covington-allow_root">allow root</a>,
+that controls the behavior of Covington's algorithm.</p>
+<p>Covington's algorithm uses four data structures:</p>
+<ul>
+<li>A list <strong>Left</strong> of partially processed tokens, where <strong>Left[i]</strong> is the i+1th token in the list, with the first token being <strong>Left[0]</strong>.</li>
+<li>A list <strong>Right</strong> of remaining input tokens, where <strong>Right[i]</strong> is the i+1th token in the list, with the first token being <strong>Right[0]</strong>.</li> 
+<li>A list <strong>LeftContext</strong> of unattached tokens to the left of <strong>Right[0]</strong> (and to the right of <strong>Left[0]</strong>), where <strong>LeftContext[i]</strong> is the i+1th 
+such token, with <strong>LeftContext[0]</strong> being the token immediately to the left of <strong>Right[0]</strong>.</li> 
+<li>A list <strong>RightContext</strong> of unattached tokens to the right of <strong>Left[0]</strong> (and to the left of <strong>Right[0]</strong>), where <strong>RightContext[i]</strong> is the i+1th 
+such token, with <strong>RightContext[0]</strong> being the token immediately to the right of <strong>Left[0]</strong>.</li> 
+</ul>
+
+<h4 id="stack">Stack</h4>
+<p>The Stack algorithms are similar to Nivre's algorithm in that they use a stack and a buffer but differ in that they add arcs 
+between the two top nodes on the stack (rather than the top node on the stack and the first node in the buffer) and that they guarantee 
+that the output is a tree without post-processing. The Projective (<strong>-a stackproj</strong>) Stack algorithm uses essentially the same transitions 
+as the arc-standard version of Nivre's algorithm and is limited to projective dependency trees. The Eager (<strong>-a stackeager</strong>) and 
+Lazy (<strong>-a stacklazy</strong>) Stack algorithms in addition make use of a swap transition, which makes it possible to derive arbitrary 
+non-projective dependency trees. The Eager algorithm applies the swap transition as soon as possible, while the Lazy algorithm postpones 
+swapping as long as possible. The Stack algorithms are described in Nivre (2009) and Nivre, Kuhlmann and Hall (2009). </p>
+<p>The Stack algorithms use three data structures:</p>
+<ul>
+<li>A stack <strong>Stack</strong> of partially processed tokens, where <strong>Stack[i]</strong> is the i+1th token from the top of the stack, with the top being <strong>Stack[0]</strong>.</li>
+<li>A list <strong>Input</strong>, which is a prefix of the buffer containing all nodes that have been on Stack, where <strong>Input[i]</strong> is the i+1th token from the start of <strong>Input</strong>.</li> 
+<li>A list <strong>Lookahead</strong>, which is a suffix of the buffer containing all nodes that have <strong>not</strong> been on Stack, where <strong>Lookahead[i]</strong> is the i+1th token from the start of <strong>Lookahead</strong>.</li>
+</ul>
+<p>Note that it is only the swap transition that can move nodes from <strong>Stack</strong> back to the buffer, which means that for the Projective Stack algorithm <strong>Input</strong> will always be empty and <strong>Lookahead</strong> will always contain all the nodes in the buffer.</p>
+
+<a ></a>
+<h4 id="planar">Planar</h4>
+
+<p>The Planar algorithm (G&oacute;mez-Rodr&iacute;guez and Nivre, 2010)
+is a linear-time algorithm limited to planar dependency structures, the
+set of structures that do not contain any crossing links. It works in a
+similar way to Nivre's algorithm in arc-eager mode, but with more
+fine-grained transitions. The <a href="optiondesc.html#planar-connectedness">connectedness</a>, <a href="optiondesc.html#planar-acyclicity">acyclicity</a> and <a href="optiondesc.html#planar-no_covered_roots">no covered roots</a>
+options can be used to configure which additional constraints, apart
+from planarity, will be imposed on the target set of dependency graphs.
+<br />
+<br />
+Just like Nivre's algorithm, the Planar algorithm uses two data structures:</p>
+<ul>
+  <li>A stack <strong>Stack</strong> of partially processed tokens, where <strong>Stack[i]</strong> is the i+1th token from the top of the stack, with the top being <strong>Stack[0]</strong>.</li>
+  <li>A list <strong>Input</strong> of remaining input tokens, where <strong>Input[i]</strong> is the i+1th token in the list, with the first token being <strong>Input[0]</strong>.</li>
+</ul>
+
+<h4 id="two-planar">2-Planar</h4>
+<p>The 2-Planar algorithm (G&oacute;mez-Rodr&iacute;guez and Nivre,
+2010) is a linear-time algorithm that can be used to parse 2-planar
+dependency structures, i.e., those whose links may be coloured with two
+colours in such a way that no two same-coloured links cross. The
+2-planar algorithm uses two stacks, one of which is the active stack at
+a given time while the other is the inactive stack. Input words are
+always pushed into both stacks at the same time, but then the algorithm
+behaves like the Planar parser working with only one stack (the active
+stack), until a Switch transition is executed: this transition switches
+the stacks around, making the previously inactive stack active and vice
+versa.<br />
+<br />
+The <a href="optiondesc.html#2planar-reduceonswitch">reduce on switch</a> option can be used to change the specific behaviour of Switch transitions, while the <a href="optiondesc.html#2planar-planar_root_handling">planar root handling</a> option can be employed to change the algorithm's behavior with respect to root tokens.</p>
+<p>The 2-Planar algorithm uses three data structures:</p>
+
+<ul>
+  <li>An active stack (<span style="font-weight: bold;">ActiveStack</span>) of partially processed tokens that may be linked on a given plane, where <span style="font-weight: bold;">ActiveStack[i]</span> is the i+1th token from the top of the stack, with the top being <span style="font-weight: bold;">ActiveStack[0]</span>.</li>
+  <li>An inactive stack (<span style="font-weight: bold;">InactiveStack</span>) of partially processed tokens that may be linked on the other plane, where <span style="font-weight: bold;">InactiveStack[i]</span> is the i+1th token from the top of the stack, with the top being <span style="font-weight: bold;">InactiveStack[0]</span>.</li>
+  <li>A list <span style="font-weight: bold;">Input</span> of remaining input tokens, where <span style="font-weight: bold;">Input[i]</span> is the i+1th token in the list, with the first token being <span style="font-weight: bold;">Input[0]</span>.</li>
+</ul>
+
+<h3 id="featurespec">Feature model</h3>
+<p>MaltParser uses history-based feature models for predicting the next action in the deterministic derivation of a dependency 
+structure, which means that it uses features of the partially built dependency structure together with features of 
+the (tagged) input string. Features that make use of the partially built dependency structure corresponds to the <strong>OUTPUT</strong> category of
+the data format, for example <code>DEPREL</code> in the CoNLL-X data format, and features of the input string corresponds to the <strong>INPUT</strong> 
+category of the data format, for example <code>CPOSTAG</code> and <code>FORM</code>. </p>
+
+
+<p>The feature model specification must be specified in an XML file according to the format below or in a text file formatted according to the specification 
+given by <a href="">the MaltParser 0.x user guide</a>. The latter specification format should be saved in a text file where the file name must end 
+with the file suffix <code>.par</code>.</p>
+
+<p>Below you can see an example of the new XML format (Nivre arc-eager default feature model):</p>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;featuremodels&gt;
+	&lt;featuremodel name="nivreeager"&gt;
+		&lt;feature&gt;InputColumn(POSTAG, Stack[0])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(POSTAG, Input[0])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(POSTAG, Input[1])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(POSTAG, Input[2])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(POSTAG, Input[3])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(POSTAG, Stack[1])&lt;/feature&gt;
+		&lt;feature&gt;OutputColumn(DEPREL, Stack[0])&lt;/feature&gt;
+		&lt;feature&gt;OutputColumn(DEPREL, ldep(Stack[0]))&lt;/feature&gt;
+		&lt;feature&gt;OutputColumn(DEPREL, rdep(Stack[0]))&lt;/feature&gt;
+		&lt;feature&gt;OutputColumn(DEPREL, ldep(Input[0]))&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(FORM, Stack[0])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(FORM, Input[0])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(FORM, Input[1])&lt;/feature&gt;
+		&lt;feature&gt;InputColumn(FORM, head(Stack[0]))&lt;/feature&gt;
+	&lt;/featuremodel&gt;
+&lt;/featuremodels&gt;
+</pre>
+<p>Each feature is defined using a functional notation with three types of functions:</p>
+<table class="bodyTable">
+<tr class="a"><th>Type</th><th>Description</th></tr>
+<tr class="b"><td align="left">Address function</td><td>There are two types of address functions: parsing algorithm specific functions and dependency graph functions.
+The parsing algorithm specific functions have the form <strong>Data-structure[i]</strong>, where <strong>Data-structure</strong> is a data structure used by a specific parsing algorithm 
+and <strong>i</strong> is an offset from the start position in this data structure. The following data structures are available for different parsing algorithms:
+<table>
+<tr><td width="15%">Nivre arc-eager</td><td><strong>Stack</strong>, <strong>Input</strong></td></tr>
+<tr><td width="15%">Nivre arc-standard</td><td><strong>Stack</strong>, <strong>Input</strong></td></tr>
+<tr><td width="15%">Covington projective</td><td><strong>Left</strong>, <strong>Right</strong>.</td></tr>
+<tr><td width="15%">Covington non-projective</td><td><strong>Left</strong>, <strong>Right</strong>, <strong>LeftContext</strong>, <strong>RightContext</strong>.</td></tr>
+<tr><td width="15%">Stack projective</td><td><strong>Stack</strong>, <strong>Input</strong>, <strong>Lookahead</strong></td></tr>
+<tr><td width="15%">Planar</td><td><strong>Stack</strong>, <strong>Input</strong></td></tr>
+<tr><td width="15%">2-Planar</td><td><strong>ActiveStack</strong>, <strong>InactiveStack</strong>, <strong>Input</strong></td></tr>
+</table>
+<p>The dependency graph address functions take a graph node as argument and navigates from this graph node to another graph node (if possible).
+There are seven dependency graph address functions:</p>
+<table>
+<tr><td width="15%">head</td><td>Returns the head of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">ldep</td><td>Returns the leftmost (left) dependent of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">rdep</td><td>Returns the rightmost (right) dependent of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">lsib</td><td>Returns the next left (same-side) sibling of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">rsib</td><td>Returns the next right (same-side) sibling of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">pred</td><td>Returns the predecessor of the graph node in the linear order of the input string if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">succ</td><td>Returns the successor of the graph node in the linear order of the input string if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">anc</td><td>Returns the ancestor of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">panc</td><td>Returns the proper ancestor of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">ldesc</td><td>Returns the leftmost descendant of the graph node if defined; otherwise, a null-value</td></tr>
+<tr><td width="15%">pldesc</td><td>Returns the proper leftmost descendant of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">rdesc</td><td>Returns the rightmost descendant of the graph node if defined; otherwise, a null-value.</td></tr>
+<tr><td width="15%">prdesc</td><td>Returns the proper rightmost descendant of the graph node if defined; otherwise, a null-value.</td></tr>
+
+</table>
+</td></tr>
+
+<tr class="b"><td align="left">Feature function</td><td>A feature function takes at least one address function as input and returns a feature value defined in terms of the input arguments.
+There are seven feature functions available:
+<table>
+<tr><td width="15%">InputColumn</td><td>Takes two arguments, a column name and an address function, and returns
+the column value for the node identified by the address function.
+The column name must correspond to an <strong>input</strong> column in the data format and the address function 
+ must return a token node in the input string. (If the address function is undefined, a null-value is returned.) Example:
+<pre>
+InputColumn(POSTAG, Stack[0])
+</pre>
+</td></tr>
+<tr><td width="15%">OutputColumn</td><td>Takes two arguments, a column name and an address function, and returns the column value for the node identified by the address function. The column name must correspond to an <strong>output</strong> column in the data format and the address function must
+ return a graph node in the dependency graph. (If the address function is undefined, a null-value is returned.) Example:
+<pre>
+OutputColumn(DEPREL, Stack[0])
+</pre></td></tr>
+<tr><td  width="15%">InputArc</td><td>Takes three arguments, a column name and two address functions, and returns LEFT, RIGHT or NULL depending on whether the column value defines a left-pointing, right-pointing or no arc between the two nodes identified by the address functions. The column name must correspond to an <strong>input</strong> column of integer type in the data format and the address functions must return token nodes in the input string. (If one of the address functions is undefined, a null-value is returned.) This feature function can be used to define features over the dependency graph predicted by another parser and given as input to MaltParser. Example:
+<pre>
+InputArc(PHEAD, Stack[0], Input[0])
+</pre>
+</td></tr>
+<tr><td  width="15%">InputArcDir</td><td>Takes two arguments, a column name and an address function, and returns LEFT, RIGHT or ROOT depending on whether the column value defines the head of the node identified by the address function to be situated on the left or on the right or to be the artificial root node. The column name must correspond to an <strong>input</strong> column of integer type in the data format and the address function must return a token node in the input string. (If the address function is undefined, a null-value is returned.) This feature function can be used to define features over the dependency graph predicted by another parser and given as input to MaltParser. Example:
+<pre>
+InputArcDir(PHEAD, Stack[0])
+</pre>
+</td></tr>
+<tr><td  width="15%">InputTable</td><td>Takes two arguments, a column name and an address function, and returns the column value for the node  identified by the address function. The column name must correspond to a new column defined in a 
+propagation specification and the address function must return a token node in the input string. (If the address function is undefined, a null-value is returned.) Example:
+<pre>
+InputTable(CJ-POSTAG, Stack[0])
+</pre>
+</td></tr>
+<tr><td  width="15%">Exists</td><td>Takes an address function as argument and returns TRUE if the address function returns an existing node (and FALSE otherwise). Example:
+<pre>
+Exists(ldep(Stack[0]))
+</pre>
+</td></tr>
+<tr><td  width="15%">Distance</td><td>Takes three arguments, two address functions and a normalization string, and returns the string distance (number of intervening words) between the words identified by the address functions. The normalization string is a list of integers (separated by "|") specifying the intervals used to discretize the distance metric. The list must start with 0 and be sorted in ascending order. The value returned is (a category corresponding to) the greatest integer in the normalization string that is smaller than or equal to the exact distance. Example:
+<pre>
+Distance(Stack[0], Input[0], 0|1|2|5)
+</pre>
+This feature function returns the number of words occurring between the token on top of the stack and the first token in the input buffer, with discrete categories 0, 1, 2-4 and 5-.
+</td></tr>
+<tr><td  width="15%">NumOf</td><td>Takes three arguments, an address function, a relation name, and a normalization string, and returns the number of nodes having the specified relation to the node identified by the address function. Valid relation names are <strong>ldeps</strong> and <strong>rdeps</strong> and <strong>deps</strong> (for left dependent, right dependent and dependent, respectively). The normalization string is a list of integers (separated by "|") specifying the intervals used to discretize the metric. The list must start with 0 and be sorted in ascending order. The value returned is (a category corresponding to) the greatest integer in the normalization string that is smaller than or equal to the exact number. Example:
+<pre>
+NumOf(Stack[0], ldeps, 0|1|2|5)
+</pre>
+This feature function returns the number of left dependents of the token on top of the stack, with discrete categories 0, 1, 2-4 and 5-.
+</td></tr>
+</table>
+</td></tr>
+
+<tr class="b"><td align="left">Feature map function</td><td>Maps a feature value onto a new set of values and takes as arguments a feature specification
+and one or more arguments that control the mapping. There is one feature map function:
+<table>
+<tr><td>Split</td><td>Splits the feature value into a set of feature values. In addition to a feature specification it takes a 
+delimiter (regular expression) as an argument. 
+The example below shows how the value of the FEATS column in the CoNLL-X data format is split into a set of values using the delimiter |:
+<pre>
+Split(InputColumn(FEATS, Input[0]),\|)
+</pre>
+</td></tr>
+<tr><td>Suffix</td><td>Extract the suffix of a feature value (only InputColumn) with a suffix length <code>n</code>. By convention, if n = 0, the 
+entire feature value is included; otherwise only the n last characters are included in the feature value. The following specification defines a feature 
+the value of which is the four-character suffix of the word form (<code>FORM</code>) of the next input token.
+<pre>
+Suffix(InputColumn(FORM, Input[0]), 4)
+</pre>
+
+</td></tr>
+<tr><td>Prefix</td><td>Extract the prefix of a feature value with a prefix length n. By convention, if n = 0, the entire 
+feature value is included; otherwise only the n first characters are included in the feature value. The following specification defines a feature 
+the value of which is the four-character prefix of the word form (<code>FORM</code>) of the next input token.
+<pre>
+Prefix(InputColumn(FORM, Input[0]), 4)
+</pre>
+</td></tr>
+
+<tr><td>Merge</td><td>Merge two feature value into one feature value. The following specification defines a feature 
+the value of which the part-of-speech of the top token of the stack and the next input token are merged into one feature value.
+<pre>
+Merge(InputColumn(POSTAG, Stack[0]), InputColumn(POSTAG, Input[0]))
+</pre>
+</td></tr>
+
+<tr><td>Merge3</td><td>Merge three feature value into one feature value. The following specification defines a feature 
+the value of which the part-of-speech of the three next input token are merged into one feature value.
+<pre>
+Merge3(InputColumn(POSTAG, Input[0]), InputColumn(POSTAG, Input[1]), InputColumn(POSTAG, Input[2]))
+</pre>
+</td></tr>
+</table>
+</td></tr>
+</table>
+<p>MaltParser is equipped with a default feature model specification for each parsing algorithm and it automatically identifies the corresponding 
+feature model specification. It is possible to define your own feature model specification using the description above and using 
+the <a href="optiondesc.html#guide-features">--guide-features</a> option to specify the feature model specification file.</p>
+
+<h3 id="learner">Learner</h3>
+<p>MaltParser can be used with different learning algorithms to induce classifiers from training data. From version 1.3 there are two built-in learners: LIBSVM and LIBLINEAR.</p>
+
+<h4 id="libsvm">LIBSVM</h4>
+<p>LIBSVM (Chang and Lin 2001) is a machine learning package for support vector machines with different kernels. Information about different options can be found on the <a href="http://www.csie.ntu.edu.tw/~cjlin/libsvm/">LIBSVM web site</a>.</p>
+
+<h4 id="liblinear">LIBLINEAR</h4>
+<p>LIBLINEAR (Fan et al. 2008) is a machine learning package for linear classifiers. Information about different options can be found on the <a href="http://www.csie.ntu.edu.tw/~cjlin/liblinear/">LIBLINEAR web site</a>.</p>
+
+<h3 id="predstrate">Prediction strategy</h3>
+<p>From version 1.1 of MaltParser it is possible to choose different prediction strategies. Previously, MaltParser (version 1.0.4 and earlier) 
+combined the prediction of the transition with the prediction of the arc label into one complex prediction with one feature model. With MaltParser 1.1 
+and later versions it is possible to divide the prediction of the parser action into several predictions. For example with the Nivre arc-eager algorithm, 
+it is possible to first predict the transition; if the transition is SHIFT or REDUCE the nondeterminism is resolved, but if the predicted transition is RIGHT-ARC
+or LEFT-ARC the parser continues to predict the arc label. This prediction strategy enables the system to have three different feature models: one for predicting
+the transition and two for predicting the arc label (RIGHT-ARC and LEFT-ARC).
+</p>
+
+<p>To control the prediction strategy the <a href="optiondesc.html#guide-decision_settings">--guide-decision_settings</a> option is used with following notation:</p>
+<table class="bodyTable">
+<tr class="a"><th>Notation</th><th>Name</th><th>Description</th></tr>
+<tr class="b"><td align="left">T.TRANS+A.DEPREL</td><td>Combined prediction</td><td>Combines the prediction of the transition (T.TRANS) and the arc label (A.DEPREL).
+This is the default setting of MaltParser 1.1 and was the only setting available for previous versions of MaltParser.</td></tr> 
+<tr class="b"><td align="left">T.TRANS,A.DEPREL</td><td>Sequential prediction</td><td>First predicts the transition (T.TRANS) and 
+continues to predict the arc label (A.DEPREL) if the transition requires an arc label.</td></tr>
+<tr class="b"><td align="left">T.TRANS#A.DEPREL</td><td>Branching prediction</td><td>First predicts the transition (T.TRANS) 
+and if the transition does not require any arc label then the nondeterminism is resolved, but if the predicted transition 
+requires 
+an arc label then the parser continues to predict the arc label. If the transition is a left arc transition it predicts the arc label using the 
+corresonding model for left arc transition and if it is a right arc transition it uses the right arc model.</td></tr> 
+</table>
+
+To differentiate the feature model when using sequential prediction you can specify two submodels for T.TRANS and A.DEPREL. Here is a truncated example:
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;featuremodels&gt;
+	&lt;featuremodel name="sequential"&gt;
+		&lt;submodel name="T.TRANS"&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Stack[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[1])&lt;/feature&gt;
+			...
+		&lt;/submodel&gt;
+		&lt;submodel name="A.DEPREL"&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Stack[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[1])&lt;/feature&gt;
+			...
+			&lt;feature&gt;InputColumn(FORM,ldep(Input[0]))&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(FORM,rdep(Stack[0]))&lt;/feature&gt;
+		&lt;/submodel&gt;
+	&lt;/featuremodel&gt;
+&lt;/featuremodels&gt;
+</pre>
+
+When using branching prediction it is possible to use three submodels (T.TRANS, RA.A.DEPREL and LA.A.DEPREL), where RA denotes the right arc model and
+LA the left arc model:
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;featuremodels&gt;
+	&lt;featuremodel name="branched"&gt;
+		&lt;submodel name="T.TRANS"&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Stack[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[1])&lt;/feature&gt;
+			...
+		&lt;/submodel&gt;
+		&lt;submodel name="RA.A.DEPREL"&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Stack[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[1])&lt;/feature&gt;
+			...
+			&lt;feature&gt;InputColumn(FORM,ldep(Input[0]))&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(FORM,rdep(Stack[0]))&lt;/feature&gt;
+		&lt;/submodel&gt;
+		&lt;submodel name="LA.A.DEPREL"&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Stack[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[0])&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(POSTAG, Input[1])&lt;/feature&gt;
+			...
+			&lt;feature&gt;InputColumn(FORM,ldep(Input[0]))&lt;/feature&gt;
+			&lt;feature&gt;InputColumn(FORM,rdep(Stack[0]))&lt;/feature&gt;
+   		&lt;/submodel&gt;
+	&lt;/featuremodel&gt;
+&lt;/featuremodels&gt;
+</pre>
+If the feature specification file does not contain any submodels then the parser uses the same feature model for all submodels. 
+
+<h3 id="partial_trees">Partial trees</h3>
+<p>Since MaltParser 1.4 it is possible to parse with partial trees, i.e., sentences may be input with a partial dependency structure, a subgraph of a complete dependency tree. To parse with partial trees you need to do the following: </p>
+<ul>
+<li>Add two input data columns to your data format file: <em>PARTHEAD</em> defines the unlabeled structure of a partial dependency tree by specifying the head of each token (and 0 if the token is a root in the partial dependency graph) and <em>PARTDEPREL</em> defines the dependency labels of the partial dependency tree.</li>
+<li>Add the partial dependency structure to the columns <em>PARTHEAD</em> and <em>PARTDEPREL</em> in your input file.</li>
+<li>The option <em>--singlemalt-use_partial_tree</em> need to be set to <em>true</em> by using the command line flag <em>-up true</em></li>
+</ul>
+
+<p>The two data columns should look like these:</p>
+<pre>
+	&lt;column name="PARTHEAD" category="INPUT" type="INTEGER"/&gt;
+	&lt;column name="PARTDEPREL" category="INPUT" type="STRING"/&gt;
+</pre>
+<p>Note: To benefit from the partial dependency structure, the parser model should also be trained on partial trees. Moreover, since arcs can only be added between roots of the partial tree, the partial tree should satisfy the following constraint: if an arc (i, j) is included, then the subtree rooted at j in the complete tree must also be included.
+</p>
+
+<h3 id="propagation">Propagation</h3>
+<p>Since MaltParser 1.4 it is possible to propagate column values towards the root of the dependency graph when a labeled transition is performed. The propagation is managed by a propagation specification 
+file formatted in XML with the following attributes:</p>
+<table class="bodyTable">
+<tr class="a"><th>Attribute</th><th>Name</th><th>Description</th></tr>
+<tr class="b"><td align="left">FROM</td><td>The data column from which the values are copied. </td></tr> 
+<tr class="b"><td align="left">TO</td><td>The data column to which the values are copied. This data column should not exist in the data format and the values are interpreted as sets. When a new value is copied to this column, the result is the set union of the new value and the old value. The atomic values (set members) are separated by the sign |.</td></tr>
+<tr class="b"><td align="left">FOR</td><td>A subset of values that can be copied (other values will not be copied). If empty then all values will be copied.</td></tr> 
+<tr class="b"><td align="left">OVER</td><td>A subset of dependency labels that allow propagation when a labeled transition is performed. If empty then all dependency labels allow propagation.</td></tr> 
+</table>
+
+<p>Below you can see an example of a propagation specification file:</p>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;propagations&gt;
+   &lt;propagation name="coordination"&gt;
+      &lt;from&gt;POSTAG&lt;/from&gt;
+      &lt;to&gt;CJ-POSTAG&lt;/to&gt;
+      &lt;for&gt;&lt;/for&gt;
+      &lt;over&gt;CJ&lt;/over&gt;
+   &lt;/propagation&gt;
+   &lt;propagation name="valency"&gt;
+      &lt;from&gt;DEPREL&lt;/from&gt;
+      &lt;to&gt;VALENCY&lt;/to&gt;
+      &lt;for&gt;EO|ES|FO|FS|IO|OA|OO|OP|SP|SS|VO|VS&lt;/for&gt;
+      &lt;over&gt;&lt;/over&gt;
+   &lt;/propagation&gt;
+&lt;/propagations&gt;
+</pre>
+<p>The top half specifies that POSTAG values should be copied to the CJ-POSTAG field of the head, whenever an arc with the label CJ (for conjunct) is created. Assuming an analysis of coordination where the coordinating conjunction is the head of coordinate structure, this will have the effect of propagating information about the POSTAG values of the conjuncts to the head of the coordinate structure.</p>
+<p>The bottom half specifies that DEPREL values should be copied to the VALENCY field of the head, whenever an arc labeled by one of the labels listed in the FOR parameter is created. Provided that these labels denote valency-bound functions, this will have the effect of propagating information about satisfaction of valency constraints to the head.</p>
+<p>New columns introduced in the FROM attribute of a propagation specification can be referenced in feature specifications using the function InputTable, e.g. <em>&lt;feature&gt;InputTable(CJ-POSTAG, Stack[0])&lt;/feature&gt;</em>.</p>
+
+<h3 id="phrase">Phrase structure parsing</h3>
+<p>MaltParser 1.1 and MaltParser 1.2 can be turned into a phrase structure parser that recovers both continuous and discontinuous
+phrases with both phrase labels and grammatical functions. The parser induces a parser model from treebank data by automatically
+transforming the phrase structure representations into dependency representations with complex arc labels,
+which makes it possible to recover the phrase structure with both phrase labels and grammatical functions
+(See Hall (2008), Hall and Nivre (2008a) and Hall and Nivre (2008b) for more details).</p>
+
+<p>Note: The implementation of phrase structure parsing has been removed in later releases of MaltParser. Please
+download <a href="download.html">MaltParser 1.2</a> and read the offline user guide of this version to parse phrase structure with MaltParser 1.2.</p>
+
+<h3 id="api">MaltParser API</h3>
+<p>From version MaltParser-1.8 there is a new interface to MaltParser located in org.maltparser.concurrent and contains following classes:</p>
+<ul>
+<li>org.maltparser.concurrent.ConcurrentMaltParserModel</li>
+<li>org.maltparser.concurrent.ConcurrentMaltParserService</li>
+<li>org.maltparser.concurrent.ConcurrentUtils</li>
+</ul>
+<p>This interface can only be used during parsing time and can hopefully be used in a multi-threaded environment. If you need an interface to MaltParser 
+during training of parser models then you have to use the old interface (see below).</p>
+
+<p>The concurrent interface uses a more "light-weighted" parser and hopefully supports almost all features. One know exception is feature propagation is not supported
+in the new "light-weighted" parser.</p>
+
+<p>To compile the examples in srcex/org/maltparser/examples</p>
+<pre>
+cd examples/apiexamples
+javac -d classes -cp ../../maltparser-1.9.0.jar:. srcex/org/maltparser/examples/*.java
+</pre>
+<p>To run the examples you first need to create a Swedish parser model swemalt-mini.mco by using MaltParser:</p>
+<pre>  
+java -jar ../../maltparser-1.9.0.jar -w output -c swemalt-mini -i ../data/swemalt-mini/gold/sv-stb-dep-mini-train.conll -a stacklazy -m learn \
+-l liblinear -llo -s_4_-c_0.1 -d CPOSTAG -s Stack[0] -T 1000 -F ../data/swemalt-mini/swedish-swap.xml
+</pre>
+<p>Note that swemalt-mini.mco is not the same as swemalt.mco you find on http://www.maltparser.org. swemalt-mini.mco is trained on approximately 5% of 
+the training data and will not perform as well as the pre-trained model found on http://www.maltparser.org.</p>
+<pre>
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ParseSentence1
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ParseSentence2
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ParseSentence3
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ConcurrentExample1
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ConcurrentExample2
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.ConcurrentExample3
+</pre>
+
+<h4>Old MaltParserService interface</h4>
+<p>Before MaltParser-1.8 there was another interface to MaltParser. Note that this interface can only be used in a single-threaded environment 
+and the interface doesn't use the light-weighted parser.</p> 
+<p>There are two ways to call the MaltParserService:</p>
+
+<ul>
+<li>By running experiments, which allows other programs to train a parser model or parse with a parser model. IO-handling is done by MaltParser.</li>
+<li>By first initializing a parser model and then calling the method parse() for each sentence that should be parsed by MaltParser. IO-handling of the sentence is then done by the third-party program.</li>
+</ul>
+<p>For more information about how to use MaltParserService, please see the examples provided in the directory <strong>examples/apiexamples/srcex/org/maltparser/examples/old</strong></p>
+<p>To compile the old examples (srcex/org/maltparser/examples/old) used by MaltParser-1.7.2 and previous versions of MaltParser</p>
+<pre>
+javac -d classes -cp ../../maltparser-1.9.0.jar:. srcex/org/maltparser/examples/old/*.java
+</pre>
+<p>To run the old examples</p>
+<pre>
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ReadWriteCoNLL ../data/talbanken05_test.conll out.conll ../../appdata/dataformat/conllx.xml UTF-8
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.CreateDependencyGraph
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.CreatePhraseStructureGraph
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.TrainingExperiment
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParsingExperiment
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParseSentence1
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParseSentence2
+java -cp classes:../../maltparser-1.9.0.jar org.maltparser.examples.old.ParseSentence3
+</pre>
+
+
+
+
+<p>Other programs can invoke Maltparser in various ways, but the easiest way is to use the <em>org.maltparser.MaltParserService</em> class.</p>
+
+
+<h3 id="maven">Maven repository</h3>
+<p>Since version 1.7, MaltParser is also available via the official <a href="http://search.maven.org/#search|ga|1|maltparser"  onclick="_gaq.push(['_trackEvent', 'Maven', 'OutLink', 'Maven repository']);">Maven repository</a>.</p>
+<pre>
+&lt;dependency&gt;
+	&lt;groupId&gt;org.maltparser&lt;/groupId&gt;
+	&lt;artifactId&gt;maltparser&lt;/artifactId&gt;
+	&lt;version&gt;1.9.0&lt;/version&gt;
+&lt;/dependency&gt;
+</pre>
+
+<h3 id="opt">MaltParser optimization</h3>
+<p>MaltParser is a fairly complex system with many parameters that need to be optimized. Simply using the system <q>out of the box</q>with default 
+settings is therefore likely to result in suboptimal performance.</p>
+
+<p>Please read "<a href="http://maltparser.org/guides/opt/quick-opt.pdf" onclick="_gaq.push(['_trackEvent', 'PDF', 'Open', 'MaltParser Optimization']);">A Quick Guide to MaltParser Optimization</a>" to get hints and tips to 
+how you can optimize MaltParser.</p>
+
+<h3 id="ref">References</h3>
+<ul>
+<li class="pub">Chang, C.-C. and Lin, C.-J. (2001) LIBSVM : a library for support vector machines. Software available at http://www.csie.ntu.edu.tw/~cjlin/libsvm.</li>
+<li class="pub">Fan, R.-E., Chang, K.-W., Hsieh, C.-J., Wang, X.-R. and Lin, C.-J. (2008) LIBLINEAR: A library for large linear classification. <em>Journal of Machine Learning Research</em> 9, 1871-1874.</li> 
+<li class="pub">Hall, J. (2008) Transition-Based Natural Language Parsing with Dependency and Constituency Representations. Acta Wexionensia, 
+No 152/2008, Computer Science, V&auml;xj&ouml; University (PhD Thesis)</li>
+<li class="pub">Hall, J. and J. Nivre (2008a) A Dependency-Driven Parser for German Dependency and Constituency Representations.
+In <em>Proceedings of the ACL Workshop on Parsing German (PaGe08)</em>, June 20, 2008, Columbus, Ohio, US, pp. x-x. (to appear)</li>
+<li class="pub">Hall, J. and J. Nivre (2008b) Parsing Discontinuous Phrase Structure with Grammatical Functions.
+In Ranta, A. and Nordst&ouml;m, B. (eds.) In <em>Proceedings of the 6th International Conference on Natural Language Processing (GoTAL 2008)</em>, 
+LNAI 5221, Springer-Verlag, August 25-27, 2008, Gothenburg, Sweden, pp. 169-180.</li>
+<li class="pub">Nivre, J. (2009) Non-Projective Dependency Parsing in Expected Linear Time. In <em>Proceedings of the Joint Conference of the 47th Annual Meeting of the ACL and the 4th International Joint Conference on Natural Language Processing of the AFNLP</em>, 351-359. </li>
+<li class="pub">Nivre, J., Kuhlmann, M. and Hall, J. (2009) An Improved Oracle for Dependency Parsing with Online Reordering. In <em>Proceedings of the 11th International Conference on Parsing
+Technologies (IWPT'09)</em>. </li>
+<li class="pub">Nivre, J. and J. Nilsson (2005) Pseudo-Projective Dependency Parsing. In <em>Proceedings of the 43rd Annual Meeting 
+of the Association for Computational Linguistics</em>, pp. 99-106.</li>
+</ul>
+
+<p id="footer">Copyright &copy; Johan Hall, Jens Nilsson and Joakim Nivre</p>
+        </div>
+</div>
+
+</body>
+</html>

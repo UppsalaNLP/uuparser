@@ -1,0 +1,232 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.core.syntaxgraph.headrules;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.ArrayList;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.apache.log4j.Logger;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.maltparser.core.exception.MaltChainedException;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.maltparser.core.io.dataformat.ColumnDescription;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.maltparser.core.symbol.SymbolTable;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.maltparser.core.syntaxgraph.headrules.PrioSetMember.RelationToPrevMember;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.maltparser.core.syntaxgraph.node.NonTerminalNode;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.maltparser.core.syntaxgraph.node.PhraseStructureNode;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.maltparser.core.syntaxgraph.node.TokenNode;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>/**<a name="line.13"></a>
+<span class="sourceLineNo">014</span>*<a name="line.14"></a>
+<span class="sourceLineNo">015</span>*<a name="line.15"></a>
+<span class="sourceLineNo">016</span>* @author Johan Hall<a name="line.16"></a>
+<span class="sourceLineNo">017</span>*/<a name="line.17"></a>
+<span class="sourceLineNo">018</span>public class PrioSet extends ArrayList&lt;PrioSetMember&gt; {<a name="line.18"></a>
+<span class="sourceLineNo">019</span>        public static final long serialVersionUID = 8045568022124816313L;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>        protected PrioList prioList;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>        protected PrioSetMember cache;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>        <a name="line.22"></a>
+<span class="sourceLineNo">023</span>        public PrioSet(PrioList prioList) {<a name="line.23"></a>
+<span class="sourceLineNo">024</span>                setPrioList(prioList);<a name="line.24"></a>
+<span class="sourceLineNo">025</span>                cache = new PrioSetMember(this, null, null, -1, RelationToPrevMember.START);<a name="line.25"></a>
+<span class="sourceLineNo">026</span>        }<a name="line.26"></a>
+<span class="sourceLineNo">027</span>        <a name="line.27"></a>
+<span class="sourceLineNo">028</span>        public PrioSet(PrioList prioList, String setSpec) throws MaltChainedException {<a name="line.28"></a>
+<span class="sourceLineNo">029</span>                setPrioList(prioList);<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                cache = new PrioSetMember(this, null, null, -1, RelationToPrevMember.START);<a name="line.30"></a>
+<span class="sourceLineNo">031</span>                init(setSpec);<a name="line.31"></a>
+<span class="sourceLineNo">032</span>        }<a name="line.32"></a>
+<span class="sourceLineNo">033</span>        <a name="line.33"></a>
+<span class="sourceLineNo">034</span>        public void init(String setSpec) throws MaltChainedException {<a name="line.34"></a>
+<span class="sourceLineNo">035</span>                String spec = setSpec.trim();<a name="line.35"></a>
+<span class="sourceLineNo">036</span>                String[] disItems = spec.split("\\|");<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                for (int i = 0; i &lt; disItems.length; i++) {<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                        String[] conItems = spec.split("\\&amp;");<a name="line.38"></a>
+<span class="sourceLineNo">039</span>                        for (int j = 0; j &lt; conItems.length; j++) {<a name="line.39"></a>
+<span class="sourceLineNo">040</span>                                int index = conItems[j].indexOf(':');<a name="line.40"></a>
+<span class="sourceLineNo">041</span>                                if (index != -1) {<a name="line.41"></a>
+<span class="sourceLineNo">042</span>                                        SymbolTable table = prioList.getSymbolTableHandler().getSymbolTable(conItems[j].substring(0, index));<a name="line.42"></a>
+<span class="sourceLineNo">043</span>                                        ColumnDescription column = prioList.getDataFormatInstance().getColumnDescriptionByName(conItems[j].substring(0, index));<a name="line.43"></a>
+<span class="sourceLineNo">044</span>                                        if (i == 0 &amp;&amp; j == 0) {<a name="line.44"></a>
+<span class="sourceLineNo">045</span>                                                addPrioSetMember(table, column, conItems[j].substring(index+1), RelationToPrevMember.START);<a name="line.45"></a>
+<span class="sourceLineNo">046</span>                                        } else if (j == 0) {<a name="line.46"></a>
+<span class="sourceLineNo">047</span>                                                addPrioSetMember(table, column, conItems[j].substring(index+1), RelationToPrevMember.DISJUNCTION);<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                                        } else {<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                                                addPrioSetMember(table, column, conItems[j].substring(index+1), RelationToPrevMember.CONJUNCTION);<a name="line.49"></a>
+<span class="sourceLineNo">050</span>                                        }<a name="line.50"></a>
+<span class="sourceLineNo">051</span>                                } else {<a name="line.51"></a>
+<span class="sourceLineNo">052</span>                                        throw new HeadRuleException("The specification of the priority list is not correct '"+setSpec+"'. ");<a name="line.52"></a>
+<span class="sourceLineNo">053</span>                                }<a name="line.53"></a>
+<span class="sourceLineNo">054</span>                        }<a name="line.54"></a>
+<span class="sourceLineNo">055</span>                }<a name="line.55"></a>
+<span class="sourceLineNo">056</span>        }<a name="line.56"></a>
+<span class="sourceLineNo">057</span>        <a name="line.57"></a>
+<span class="sourceLineNo">058</span>        public PrioSetMember addPrioSetMember(SymbolTable table, ColumnDescription column, String symbolString, RelationToPrevMember relationToPrevMember) throws MaltChainedException {<a name="line.58"></a>
+<span class="sourceLineNo">059</span>                if (table == null) {<a name="line.59"></a>
+<span class="sourceLineNo">060</span>                        throw new HeadRuleException("Could add a member to priority set because the symbol table could be found. ");<a name="line.60"></a>
+<span class="sourceLineNo">061</span>                }<a name="line.61"></a>
+<span class="sourceLineNo">062</span>                return this.addPrioSetMember(table, column, table.addSymbol(symbolString), relationToPrevMember);<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        }<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        <a name="line.64"></a>
+<span class="sourceLineNo">065</span>        public PrioSetMember addPrioSetMember(SymbolTable table, ColumnDescription column, int symbolCode, RelationToPrevMember relationToPrevMember) throws MaltChainedException {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                cache.setTable(table);<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                cache.setSymbolCode(symbolCode);<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                if (!contains(cache)) {<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                        PrioSetMember newItem = new PrioSetMember(this, table, column, symbolCode, relationToPrevMember);<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                        add(newItem);<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                        return newItem;<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                }<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                return cache;<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        }<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        <a name="line.75"></a>
+<span class="sourceLineNo">076</span>        public PhraseStructureNode getHeadChild(NonTerminalNode nt, Direction direction) throws MaltChainedException {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                boolean match = false;<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                if (direction == Direction.LEFT) {<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                        for (PhraseStructureNode child : nt.getChildren()) {<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                                for (int j = 0; j &lt; size(); j++) {<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                                        match = matchHeadChild(child, get(j));<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                                        if (match == true) {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                                                if (j+1 &gt;= size()) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                                                        return child;<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                                } else if (get(j).getRelationToPrevMember() != RelationToPrevMember.CONJUNCTION) {<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                                                        return child;<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                                                }<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                                        }<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                                }<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                        }<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                } else if (direction == Direction.RIGHT) {<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                        for (int i = nt.nChildren()-1; i &gt;= 0; i--) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                                PhraseStructureNode child = nt.getChild(i);<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                                for (int j = 0; j &lt; size(); j++) {<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                                        match = matchHeadChild(child, get(j));<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                                        if (match == true) {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                                                if (j+1 &gt;= size()) {<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                                                        return child;<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                                                } else if (get(j).getRelationToPrevMember() != RelationToPrevMember.CONJUNCTION) {<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                                                        return child;<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                                                }<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                                        }<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                                }<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                        }<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                }<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                return null;<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        <a name="line.108"></a>
+<span class="sourceLineNo">109</span>        private boolean matchHeadChild(PhraseStructureNode child, PrioSetMember member) throws MaltChainedException {<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                if (child instanceof NonTerminalNode &amp;&amp; member.getTable().getName().equals("CAT") &amp;&amp; member.getSymbolCode() == child.getLabelCode(member.getTable())) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                        return true;<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                } else if (member.getTable().getName().equals("LABEL") &amp;&amp; member.getSymbolCode() == child.getParentEdgeLabelCode(member.getTable())) {<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                        return true;<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                } else if (child instanceof TokenNode &amp;&amp; member.getColumn().getCategory() == ColumnDescription.INPUT &amp;&amp; member.getSymbolCode() == child.getLabelCode(member.getTable())) {<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                        return true;<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                }<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                return false;<a name="line.117"></a>
+<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
+<span class="sourceLineNo">119</span>        <a name="line.119"></a>
+<span class="sourceLineNo">120</span>        public Logger getLogger() {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                return prioList.getLogger();<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        }<a name="line.122"></a>
+<span class="sourceLineNo">123</span><a name="line.123"></a>
+<span class="sourceLineNo">124</span>        public PrioList getPrioList() {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                return prioList;<a name="line.125"></a>
+<span class="sourceLineNo">126</span>        }<a name="line.126"></a>
+<span class="sourceLineNo">127</span><a name="line.127"></a>
+<span class="sourceLineNo">128</span>        protected void setPrioList(PrioList prioList) {<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                this.prioList = prioList;<a name="line.129"></a>
+<span class="sourceLineNo">130</span>        }<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        <a name="line.131"></a>
+<span class="sourceLineNo">132</span>        public boolean equals(Object obj) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                if (this == obj)<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                        return true;<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                if (obj == null)<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                        return false;<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                if (getClass() != obj.getClass())<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                        return false;<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                return super.equals(obj);<a name="line.139"></a>
+<span class="sourceLineNo">140</span>        }<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        <a name="line.141"></a>
+<span class="sourceLineNo">142</span>        public int hashCode() {<a name="line.142"></a>
+<span class="sourceLineNo">143</span>                return super.hashCode();<a name="line.143"></a>
+<span class="sourceLineNo">144</span>        }<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        <a name="line.145"></a>
+<span class="sourceLineNo">146</span>        public String toString() {<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                final StringBuilder sb = new StringBuilder();<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                for (int i = 0; i &lt; size(); i++) {<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                        if (i != 0) {<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                                if (get(i).getRelationToPrevMember() == RelationToPrevMember.CONJUNCTION) {<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                                        sb.append('&amp;');<a name="line.151"></a>
+<span class="sourceLineNo">152</span>                                } else if (get(i).getRelationToPrevMember() == RelationToPrevMember.DISJUNCTION) {<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                                        sb.append('|');<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                                }<a name="line.154"></a>
+<span class="sourceLineNo">155</span>                        }<a name="line.155"></a>
+<span class="sourceLineNo">156</span>                        sb.append(get(i));<a name="line.156"></a>
+<span class="sourceLineNo">157</span>                }<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                return sb.toString();<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        }<a name="line.159"></a>
+<span class="sourceLineNo">160</span>}<a name="line.160"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

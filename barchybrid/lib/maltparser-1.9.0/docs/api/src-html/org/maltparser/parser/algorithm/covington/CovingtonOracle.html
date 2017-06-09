@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.parser.algorithm.covington;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.maltparser.core.exception.MaltChainedException;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.maltparser.core.syntaxgraph.DependencyStructure;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.maltparser.core.syntaxgraph.node.DependencyNode;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.maltparser.parser.DependencyParserConfig;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.maltparser.parser.Oracle;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.maltparser.parser.ParserConfiguration;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.maltparser.parser.history.GuideUserHistory;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.maltparser.parser.history.action.GuideUserAction;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>/**<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * @author Johan Hall<a name="line.12"></a>
+<span class="sourceLineNo">013</span> *<a name="line.13"></a>
+<span class="sourceLineNo">014</span> */<a name="line.14"></a>
+<span class="sourceLineNo">015</span>public class CovingtonOracle extends Oracle {<a name="line.15"></a>
+<span class="sourceLineNo">016</span>        public CovingtonOracle(DependencyParserConfig manager, GuideUserHistory history) throws MaltChainedException {<a name="line.16"></a>
+<span class="sourceLineNo">017</span>                super(manager, history);<a name="line.17"></a>
+<span class="sourceLineNo">018</span>                setGuideName("NonProjective");<a name="line.18"></a>
+<span class="sourceLineNo">019</span>        }<a name="line.19"></a>
+<span class="sourceLineNo">020</span>        <a name="line.20"></a>
+<span class="sourceLineNo">021</span>        public GuideUserAction predict(DependencyStructure gold, ParserConfiguration config) throws MaltChainedException {<a name="line.21"></a>
+<span class="sourceLineNo">022</span>                CovingtonConfig covingtonConfig = (CovingtonConfig)config;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>                DependencyNode leftTarget = covingtonConfig.getLeftTarget();<a name="line.23"></a>
+<span class="sourceLineNo">024</span>                int leftTargetIndex = leftTarget.getIndex();<a name="line.24"></a>
+<span class="sourceLineNo">025</span>                int rightTargetIndex = covingtonConfig.getRightTarget().getIndex();<a name="line.25"></a>
+<span class="sourceLineNo">026</span>                <a name="line.26"></a>
+<span class="sourceLineNo">027</span>                if (!leftTarget.isRoot() &amp;&amp; gold.getTokenNode(leftTargetIndex).getHead().getIndex() == rightTargetIndex) {<a name="line.27"></a>
+<span class="sourceLineNo">028</span>                        return updateActionContainers(NonProjective.LEFTARC, gold.getTokenNode(leftTargetIndex).getHeadEdge().getLabelSet());<a name="line.28"></a>
+<span class="sourceLineNo">029</span>                } else if (gold.getTokenNode(rightTargetIndex).getHead().getIndex() == leftTargetIndex) {<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                        return updateActionContainers(NonProjective.RIGHTARC, gold.getTokenNode(rightTargetIndex).getHeadEdge().getLabelSet());<a name="line.30"></a>
+<span class="sourceLineNo">031</span>                } else if (covingtonConfig.isAllowShift() == true &amp;&amp; (!(gold.getTokenNode(rightTargetIndex).hasLeftDependent() <a name="line.31"></a>
+<span class="sourceLineNo">032</span>                                &amp;&amp; gold.getTokenNode(rightTargetIndex).getLeftmostDependent().getIndex() &lt; leftTargetIndex)<a name="line.32"></a>
+<span class="sourceLineNo">033</span>                                &amp;&amp; !(gold.getTokenNode(rightTargetIndex).getHead().getIndex() &lt; leftTargetIndex <a name="line.33"></a>
+<span class="sourceLineNo">034</span>                                                &amp;&amp; (!gold.getTokenNode(rightTargetIndex).getHead().isRoot() || covingtonConfig.getLeftstop() == 0)))) {<a name="line.34"></a>
+<span class="sourceLineNo">035</span>                        return updateActionContainers(NonProjective.SHIFT, null);<a name="line.35"></a>
+<span class="sourceLineNo">036</span>                } else {<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                        return updateActionContainers(NonProjective.NOARC, null);<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                }<a name="line.38"></a>
+<span class="sourceLineNo">039</span>        }<a name="line.39"></a>
+<span class="sourceLineNo">040</span>        <a name="line.40"></a>
+<span class="sourceLineNo">041</span>        public void finalizeSentence(DependencyStructure dependencyGraph) throws MaltChainedException {<a name="line.41"></a>
+<span class="sourceLineNo">042</span>                <a name="line.42"></a>
+<span class="sourceLineNo">043</span>        }<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        <a name="line.44"></a>
+<span class="sourceLineNo">045</span>        public void terminate() throws MaltChainedException {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>                <a name="line.46"></a>
+<span class="sourceLineNo">047</span>        }<a name="line.47"></a>
+<span class="sourceLineNo">048</span>}<a name="line.48"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+ <title>MaltParser - Changes</title>
+ <meta name="description" content="Presents the release history of MaltParser for each version." />
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ <meta name="robots" content="index,follow" />
+ <meta name="revisit-after" content="14 days" />
+ <meta name="keywords" content="maltparser, dependency, parsing, nivre, liblinear, parser, deterministic" />
+ <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+ <link rel="stylesheet" type="text/css" href="print.css" media="print" />
+ <link rel="canonical" href="http://www.maltparser.org/changes.html" />
+ <script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-22905106-2']);
+  _gaq.push(['_trackPageview']);
+  (function() {
+   var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+   ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+   var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+ </script>
+</head>
+<body>
+<h1>MaltParser</h1>
+<div id="navtop">Modified: June 4 2016</div>
+<div id="leftcol">
+ <div id="navcol">
+ <ul><li class="none"><a href="/" accesskey="1">Home</a></li></ul>
+ <h5>Get MaltParser</h5>
+ <ul>
+  <li class="none"><a href="download.html">Download</a></li>
+  <li class="none"><a href="changes.html" accesskey="2">Changes</a></li>
+  <li class="none"><a href="license.html" accesskey="8">License</a></li>
+ </ul>
+ <h5>Documentation</h5>
+ <ul>
+  <li class="none"><a href="intro.html">Introduction</a></li>
+  <li class="none"><a href="install.html">Installing MaltParser</a></li>
+  <li class="none"><a href="userguide.html" accesskey="6">User guide</a></li>
+  <li class="none"><a href="options.html">Options (short version)</a></li>
+  <li class="none"><a href="optiondesc.html">Options (long version)</a></li>
+  <li class="none"><a href="api/index.html">JavaDoc</a></li>
+ </ul>
+ <h5>Resources</h5>
+  <ul>
+   <li class="none"><a href="mco/mco.html">Pre-trained models</a></li>
+   <li class="none"><a href="publications.html">Publications</a></li>
+   <li class="none"><a href="conll.html">CoNLL Shared Task</a></li>
+   <li class="none"><a href="malteval.html">MaltEval</a></li>
+  </ul>
+  <h5>Contact</h5>
+  <ul><li class="none"><a href="contact.html" accesskey="7">Contact</a></li></ul>
+ </div>
+</div>
+
+<div id="bodycol">
+ <div class="section">
+<a name="changes"></a>
+<h2>Changes</h2>
+</div>
+<div class="section">
+<h3>Release history</h3>
+<table class="bodyTable">
+  <tr class="a"><th>Version</th><th>Date</th><th>Description</th></tr>
+  <tr class="b"><td><a href="#v1.9.0">1.9.0</a></td><td>June 4 2016</td><td>Added support for CoNLL-U data format and some refactoring and minor fixes.</td></tr>
+<tr class="b"><td><a href="#v1.8.1">1.8.1</a></td><td>November 22 2014</td><td>Minor fixes</td></tr>
+<tr class="b"><td><a href="#v1.8">1.8</a></td><td>May 5 2014</td><td>New interface to a concurrent "light-weighted" parser.</td></tr>
+<tr class="b"><td><a href="#v1.7.2">1.7.2</a></td><td>September 25 2012</td><td></td></tr>
+<tr class="b"><td><a href="#v1.7.1">1.7.1</a></td><td>April 9 2012</td><td>Minor fixes</td></tr>
+<tr class="b"><td><a href="#v1.7">1.7</a></td><td>March 12 2012</td><td>Several changes please read the notes below.</td></tr>
+<tr class="b"><td><a href="#v1.6.1">1.6.1</a></td><td>September 21 2011</td><td>Improvement of the MaltParserService. Some improvements during training.</td></tr>
+<tr class="b"><td><a href="#v1.6">1.6</a></td><td>August 21 2011</td><td>More sparse representation of the liblinear model, this change requires that a parser model is retrained.</td></tr>
+<tr class="b"><td><a href="#v1.5.3">1.5.3</a></td><td>August 1 2011</td><td>Fixed problem that the symbol table is increasing during parsing.</td></tr>
+<tr class="b"><td><a href="#v1.5.2">1.5.2</a></td><td>July 8 2011</td><td>Minor fixes</td></tr>
+<tr class="b"><td><a href="#v1.5.1">1.5.1</a></td><td>May 12 2011</td><td>Fixed a bug that cause MaltParser to crash under Windows</td></tr>
+<tr class="b"><td><a href="#v1.5">1.5</a></td><td>April 21 2011</td><td>Large update and requires that a parser model is retrained.</td></tr>
+<tr class="b"><td><a href="#v1.4.1">1.4.1</a></td><td>July 15 2010</td><td>Some minor bug fixes</td></tr>
+<tr class="b"><td><a href="#v1.4">1.4</a></td><td>July 2 2010</td><td>New parsing algorithms, new functionality and some other changes and bugfixes</td></tr>
+<tr class="b"><td><a href="#v1.3.1">1.3.1</a></td><td>November 14 2009</td><td>Some minor improvements and bug fixes</td></tr>
+<tr class="b"><td><a href="#v1.3">1.3</a></td><td>September 30 2009 </td><td>Large update</td></tr>
+<tr class="b"><td><a href="#v1.2">1.2</a></td><td>December 10 2008</td><td>Large update</td></tr>
+<tr class="b"><td><a href="#v1.1">1.1</a></td><td>June 5 2008</td><td>Large update</td></tr>
+<tr class="b"><td><a href="#v1.0.4">1.0.4</a></td><td>February 22 2008</td><td>Some minor improvements and bug fixes</td></tr>
+<tr class="b"><td><a href="#v1.0.3">1.0.3</a></td><td>January 26 2008</td><td>Some minor bug fixes</td></tr>
+<tr class="b"><td><a href="#v1.0.2">1.0.2</a></td><td>January 10 2008</td><td>Some minor bug fixes</td></tr>
+<tr class="b"><td><a href="#v1.0.1">1.0.1</a></td><td>November 13 2007</td><td>Binaries built with JDK1.5, instead of JDK1.6.</td></tr>
+<tr class="b"><td><a href="#v1.0.0">1.0.0</a></td><td>November 9 2007</td><td>First release</td></tr>
+</table>
+
+<h3 id="v1.9.0">MaltParser 1.9.0</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Added support for CoNLL-U data format</td></tr>
+<tr class="b"><td>Some refacoring, minor performance-tuning and fixes</td></tr>
+</table>
+
+
+<h3 id="v1.8.1">MaltParser 1.8.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Some bug fixes to the concurrent interface</td></tr>
+</table>
+
+<h3 id="v1.8">MaltParser 1.8</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>A new concurrent interface that uses a more "light-weighted" parser and can hopefully be used in a multi-threaded environment. Note: If you need an interface to MaltParser 
+during training of parser models then you have to use the old interface.</td></tr>
+<tr class="b"><td>Added enforce_tree options to Nivre Arc-eager (thanks to Daniel Fernández-González)</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+</table>
+
+<h3 id="v1.7.2">MaltParser 1.7.2</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Add a new option group "multiplanar" that affect the parsing algorithm planar and 2-planar (thanks to Carlos Gómez-Rodríguez)</td></tr>
+<tr class="b"><td>Liblinear is now the default learner.Liblinear is now the default learner.</td></tr>
+<tr class="b"><td>Liblinear interface: Abort and presentation of an error message when number of training instances * number of classes > Integer.MAX_VALUE (limitation of the size of Java array)</td></tr>
+<tr class="b"><td>Liblinear interface: Improvement of the performance of the memory optimization.</td></tr>
+<tr class="b"><td>SystemInfo: MaltParser version and build date are not loaded  from the manifest-file. Instead version and build date are read from a new file in appdata. </td></tr>
+<tr class="b"><td>SystemInfo: Removed the code that tries to find the path to the maltparser-version.jar. The code is not needed anymore and cause problems for MaltParserService users.</td></tr>
+<tr class="b"><td>MaltParserService and OptionManager: Fixed problems when loading /appdata/options.xml from the jar-file</td></tr>
+<tr class="b"><td>ConfigurationDir: fixed URL-problems when loading files from the parser model .mco-file (thanks to  Michael Schmitz)</td></tr>
+<tr class="b"><td>New API examples ParseSentence4: shows how to use MaltParserService with a mco-file nested in a jar-file.</td></tr>
+</table>
+
+<h3 id="v1.7.1">MaltParser 1.7.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Added deterministic action to the parsing algorithms Covington non-projective and Covington projective.</td></tr>
+<tr class="b"><td>Fixed a bug with option containers that cause problem when using several parser models via MaltParserService</td></tr>
+<tr class="b"><td>Synchronizing the TreeMap that handles the option values.</td></tr>
+<tr class="b"><td>Minor adjustments to the documentation.</td></tr>
+</table>
+
+<h3 id="v1.7">MaltParser 1.7</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Name of jar-file changed to maltparser-<em>&lt;version&gt;</em>.jar, where <em>&lt;version&gt;</em> is the current version of MaltParser.</td></tr>
+<tr class="b"><td>Two dependent Java libraries stax-1.2.0.jar and jsr173_1.0_api.jar removed, because the functionality is included in Java 1.6 or later.</td></tr>
+<tr class="b"><td>The machine learning package liblinear 1.7 replaced by liblinear 1.8.</td></tr>
+<tr class="b"><td>MaltParser 1.7 (and later versions) made available via the official Maven repository.</td></tr>
+<tr class="b"><td>Two new options allow_root and allow_reduce added for the Nivre parsing algorithm. These two options replace the older root_handling option from version 1.7 onwards.</td></tr>
+<tr class="b"><td>Minor bug fixes in the pseudo-projective parsing component.</td></tr>
+<tr class="b"><td>During parsing MaltParser will also search in the java class path(s) to find the parser model (.mco-file).</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+</table>
+
+<h3 id="v1.6.1">MaltParser 1.6.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>The release of 1.6 reduced the memory usage of the liblinear model, but one drawback was that the training time increased a lot for complex models. This release tries to reduce this training time.</td></tr>
+<tr class="b"><td>MaltParserService has been equipped with few more methods that makes it easier to develop client/server applications.</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+</table>
+
+<h3 id="v1.6">MaltParser 1.6</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>This update address the problem that the liblinear model use a lot of memory.
+<ul>
+	<li>First, all features that have zero weights for all candidates are now removed during training.</li>
+	<li>Second, all features that have the same weights for all candidates shares the weight array.</li>
+	<li>Third, all ending zeros in the weight array are removed.</li>
+</ul>
+</td></tr>
+<tr class="b"><td>Build target (javac.target) are now 1.6. If you want to run MaltParser with Java 5 you have to change javac.target to 1.5 and rebuild MaltParser. We have also tested MaltParser with Java 7 and it works fine.</td></tr>
+</table>
+
+<h3 id="v1.5.3">MaltParser 1.5.3</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Fixed a problem with identifying the correct version of malt-&lt;version&gt;.jar when there are several malt-&lt;version&gt;.jar</td></tr>
+<tr class="b"><td>Fixed a problem that the symbol table is increasing with new strings during parsing time.</td></tr>
+</table>
+
+<h3 id="v1.5.2">MaltParser 1.5.2</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Problem when using MaltParser within a servlet. By making Util.findURL() and Util.findURLinJars() non-static and using getClass().getResource() instead resolves the problem. thanks to  Adriane Boyd.</td></tr>
+<tr class="b"><td>Fixed a bug when merging Distance, NumOf and Exists features.</td></tr>
+<tr class="b"><td>Fixed some minor errors in the User guide. Legal values of the second arguments of the NumOf feature are LDEPS, RDEPS, DEPS.</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+</table>
+
+<h3 id="v1.5.1">MaltParser 1.5.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Fixed a bug that cause MaltParser to crash under Windows</td></tr>
+</table>
+
+<h3 id="v1.5">MaltParser 1.5</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Total re-implementation of the interface to liblinear and libsvm.</td></tr>
+<tr class="b"><td>Correction of some bugs in pseudo-projective parsing.</td></tr>
+<tr class="b"><td>Minor changes to the specification of the data format.</td></tr>
+<tr class="b"><td>Added the possibility to add numeric fields in the data format and use numeric features in the feature model.</td></tr>
+<tr class="b"><td>Removed the implementation of phrase structure parsing. Use MaltParser 1.2 instead.</td></tr>
+<tr class="b"><td>Removed the null value option called 'RootLabel'.</td></tr>
+<tr class="b"><td>Replaced Java's HashMap and HashSet with Google's memory efficient HashMap and HashSet.</td></tr>
+<tr class="b"><td>Minor updates of the MaltParser API.</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+</table>
+
+<h3 id="v1.4.1">MaltParser 1.4.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Fixed a problem introduced in 1.4 with path separator in Microsoft Windows environment</td></tr>
+</table>
+
+<h3 id="v1.4">MaltParser 1.4</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Two new parsing algorithms 'planar' and 'twoplanar' written by Carlos Gómez-Rodríguez.</td></tr>
+<tr class="b"><td>Replaced the libsvm.jar with LIBSVM version 2.91.</td></tr>
+<tr class="b"><td>Replaced the liblinear.jar with Liblinear version 1.51.</td></tr>
+<tr class="b"><td>The default options of the liblinear options is changed from '-s_1_-c_1_-e_0.1_-B_1' to '-s_4_-c_0.1'.</td></tr>
+<tr class="b"><td>The parser model file '.mco' is not unpacked during parsing, instead the parser reads models and other information directly from the file.</td></tr>
+<tr class="b"><td>New functionality that allows partial dependency trees to be parsed.</td></tr>
+<tr class="b"><td>New functionality that allows propagation of column values towards the root of the dependency graph when doing a labeled transition.</td></tr>
+<tr class="b"><td>MaltParserService that makes it easier for third-party applications to call MaltParser.</td></tr>
+<tr class="b"><td>Seven examples that show how to use MaltParser from other applications.</td></tr>
+</table>
+
+<h3 id="v1.3.1">MaltParser 1.3.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Improved the performance of the liblinear learner interface.</td></tr>
+<tr class="b"><td>'_' character does not mean ignore dependency label in the TabReader.</td></tr>
+<tr class="b"><td>It is now possible to have file names with blanks.</td></tr>
+<tr class="b"><td>Better error message if a column is an empty string in TabReader.</td></tr>
+<tr class="b"><td>Corrected the StackProjective.xml feature model file.</td></tr>
+</table>
+
+<h3 id="v1.3">MaltParser 1.3</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>New design of the org.maltparser.parser package</td></tr>
+<tr class="b"><td>Reimplementation of the four existing parser algorithms (Nivre arc-eager, Nivre arc-standard, Covington projective and Covington non-projective) in the new design.</td></tr>
+<tr class="b"><td>Three new parsing algorithms: Stack projective, Stack eager and Stack lazy</td></tr>
+<tr class="b"><td>Removal of malt-0.4 support</td></tr>
+<tr class="b"><td>Removal of post-processing for Nivre arc-eager and Nivre arc-standard</td></tr>
+<tr class="b"><td>Fixed a bug in Nivre arc-eager with root handling <em>strict</em> that affects the results</td></tr>
+<tr class="b"><td>Interface to liblinear</td></tr>
+<tr class="b"><td>New address functions: ANC, PANC, LDESC, PLDESC, RDESC, PRDESC</td></tr>
+<tr class="b"><td>New feature functions: Distance, Exists, NumOf, InputArc and InputArcDir</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+<tr class="b"><td>The changes may require retraining of parser models.</td></tr>
+</table>
+
+<h3 id="v1.2">MaltParser 1.2</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>New functionality: TigerXML reader and writer for parsing phrase structure.</td></tr>
+<tr class="b"><td>A total reimplementation of the data structure maintaining the dependency graph and the phrase structure graph (syntax graph package)</td></tr>
+<tr class="b"><td>Transformation between phrase structure and dependency graph relocated to the new syntax graph package.</td></tr>
+<tr class="b"><td>Moved large part of the code in SingleMalt configuration a level up into concept called flow charts, which makes much easier to use MaltParser within third-part software.</td></tr>
+<tr class="b"><td>The new syntax graph package and the flow chart package cause changes in must of the classes.</td></tr>
+<tr class="b"><td>The option --singlemalt-mode is replaced by --config-flowchart.</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+<tr class="b"><td>The changes may require retraining of parser models, especially parser models trained with Negra format.</td></tr>
+</table>
+
+<h3 id="v1.1">MaltParser 1.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>New functionality: prediction strategy, which makes it possible to divide the prediction of the parser action into several predictions.</td></tr>
+<tr class="b"><td>New functionality: phrase structure parser that recovers both continuous and discontinuous phrases with both phrase labels and grammatical functions 
+by automatically transforming the phrase structure representations into dependency representations with complex arc labels.</td></tr>
+<tr class="b"><td>A total reimplementation of the feature model system.</td></tr>
+<tr class="b"><td>New feature types: for example PrefixFeature, MergeFeature and Merge3Feature</td></tr>
+<tr class="b"><td>Better integration of the pseudo-projective parsing.</td></tr>
+<tr class="b"><td>Rather large reimplementation of the guide system.</td></tr>
+<tr class="b"><td>Divided the Single Malt configuration class into several classes and relocated the class to the package org.maltparser.parser.config.</td></tr>
+<tr class="b"><td>Rather large changes to the IO system and relocation of these classes into the package org.maltparser.core.io.</td></tr>
+<tr class="b"><td>New functionality: NEGRA reader and writer for parsing phrase structure.</td></tr>
+<tr class="b"><td>The plugin and options management implements the singleton design pattern, which loads these classes independently on the MaltConsoleEngine.</td></tr>
+<tr class="b"><td>Much of the code in MaltConsoleEngine is relocated to other classes, which makes it easier to create other programs based on MaltParser classes.</td></tr>
+<tr class="b"><td>Some minor changes throughout the code.</td></tr>
+</table>
+
+<h3 id="v1.0.4">MaltParser 1.0.4</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>The default value of the class separator option has been changed to the tilde character (~) instead of underscore (_), because it is quite common that underscore is present in dependency labels.</td></tr>
+<tr class="b"><td>Improved the portability of a MaltParser configuration file (.mco) between different platforms.</td></tr>
+<tr class="b"><td>Pre-compiled regular expression used for splitting strings.</td></tr>
+<tr class="b"><td>Improved memory usage when training an SVM model with an external LIBSVM trainer.</td></tr>
+<tr class="b"><td>Improved error handling when invoking the external LIBSVM trainer.</td></tr>
+<tr class="b"><td>Slightly improved memory usage of the trie symbol table.</td></tr>
+</table>
+
+<h3 id="v1.0.3">MaltParser 1.0.3</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Fixed some minor bugs</td></tr>
+<tr class="b"><td>Added an error message when LIBSVM runs out of memory</td></tr>
+<tr class="b"><td>Removed the file "using.htm" from the documentation.</td></tr>
+</table>
+
+<h3 id="v1.0.2">MaltParser 1.0.2</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>A configuration file (.mco) was not unpacked in the working directory.</td></tr>
+<tr class="b"><td>URL to feature specification file and data format file were not handled correct.</td></tr>
+</table>
+
+<h3 id="v1.0.1">MaltParser 1.0.1</h3>
+<table class="bodyTable">
+<tr class="a"><th>Changes</th></tr>
+<tr class="b"><td>Binaries built with JDK1.5 instead of JDK1.6.</td></tr>
+<tr class="b"><td>Some minor bug fixes</td></tr>
+</table>
+
+<h3 id="v1.0.0">MaltParser 1.0.0</h3>
+<p>This is the first release of the Java implementation of MaltParser, so there are no changes.</p>
+<p id="footer">Copyright &copy; Johan Hall, Jens Nilsson and Joakim Nivre</p>
+        </div>
+</div>
+</body>
+</html>

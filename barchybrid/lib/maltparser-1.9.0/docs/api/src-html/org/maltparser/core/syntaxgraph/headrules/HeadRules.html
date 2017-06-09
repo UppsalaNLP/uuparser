@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.core.syntaxgraph.headrules;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.io.BufferedReader;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.io.IOException;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.io.InputStreamReader;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.net.URL;<a name="line.6"></a>
+<span class="sourceLineNo">007</span><a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.apache.log4j.Logger;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.maltparser.core.exception.MaltChainedException;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.maltparser.core.helper.HashMap;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.maltparser.core.helper.URLFinder;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.maltparser.core.io.dataformat.DataFormatInstance;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.maltparser.core.symbol.SymbolTable;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.maltparser.core.symbol.SymbolTableHandler;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.maltparser.core.syntaxgraph.node.NonTerminalNode;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.maltparser.core.syntaxgraph.node.PhraseStructureNode;<a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span>/**<a name="line.18"></a>
+<span class="sourceLineNo">019</span>*<a name="line.19"></a>
+<span class="sourceLineNo">020</span>*<a name="line.20"></a>
+<span class="sourceLineNo">021</span>* @author Johan Hall<a name="line.21"></a>
+<span class="sourceLineNo">022</span>*/<a name="line.22"></a>
+<span class="sourceLineNo">023</span>public class HeadRules extends HashMap&lt;String,HeadRule&gt; {<a name="line.23"></a>
+<span class="sourceLineNo">024</span>        public static final long serialVersionUID = 8045568022124826323L;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>        protected Logger logger;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>        protected String name;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>        private final SymbolTableHandler symbolTableHandler;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>        private final DataFormatInstance dataFormatInstance;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>        protected SymbolTable nonTerminalSymbolTable; // TODO more complex<a name="line.29"></a>
+<span class="sourceLineNo">030</span>        protected SymbolTable edgelabelSymbolTable; // TODO more complex<a name="line.30"></a>
+<span class="sourceLineNo">031</span>        <a name="line.31"></a>
+<span class="sourceLineNo">032</span>        public HeadRules(Logger logger, DataFormatInstance dataFormatInstance, SymbolTableHandler symbolTableHandler) throws MaltChainedException {<a name="line.32"></a>
+<span class="sourceLineNo">033</span>                setLogger(logger);<a name="line.33"></a>
+<span class="sourceLineNo">034</span>                this.dataFormatInstance = dataFormatInstance;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>                this.symbolTableHandler = symbolTableHandler;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>                nonTerminalSymbolTable = symbolTableHandler.addSymbolTable("CAT");<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                edgelabelSymbolTable = symbolTableHandler.addSymbolTable("LABEL");<a name="line.37"></a>
+<span class="sourceLineNo">038</span>        }<a name="line.38"></a>
+<span class="sourceLineNo">039</span>        <a name="line.39"></a>
+<span class="sourceLineNo">040</span>        public void parseHeadRules(String fileName) throws MaltChainedException {<a name="line.40"></a>
+<span class="sourceLineNo">041</span>                final URLFinder f = new URLFinder();<a name="line.41"></a>
+<span class="sourceLineNo">042</span>                parseHeadRules(f.findURL(fileName));<a name="line.42"></a>
+<span class="sourceLineNo">043</span>        }<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        <a name="line.44"></a>
+<span class="sourceLineNo">045</span>        public void parseHeadRules(URL url) throws MaltChainedException {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>                BufferedReader br = null;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>                try {<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                        br = new BufferedReader(new InputStreamReader(url.openStream()));<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                } catch (IOException e) {<a name="line.49"></a>
+<span class="sourceLineNo">050</span>                        throw new HeadRuleException("Could not read the head rules from file '"+url.toString()+"'. ", e);<a name="line.50"></a>
+<span class="sourceLineNo">051</span>                }<a name="line.51"></a>
+<span class="sourceLineNo">052</span>                if (logger.isInfoEnabled()) {<a name="line.52"></a>
+<span class="sourceLineNo">053</span>                        logger.debug("Loading the head rule specification '"+url.toString()+"' ...\n");<a name="line.53"></a>
+<span class="sourceLineNo">054</span>                }<a name="line.54"></a>
+<span class="sourceLineNo">055</span>                String fileLine;<a name="line.55"></a>
+<span class="sourceLineNo">056</span>                while (true) {<a name="line.56"></a>
+<span class="sourceLineNo">057</span>                        try {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>                                fileLine = br.readLine();<a name="line.58"></a>
+<span class="sourceLineNo">059</span>                        } catch (IOException e) {<a name="line.59"></a>
+<span class="sourceLineNo">060</span>                                throw new HeadRuleException("Could not read the head rules from file '"+url.toString()+"'. ", e);<a name="line.60"></a>
+<span class="sourceLineNo">061</span>                        }<a name="line.61"></a>
+<span class="sourceLineNo">062</span>                        if (fileLine == null) {<a name="line.62"></a>
+<span class="sourceLineNo">063</span>                                break;<a name="line.63"></a>
+<span class="sourceLineNo">064</span>                        }<a name="line.64"></a>
+<span class="sourceLineNo">065</span>                        if (fileLine.length() &lt;= 1 &amp;&amp; fileLine.trim().substring(0, 2).trim().equals("--")) {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>                                continue;<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                        }<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                        int index = fileLine.indexOf('\t');<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                        if (index == -1) {<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                                throw new HeadRuleException("The specification of the head rule is not correct '"+fileLine+"'. ");<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                        }<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                        <a name="line.72"></a>
+<span class="sourceLineNo">073</span>                        HeadRule rule = new HeadRule(this, fileLine);<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                        put(fileLine.substring(0,index), rule);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                }<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        }<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        <a name="line.77"></a>
+<span class="sourceLineNo">078</span>        public PhraseStructureNode getHeadChild(NonTerminalNode nt) throws MaltChainedException {<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                HeadRule rule = null;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                if (nt.hasLabel(nonTerminalSymbolTable)) {<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                        rule = this.get(nonTerminalSymbolTable.getName()+":"+nt.getLabelSymbol(nonTerminalSymbolTable));<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                }<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                if (rule == null &amp;&amp; nt.hasParentEdgeLabel(edgelabelSymbolTable)) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                        rule = this.get(edgelabelSymbolTable.getName()+":"+nt.getParentEdgeLabelSymbol(edgelabelSymbolTable));<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                }<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                <a name="line.86"></a>
+<span class="sourceLineNo">087</span>                if (rule != null) {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                        return rule.getHeadChild(nt);<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                }<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                return null;<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        }<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        <a name="line.92"></a>
+<span class="sourceLineNo">093</span>        public Direction getDefaultDirection(NonTerminalNode nt) throws MaltChainedException {<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                HeadRule rule = null;<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                if (nt.hasLabel(nonTerminalSymbolTable)) {<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                        rule = this.get(nonTerminalSymbolTable.getName()+":"+nt.getLabelSymbol(nonTerminalSymbolTable));<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                }<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                if (rule == null &amp;&amp; nt.hasParentEdgeLabel(edgelabelSymbolTable)) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                        rule = this.get(edgelabelSymbolTable.getName()+":"+nt.getParentEdgeLabelSymbol(edgelabelSymbolTable));<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                }<a name="line.100"></a>
+<span class="sourceLineNo">101</span><a name="line.101"></a>
+<span class="sourceLineNo">102</span>                if (rule != null) {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                        return rule.getDefaultDirection();<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                }<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                return Direction.LEFT;<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        <a name="line.107"></a>
+<span class="sourceLineNo">108</span>        public Logger getLogger() {<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                return logger;<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        }<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        <a name="line.111"></a>
+<span class="sourceLineNo">112</span>        public void setLogger(Logger logger) {<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                this.logger = logger;<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        }<a name="line.114"></a>
+<span class="sourceLineNo">115</span><a name="line.115"></a>
+<span class="sourceLineNo">116</span>    public DataFormatInstance getDataFormatInstance() {<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                return dataFormatInstance;<a name="line.117"></a>
+<span class="sourceLineNo">118</span>        }<a name="line.118"></a>
+<span class="sourceLineNo">119</span><a name="line.119"></a>
+<span class="sourceLineNo">120</span>        public SymbolTableHandler getSymbolTableHandler() {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                return symbolTableHandler;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        }<a name="line.122"></a>
+<span class="sourceLineNo">123</span><a name="line.123"></a>
+<span class="sourceLineNo">124</span>        public String toString() {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                final StringBuilder sb = new StringBuilder();<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                for (HeadRule rule : this.values()) {<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                        sb.append(rule);<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                        sb.append('\n');<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                }<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                return sb.toString();<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        }<a name="line.131"></a>
+<span class="sourceLineNo">132</span>}<a name="line.132"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

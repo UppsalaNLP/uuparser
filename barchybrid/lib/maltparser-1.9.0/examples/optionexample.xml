@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<experiment>
+	<optioncontainer>
+		<optiongroup groupname="config">
+			<option name="name" value="example1"/>
+			<option name="flowchart" value="learn"/>
+		</optiongroup>
+		<optiongroup groupname="singlemalt">
+			<option name="parsing_algorithm" value="nivrestandard"/>
+		</optiongroup>
+		<optiongroup groupname="input">
+			<option name="infile" value="examples/data/talbanken05_train.conll"/>
+		</optiongroup>
+		<optiongroup groupname="nivre">
+			<option name="allow_root" value="false"/>
+			<option name="allow_reduce" value="false"/>
+		</optiongroup>
+	</optioncontainer>
+</experiment>

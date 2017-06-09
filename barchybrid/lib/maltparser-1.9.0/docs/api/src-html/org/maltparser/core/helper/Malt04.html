@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.maltparser.core.helper;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.apache.log4j.Logger;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.maltparser.core.exception.MaltChainedException;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.maltparser.core.io.dataformat.ColumnDescription;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.maltparser.core.options.OptionManager;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.maltparser.core.symbol.SymbolTableHandler;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>/**<a name="line.8"></a>
+<span class="sourceLineNo">009</span>*<a name="line.9"></a>
+<span class="sourceLineNo">010</span>*<a name="line.10"></a>
+<span class="sourceLineNo">011</span>* @author Johan Hall<a name="line.11"></a>
+<span class="sourceLineNo">012</span>*/<a name="line.12"></a>
+<span class="sourceLineNo">013</span>public class Malt04 {<a name="line.13"></a>
+<span class="sourceLineNo">014</span>        public static void loadAllMalt04Tagset(OptionManager om, int containerIndex, SymbolTableHandler symbolTableHandler, Logger logger) throws MaltChainedException {<a name="line.14"></a>
+<span class="sourceLineNo">015</span>                String malt04Posset = om.getOptionValue(containerIndex, "malt0.4", "posset").toString();<a name="line.15"></a>
+<span class="sourceLineNo">016</span>                String malt04Cposset = om.getOptionValue(containerIndex, "malt0.4", "cposset").toString();<a name="line.16"></a>
+<span class="sourceLineNo">017</span>                String malt04Depset = om.getOptionValue(containerIndex, "malt0.4", "depset").toString();<a name="line.17"></a>
+<span class="sourceLineNo">018</span>                String nullValueStrategy = om.getOptionValue(containerIndex, "singlemalt", "null_value").toString();<a name="line.18"></a>
+<span class="sourceLineNo">019</span>//              String rootLabels = om.getOptionValue(containerIndex, "graph", "root_label").toString();<a name="line.19"></a>
+<span class="sourceLineNo">020</span>                String inputCharSet = om.getOptionValue(containerIndex, "input", "charset").toString();<a name="line.20"></a>
+<span class="sourceLineNo">021</span>                loadMalt04Posset(malt04Posset, inputCharSet, nullValueStrategy, symbolTableHandler, logger);<a name="line.21"></a>
+<span class="sourceLineNo">022</span>                loadMalt04Cposset(malt04Cposset, inputCharSet, nullValueStrategy, symbolTableHandler, logger);<a name="line.22"></a>
+<span class="sourceLineNo">023</span>                loadMalt04Depset(malt04Depset, inputCharSet, nullValueStrategy, symbolTableHandler, logger);<a name="line.23"></a>
+<span class="sourceLineNo">024</span>        }<a name="line.24"></a>
+<span class="sourceLineNo">025</span>        <a name="line.25"></a>
+<span class="sourceLineNo">026</span>        public static void loadMalt04Posset(String fileName, String charSet, String nullValueStrategy, SymbolTableHandler symbolTableHandler, Logger logger) throws MaltChainedException {<a name="line.26"></a>
+<span class="sourceLineNo">027</span>                if (!fileName.toString().equalsIgnoreCase("")) {<a name="line.27"></a>
+<span class="sourceLineNo">028</span>                        if (logger.isInfoEnabled()) {<a name="line.28"></a>
+<span class="sourceLineNo">029</span>                                logger.info("Loading part-of-speech tagset '"+fileName+"'...\n");<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                        }<a name="line.30"></a>
+<span class="sourceLineNo">031</span>                        symbolTableHandler.loadTagset(fileName, "POSTAG", charSet, ColumnDescription.INPUT, ColumnDescription.STRING, nullValueStrategy);<a name="line.31"></a>
+<span class="sourceLineNo">032</span>                }<a name="line.32"></a>
+<span class="sourceLineNo">033</span>        }<a name="line.33"></a>
+<span class="sourceLineNo">034</span>        <a name="line.34"></a>
+<span class="sourceLineNo">035</span>        public static void loadMalt04Cposset(String fileName, String charSet, String nullValueStrategy, SymbolTableHandler symbolTableHandler, Logger logger) throws MaltChainedException {<a name="line.35"></a>
+<span class="sourceLineNo">036</span>                if (!fileName.equalsIgnoreCase("")) {<a name="line.36"></a>
+<span class="sourceLineNo">037</span>                        if (logger.isInfoEnabled()) {<a name="line.37"></a>
+<span class="sourceLineNo">038</span>                                logger.info("Loading coarse-grained part-of-speech tagset '"+fileName+"'...\n");<a name="line.38"></a>
+<span class="sourceLineNo">039</span>                        }<a name="line.39"></a>
+<span class="sourceLineNo">040</span>                        symbolTableHandler.loadTagset(fileName, "CPOSTAG", charSet, ColumnDescription.INPUT, ColumnDescription.STRING, nullValueStrategy);<a name="line.40"></a>
+<span class="sourceLineNo">041</span>                }<a name="line.41"></a>
+<span class="sourceLineNo">042</span>        }<a name="line.42"></a>
+<span class="sourceLineNo">043</span>        <a name="line.43"></a>
+<span class="sourceLineNo">044</span>        public static void loadMalt04Depset(String fileName, String charSet, String nullValueStrategy, SymbolTableHandler symbolTableHandler, Logger logger) throws MaltChainedException {<a name="line.44"></a>
+<span class="sourceLineNo">045</span>                if (!fileName.equalsIgnoreCase("")) {<a name="line.45"></a>
+<span class="sourceLineNo">046</span>                        if (logger.isInfoEnabled()) {<a name="line.46"></a>
+<span class="sourceLineNo">047</span>                                logger.info("Loading dependency type tagset '"+fileName+"'...\n");<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                        }<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                        symbolTableHandler.loadTagset(fileName, "DEPREL", charSet, ColumnDescription.DEPENDENCY_EDGE_LABEL, ColumnDescription.STRING, nullValueStrategy);<a name="line.49"></a>
+<span class="sourceLineNo">050</span>                }<a name="line.50"></a>
+<span class="sourceLineNo">051</span>        }<a name="line.51"></a>
+<span class="sourceLineNo">052</span>}<a name="line.52"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!-- This file is an ANT build script. ANT is a Java based build tool. -->
+<!-- It is available from http://ant.apache.org                        -->
+
+
+<!-- ================================================================= -->
+<!-- NOTE: all directories are relative to maltparser-{version}/             -->
+<!-- ================================================================= -->
+<project name="maltparser" default="usage" basedir=".">
+	<!-- The build.properties file defines the path to local jar files -->
+	<property file="build.properties"/>
+
+	<!-- Read the system environment variables and stores them in properties, -->
+	<!-- prefixed with "env". -->
+	<property environment="env"/>
+
+	<property name="version" value="1.9.0"/>
+
+	<!-- The base directory relative to which most targets are built -->
+	<property name="base" value="."/>
+
+	<property name="deprecation" value="on"/>
+
+	<property name="javac.target" value="1.7"/>
+	<property name="javac.source" value="1.7"/>
+
+	<property name="javac.debug" value="on"/>
+	
+	<!-- The directory where source files are stored. -->
+	<property name="java.source.dir" value="src/"/>
+	<property name="java.source.examples.dir" value="examples/apiexamples/srcex/"/>
+
+	<!-- distribution directory -->
+	<property name="dist.dir" value="dist/maltparser-${version}"/>
+
+	<!-- plugin directory -->
+	<property name="plugin.dir" value="${dist.dir}/plugin"/>
+
+	<!-- Destination for compiled files -->
+	<property name="javac.dest" value="${dist.dir}/classes"/>
+
+	<property name="dist.images" value="${dist.dir}/images"/>
+
+	<!-- Destination for generated jar files -->
+	<property name="jar.dest" value="${dist.dir}/lib"/>
+
+	<!-- The jar file that the jar task will generate -->
+	<property name="jar.filename" value="maltparser-${version}.jar"/>
+
+	<!-- Application data -->
+	<property name="appdata.src" value="appdata"/>
+	<property name="appdata.dest" value="${javac.dest}/appdata"/>
+
+	<!-- Documentation files -->
+	<property name="docs.src" value="docs"/>
+	<property name="docs.dest" value="${dist.dir}/docs"/>
+
+	<!-- Destination for javadoc generated files -->
+	<property name="javadoc.dest" value="${docs.dest}/api"/>
+
+	<!-- The stem where most malt source code is located. -->
+	<property name="stem" value="org/maltparser"/>
+
+	<!-- Some targets needs a more precise stem. -->
+	<property name="BSTEM" value="${java.source.dir}/${stem}"/>
+
+	<!-- Original manifest.mf file before filtering. -->
+	<property name="manifest" value="${dist.dir}/MANIFEST.MF"/>
+
+	<!-- Directory for temporary files. -->
+	<property name="dist.tmp" value="tmp"/>
+		
+	<!-- Construct compile classpath -->
+	<path id="compile.classpath">
+		<pathelement location="${build.home}/classes"/>
+		<pathelement location="${libsvm.jar}"/>
+		<pathelement location="${liblinear.jar}"/>
+		<pathelement location="${log4j.jar}"/>
+	</path>
+	
+
+	
+	<!-- ================================================================= -->
+	<!-- Default target                                                    -->
+	<!-- ================================================================= -->
+	<target name="usage">
+		<echo>
+
+    These are the targets supported by this ANT build scpript:
+
+    build   - compile all project files, if a certain library 
+              is missing, then the compilation of its dependents 
+              are skipped.
+	jar     - build maltparser-${version} jar files
+			
+    javadoc - build project javadoc files
+
+    dist    - will create a complete distribution in dist/
+    	
+    Properties of your system:
+    
+    os.name:          ${os.name}
+    basedir:          ${basedir}
+    ant.file:         ${ant.file}
+    ant.project.name: ${ant.project.name}
+    ant.java.version: ${ant.java.version}
+    </echo>
+	</target>
+
+
+	<!-- ================================================================= -->
+	<!-- Initialize variables                                              -->
+	<!-- ================================================================= -->
+	<target name="init">
+		<tstamp />
+		<property name="javac.includeAntRuntime" value="true"/>
+		<property name="javac.includeJavaRuntime" value="false"/>
+		<property name="javac.fork" value="false"/>
+	</target>
+
+	<target name="appdata">
+		<copy todir="${javac.dest}">
+			<fileset dir="${base}" includes="${appdata.src}/**" />
+		    <filterset>
+		    	<filter token="version" value="${version}"/>
+		    	<filter token="builddate" value="${TODAY}"/>
+		    </filterset>
+		</copy>
+	</target>
+		
+	<target name="build" depends="init,appdata">
+		<mkdir dir="${javac.dest}" />
+		<mkdir dir="${plugin.dir}" />
+
+		<javac srcdir="${java.source.dir}"
+           destdir="${javac.dest}"
+           includes="${stem}/**/*.java"
+           includeAntRuntime="${javac.includeAntRuntime}"
+           includeJavaRuntime="${javac.includeJavaRuntime}"
+           fork="${javac.fork}"
+           deprecation="${deprecation}"
+		   target="${javac.target}"
+		   source="${javac.source}"
+           debug="${javac.debug}">
+			<classpath refid="compile.classpath"/>
+		</javac>
+	</target>
+
+
+	<!-- ================================================================= -->
+	<!-- Remove all generated (compiled) class files.                      -->
+	<!-- ================================================================= -->
+	<target name="clean" depends="init">
+		<delete dir="${dist.dir}/" />
+	</target>
+
+	<!-- ================================================================= -->
+	<!-- Create maltparser-${version}.jar												     -->
+	<!-- ================================================================= -->
+	<target name="jar" depends="prejar">
+		<delete>
+			<fileset dir="${jar.dest}">
+				<include name="*.jar"/>
+			</fileset>
+		</delete>
+		<copy file="${log4j.jar}" tofile="${jar.dest}/log4j.jar"/>
+		<copy file="${libsvm.jar}" tofile="${jar.dest}/libsvm.jar"/>
+		<copy file="${liblinear.jar}" tofile="${jar.dest}/liblinear-1.8.jar"/>
+		<jar jarfile="${dist.dir}/${jar.filename}" basedir="${javac.dest}"
+         includes="${stem}/**/*.class,appdata/**/*.*"
+         manifest="${dist.dir}/MANIFEST.MF">
+			<metainf dir="." includes="LICENSE, NOTICE, README"/>
+		</jar>
+		<delete file="${dist.dir}/MANIFEST.MF"/>
+	</target>
+
+	<target name="prejar" depends="build">
+		<mkdir dir="${jar.dest}"/>
+		<filter token="version" value="${version}" />
+		<manifest file="${dist.dir}/MANIFEST.MF">
+			<attribute name="Class-Path" value="lib/log4j.jar lib/libsvm.jar lib/liblinear-1.8.jar  "/>
+			<attribute name="Main-Class" value="org.maltparser.Malt"/>
+			<attribute name="Implementation-Title" value="MaltParser"/>
+			<attribute name="Implementation-Version" value="${version}"/>
+			<attribute name="Implementation-Vendor" value="Johan Hall, Jens Nilsson and Joakim Nivre"/>
+			<attribute name="Build-Date" value="${TODAY}"/>
+		</manifest>
+	</target>
+
+
+	<!-- ================================================================= -->
+	<!-- This target builds the javadoc files.                             -->
+	<!-- ================================================================= -->
+	<target name="javadoc" depends="init">
+		<mkdir dir="${javadoc.dest}" />
+
+		<filter token="site" value="${site}"/>
+		<javadoc sourcepath="${java.source.dir}"
+             destdir="${javadoc.dest}"
+             packagenames="org.maltparser.core.*,
+		                   org.maltparser.ml,
+		                   org.maltparser.ml.lib,
+		                   org.maltparser.parser.*,
+		                   org.maltparser.transform.*"
+             version="true"
+             protected="true"
+             author="true"
+             use="true"
+			 linksource = "true"
+             doctitle="MaltParser version ${version}&lt;br&gt;API Specification"
+             windowtitle="MaltParser ${version}"
+             header="&lt;b&gt;MaltParser ${version}&lt;/b&gt;"
+             bottom="Copyright 2007-2014 Johan Hall, Jens Nilsson and Joakim Nivre.">
+			<link href="http://java.sun.com/javase/6/docs/api/"/>
+			<classpath refid="compile.classpath"/>
+		</javadoc>
+	</target>
+
+	<target name="site" depends="options">
+		<loadfile property="leftmenu" srcFile="docs/leftmenu.html"/>
+		<copy todir="${docs.dest}">
+			<fileset dir="docs"
+	            includes="*.html,
+						  *.css"
+	        />
+		    <filterset>
+		    	<filter token="leftmenu" value="${leftmenu}"/>
+		    	<filter token="version" value="${version}"/>
+		    	<filter token="today" value="${TODAY}"/>
+		    </filterset>
+		</copy>
+	</target>
+
+	<target name="options">
+		<xslt in="appdata/options.xml" out="docs/options.html" style="docs/xslt/options.xsl">
+			<param name="version" expression="${version}"/>
+		</xslt>
+		<xslt in="appdata/options.xml" out="docs/optiondesc.html" style="docs/xslt/optiondesc.xsl">
+			<param name="version" expression="${version}"/>
+		</xslt>
+	</target>
+
+	<!-- ================================================================= -->
+	<!-- Build a complete distribution. Results go to ${dist.images}       -->
+	<!-- ================================================================= -->
+	<target name="dist" depends="init, clean, javadoc, jar, site">
+		<mkdir  dir="${dist.images}" />
+
+		<mkdir  dir="${dist.tmp}/maltparser-${version}" />
+
+		<copy todir="${dist.tmp}/maltparser-${version}">
+			<fileset dir="${base}"
+           includes="src/**,
+					 appdata/**,
+					 docs/xslt/**,
+					 lib/**,
+                     build.xml,
+                     build.properties,
+                     LICENSE,
+					 NOTICE,
+					 README"/>
+		</copy>
+		<copy todir="${dist.tmp}/maltparser-${version}">
+			<fileset dir="${base}" includes="examples/**"/>
+		    <filterset>
+		    	<filter token="version" value="${version}"/>
+		    </filterset>
+		</copy>
+		<copy todir="${dist.tmp}/maltparser-${version}">
+			<fileset dir="${dist.dir}"
+           includes="docs/**"/>
+		</copy>
+
+		<copy file="${dist.dir}/maltparser-${version}.jar" tofile="${dist.tmp}/maltparser-${version}/maltparser-${version}.jar"/>
+		<tar tarfile="${dist.images}/maltparser-${version}.tar.gz"
+         basedir="${dist.tmp}"
+         includes="maltparser-${version}/**"
+         compression="gzip" />
+
+		<zip zipfile="${dist.images}/maltparser-${version}.zip"
+         basedir="${dist.tmp}"
+         includes="maltparser-${version}/**" />
+		<delete dir="${dist.tmp}" />
+	</target>
+
+</project>
+
