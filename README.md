@@ -2,9 +2,14 @@
 ## Transition based dependency parser for Universal Dependencies using BiLSTM feature extractors.
 This parser is based on [Eli Kiperwasser's transition-based parser](http://github.com/elikip/bist-parser).
 
-We adapted the parser to Universal Dependencies as well as extended it as described in this paper:
+We adapted the parser to Universal Dependencies as well as extended it as described in these papers:
 
-Miryam de Lhoneux, Yan Shao, Ali Basirat, Eliyahu Kiperwasser, Sara Stymne, Yoav Goldberg, and Joakim Nivre. 2017. From raw text to Universal Dependencies - look, no tags! In Proceedings of the CoNLL 2017 Shared Task: Multilingual Parsing from Raw Text to Universal Dependencies. Associa-tion for Computational Linguistics.
+* (Version 1.0) Adaptation to UD + removed POS tags from the input + added character vectors + use pseudo-projective:
+>Miryam de Lhoneux, Yan Shao, Ali Basirat, Eliyahu Kiperwasser, Sara Stymne, Yoav Goldberg, and Joakim Nivre. 2017. From raw text to Universal Dependencies - look, no tags! In Proceedings of the CoNLL 2017 Shared Task: Multilingual Parsing from Raw Text to Universal Dependencies. Association for Computational Linguistics.
+
+
+* (Version 2.0) Removed the need for pseudo-projective parsing by using swap and creating a partially dynamic oracle as described in:
+>Miryam de Lhoneux, Sara Stymne and Joakim Nivre. 2017. Arc-Hybrid Non-Projective Dependency Parsing with a Static-Dynamic Oracle. In Proceedings of the The 15th International Conference on Parsing Technologies (IWPT).
 
 The techniques behind the original parser are described in the paper [Simple and Accurate Dependency Parsing Using Bidirectional LSTM Feature Representations](https://www.transacl.org/ojs/index.php/tacl/article/viewFile/885/198). 
 
@@ -17,7 +22,7 @@ The techniques behind the original parser are described in the paper [Simple and
 
 To train a set of parsing models for a set of treebanks:
 
-python src/parser.py --dynet-seed 123456789 --outdir [results directory] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [languages to include denoted by their ISO id] --epochs 30 --userlmost --dynet-mem 5000 --pseudo-proj --extrn [external word embeddings file]
+python src/parser.py --dynet-seed 123456789 --outdir [results directory] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [languages to include denoted by their ISO id] --epochs 30 --userlmost --dynet-mem 5000 --extrn [external word embeddings file]
 
 For optimal results you should add the following to the command prompt `--k 3 --usehead --userl`. These switch will set the stack to 3 elements; use the BiLSTM of the head of trees on the stack as feature vectors; and add the BiLSTM of the right/leftmost children to the feature vectors.
 
@@ -31,14 +36,25 @@ python src/parser.py --predict --outdir [results directory] --modeldir [a direct
 
 ##### Input has the same structure as the training data, and we take the dev files
 
-python src/parser.py --predict --outdir [results directory] --modeldir [a directory containing one model per language] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [languages to include denoted by their ISO id] --pseudo-proj --dynet-mem 5000
+python src/parser.py --predict --outdir [results directory] --modeldir [a directory containing one model per language] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [languages to include denoted by their ISO id] --dynet-mem 5000
 
 The parser will store the resulting conll file in the out directory (`--outdir`).
 
 #### Citation
 
+If you make use of this software for research purposes, we'll appreciate if you cite the following:
 
-If you make use of this software for research purposes, we'll appreciate citing the following:
+If you use version 2.0:
+
+    @InProceedings{delhoneux17arc,
+        author    = {Miryam de Lhoneux and Sara Stymne and Joakim Nivre},
+        title     = {Arc-Hybrid Non-Projective Dependency Parsing with a Static-Dynamic Oracle},
+        booktitle = {Proceedings of the The 15th International Conference on Parsing Technologies (IWPT).},
+        year      = {2017},
+        address = {Pisa, Italy}
+    }
+
+If you use version 1.0:
 
     @InProceedings{uu-conll17,
         author    = {Miryam de Lhoneux and Yan Shao and Ali Basirat and Eliyahu Kiperwasser and Sara Stymne and Yoav Goldberg and Joakim Nivre},
@@ -49,7 +65,6 @@ If you make use of this software for research purposes, we'll appreciate citing 
     }
 
 And the original parser paper:
-
 
     @article{DBLP:journals/tacl/KiperwasserG16,
         author    = {Eliyahu Kiperwasser and Yoav Goldberg},
