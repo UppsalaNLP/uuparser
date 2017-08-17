@@ -53,8 +53,6 @@ def run(om,options,i):
                 else:
                     tot_sen = len(traindata)
                     #take a bit less than 5% of train sentences for dev
-                    #TODO: base the percentage on tokens rather than
-                    #sentences
                     if tot_sen > 1000:
                         import random
                         random.shuffle(traindata)
@@ -84,13 +82,6 @@ def run(om,options,i):
                 if devdata:
                     pred = list(parser.Predict(devdata))
                     utils.write_conll(cur_treebank.outfilename, pred)
-
-            if options.pseudoProj:
-                if options.multiling:
-                    for l in om.languages:
-                        utils.deprojectivise(l.outfilename,l.dev_deproj,l.proj_mco)
-                else:
-                    utils.deprojectivise(cur_treebank.outfilename,cur_treebank.dev_deproj,cur_treebank.proj_mco)
 
 
             if options.multiling:
@@ -133,13 +124,6 @@ def run(om,options,i):
 
             te = time.time()
 
-            if options.pseudoProj:
-                if options.multiling:
-                    for l in om.languages:
-                        utils.deprojectivise(l.outfilename,l.test_deproj,l.proj_mco)
-                else:
-                    utils.deprojectivise(cur_treebank.outfilename,cur_treebank.test_deproj,cur_treebank.proj_mco)
-
 
             if options.predEval:
                 if options.multiling:
@@ -169,7 +153,7 @@ if __name__ == '__main__':
     parser.add_option("--hidden", type="int", dest="hidden_units", default=100)
     parser.add_option("--hidden2", type="int", dest="hidden2_units", default=0)
     parser.add_option("--k", type="int", dest="window", default=3)
-    parser.add_option("--lr", type="float", dest="learning_rate", default=0.1)
+    parser.add_option("--lr", type="float", dest="learning_rate", default=0.001)
     parser.add_option("--outdir", type="string", dest="output", default="EXP")
     parser.add_option("--shared_task_outdir", type="string", dest="shared_task_outdir", default="EXP")
     parser.add_option("--modeldir", type="string", dest="modelDir", default="EXP")
@@ -182,7 +166,6 @@ if __name__ == '__main__':
     parser.add_option("--userl", action="store_true", dest="rlMostFlag", default=False)
     parser.add_option("--predict", action="store_true", dest="predictFlag", default=False)
     parser.add_option("--dynet-mem", type="int", dest="cnn_mem", default=512)
-    parser.add_option("--pseudo-proj", action="store_true", dest="pseudoProj", default=False)
     parser.add_option("--disablePredEval", action="store_false", dest="predEval", default=True)
     parser.add_option("--multiling", action="store_true", dest="multiling", default=False)
     parser.add_option("--datadir", dest="datadir", help="UD Dir -obligatory if\
@@ -207,9 +190,5 @@ if __name__ == '__main__':
 
     om = OptionsManager(options)
     for i in range(om.iterations):
-        #try:
         run(om,options,i)
-        #except Exception as e:
-        #    message = "Failing at language number %d. Error: %s \n"%(i,str(e))
-        #    print message
-        #    sys.stderr.write(message)
+

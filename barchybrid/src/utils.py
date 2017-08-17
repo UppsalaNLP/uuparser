@@ -33,10 +33,6 @@ class ConllEntry:
 
 
     def __str__(self):
-        """
-        Write predicted values for each field if they are else, write what was
-        on the input
-        """
         values = [str(self.id), self.form, self.lemma, \
                   self.pred_cpos if self.pred_cpos else self.cpos,\
                   self.pred_pos if self.pred_pos else self.pos,\
@@ -68,18 +64,19 @@ class UDtreebank(Treebank):
                 self.iso_id = treebank_info['lcode']
             else:
                 self.iso_id =treebank_info['lcode'] + '_' + treebank_info['tcode']
+            #self.testfile = location + self.iso_id + '.conllu'
+            #setting where I have Yan's output as input
             self.testfile = location + self.iso_id + '.txt'
             if not os.path.exists(self.testfile):
                 self.testfile = shared_task_data_dir + self.iso_id + '.conllu'
             self.test_gold = shared_task_data_dir + self.iso_id + '.conllu'
             self.outfilename = treebank_info['outfile']
-            self.name = self.iso_id
         else:
             self.name, self.iso_id = treebank_info
             files_prefix = location + self.name + "/" + self.iso_id
             self.trainfile = files_prefix + "-ud-train.conllu"
             self.devfile = files_prefix + "-ud-dev.conllu"
-            #TODO: change when we actually have test data
+            #TODO: change if using data that has the test sets
             self.testfile = files_prefix + "-ud-dev.conllu"
             self.test_gold= files_prefix + "-ud-dev.conllu"
             self.outfilename = self.iso_id + '.conllu'
@@ -127,7 +124,10 @@ def isProj(sentence):
     return len(forest.roots) == 1
 
 
-def vocab(conll_path, path_is_dir=False, max_rels=200):
+def vocab(conll_path, path_is_dir=False):
+    """
+    Collect frequencies of words, cpos, pos and deprels + languages.
+    """
     wordsCount = Counter()
     charsCount = Counter()
     posCount = Counter()
@@ -136,33 +136,29 @@ def vocab(conll_path, path_is_dir=False, max_rels=200):
 
     if path_is_dir:
         data = read_conll_dir(conll_path,"train")
-        langCounter = Counter()
+        language_list = []
     else:
         conllFP = open(conll_path,'r')
         data = read_conll(conllFP,False)
-        langCounter = None
+        language_list = None
 
     for sentence in data:
         wordsCount.update([node.norm for node in sentence if isinstance(node, ConllEntry)])
         for node in sentence:
             if isinstance(node, ConllEntry):
                 charsCount.update(node.form)
+        #TODO: aren't counters an overkill if we then just use the keys?
         posCount.update([node.pos for node in sentence if isinstance(node, ConllEntry)])
         cposCount.update([node.cpos for node in sentence if isinstance(node, ConllEntry)])
         relCount.update([node.relation for node in sentence if isinstance(node, ConllEntry)])
-        #TODO:refactor: who needs a language id counter??
-        if path_is_dir:
-            langCounter.update([node.language_id for node in sentence if isinstance(node, ConllEntry)])
+        #TODO:this is hacky to do that at every word - should do it at every new lang
+        if path_is_dir and node.language_id not in language_list:
+            language_list.append(node.language_id)
 
-    relsNum = min(len(relCount), max_rels)
-    droppedRels = [ rel for rel, val in sorted(relCount.iteritems(), key=itemgetter(1), reverse=True) ]
-    droppedRels = droppedRels[:relsNum]
-    print "dropped relations", len(relCount) - len(droppedRels), "out of", len(relCount)
 
     return (wordsCount, {w: i for i, w in enumerate(wordsCount.keys())},
-            posCount.keys(), droppedRels, cposCount.keys(),
-            langCounter.keys() if langCounter else None,
-            charsCount.keys())
+            posCount.keys(), cposCount.keys(), relCount.keys(),
+            language_list, charsCount.keys())
 
 def conll_dir_to_list(languages, data_dir,shared_task=False, shared_task_data_dir=None):
     import json
@@ -191,11 +187,13 @@ def read_conll_dir(languages,filetype,drop_proj=False,maxSize=-1):
     elif filetype == "dev":
         return chain(*(read_conll(open(lang.devfile,'r'),drop_proj,lang.name) for lang in languages if os.path.exists(lang.devfile)))
     elif filetype == "test":
-        return chain(*(read_conll(open(lang.testfile,'r'),drop_proj,lang.name) for lang in languages))
+        return chain(*(read_conll(open(lang.testfile,'r'),drop_proj,s_lang_dict[lang.name]) for lang in languages))
 
 
-#write a version with lists instead of generators for the maxSize version, and have an if clause above!!
 def read_conll_max(fh, maxSize, proj=True, language=None):
+    """
+    read conll into lists instead of generators so we can cut the size
+    """
     ts = time.time()
     dropped = 0
     read = 0
@@ -245,7 +243,17 @@ def read_conll(fh, proj=True, language=None):
         tok = line.strip().split('\t')
         if not tok or line.strip() == '':
             if len(tokens)>1:
-                if not proj or isProj([t for t in tokens if isinstance(t, ConllEntry)]):
+                conll_tokens = [t for t in tokens if isinstance(t,ConllEntry)]
+                if not proj or isProj(conll_tokens):
+                #dropping the proj for exploring swap
+                #if not isProj([t for t in tokens if isinstance(t, ConllEntry)]):
+                    inorder_tokens = inorder(conll_tokens)
+                    for i,t in enumerate(inorder_tokens):
+                        t.projective_order = i
+                    for tok in conll_tokens:
+                        tok.rdeps = [i.id for i in conll_tokens if i.parent_id == tok.id]
+                        if tok.id != 0:
+                            tok.parent_entry = [i for i in conll_tokens if i.id == tok.parent_id][0]
                     yield tokens
                 else:
                     #print 'Non-projective sentence dropped'
@@ -263,7 +271,6 @@ def read_conll(fh, proj=True, language=None):
         yield tokens
 
     te = time.time()
-    print dropped, 'dropped non-projective sentences.'
     print read, 'sentences read.'
     print 'Time: %.2gs'%(te-ts)
 
@@ -303,19 +310,6 @@ numberRegex = re.compile("[0-9]+|[0-9]+\\.[0-9]+|[0-9]+[0-9,]+");
 def normalize(word):
     return 'NUM' if numberRegex.match(word) else word.lower()
 
-def projectivise(infile,outfile,projectiviser='deleteme'):
-    if not os.path.exists(outfile):
-        pp_cmd = "java -jar -Xmx2g ./lib/maltparser-1.9.0/maltparser-1.9.0.jar\
-        -c " + projectiviser + " -m proj -i " + infile + " -o "  + outfile + " -pp head"
-        os.system(pp_cmd)
-
-def deprojectivise(infile,outfile,projectiviser='deleteme'):
-    pp_cmd = "java -jar -Xmx2g ./lib/maltparser-1.9.0/maltparser-1.9.0.jar\
-            -c " + projectiviser + " -m deproj -i " + infile + " -o "  + outfile
-    os.system(pp_cmd)
-    #os.system("mv %s %s.proj"%(infile,infile))
-    os.system("mv %s %s"%(outfile,infile))
-
 def evaluate(gold,test,conllu):
     if not conllu:
         os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + test + '.txt &')
@@ -323,14 +317,18 @@ def evaluate(gold,test,conllu):
         os.system('python src/utils/evaluation_script/conll17_ud_eval.py -v -w src/utils/evaluation_script/weights.clas ' + gold + ' ' + test + ' > ' + test+ '.txt')
 
 
-def remove_ellipsis_lines(infile,outfile):
-    out = open(outfile,'w')
-    for line in open(infile,'r'):
-        tok = line.strip().split('\t')
-        if not tok or line.strip() == '':
-            out.write('\n')
-        else:
-            if '.' not in tok[0]:
-                out.write(line)
-    out.close()
+def inorder(sentence):
+    queue = [sentence[0]]
+    def inorder_helper(sentence,i):
+        results = []
+        left_children = [entry for entry in sentence[:i] if entry.parent_id == i]
+        for child in left_children:
+            results += inorder_helper(sentence,child.id)
+        results.append(sentence[i])
+
+        right_children = [entry for entry in sentence[i:] if entry.parent_id == i ]
+        for child in right_children:
+            results += inorder_helper(sentence,child.id)
+        return results
+    return inorder_helper(sentence,queue[0].id)
 

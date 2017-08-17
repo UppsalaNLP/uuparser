@@ -2,6 +2,8 @@ import os,sys
 import utils
 import copy
 
+#TODO: this whole file is now quite hacky - used to be mostly useful for
+#pseudoProj
 class OptionsManager(object):
     def __init__(self,options):
         """
@@ -52,11 +54,6 @@ class OptionsManager(object):
                         if otherl.lcode == language.lcode:
                             if otherl.lcode == otherl.iso_id:
                                 language.modelDir = "%s/%s"%(options.modelDir,otherl.iso_id)
-                                if options.pseudoProj:
-                                    language.proj_mco = otherl.iso_id + '_pproj'
-                else:
-                    if options.pseudoProj:
-                        language.proj_mco = language.iso_id + '_pproj'
 
                 if not os.path.exists(language.outdir):
                     os.mkdir(language.outdir)
@@ -79,7 +76,8 @@ class OptionsManager(object):
         else:
             options.multi_monoling = False
             self.iterations = 1
-        options.drop_proj = not options.pseudoProj
+        #this is now useless
+        options.drop_proj = False
 
 
 def prepare_data(treebank,outdir,options,conllu=True):
@@ -87,35 +85,6 @@ def prepare_data(treebank,outdir,options,conllu=True):
         ext = '.conllu'
     else:
         ext = '.conll'
-    if options.pseudoProj:
-        if not options.predictFlag:
-            train_proj = os.path.join(outdir, 'train.pproj' + ext)
-            treebank.dev_deproj = os.path.join(outdir, 'dev.deproj'+ext)
-            treebank.proj_mco = treebank.iso_id + '_pproj'
-            treebank.dev_gold = copy.deepcopy(treebank.devfile)
-            #cleaning is a hack and ugly...
-            clean_train = os.path.join(outdir,'train' + ext)
-            clean_dev = os.path.join(outdir,'dev_clean' + ext)
-            utils.remove_ellipsis_lines(treebank.trainfile,clean_train)
-            if os.path.exists(treebank.devfile):
-                utils.remove_ellipsis_lines(treebank.devfile,clean_dev)
-            utils.projectivise(clean_train,train_proj,treebank.proj_mco)
-            treebank.trainfile = train_proj
-            treebank.devfile = clean_dev
-        else:
-            #treebank.proj_mco = treebank.name + '_pproj' 
-            #TODO: pass it to params so that this does not happen?
-            if not os.path.exists("%s.mco"%treebank.proj_mco):
-                raise Exception("No projectiviser found")
-            treebank.test_deproj = os.path.join(outdir, 'test.deproj'+ext)
-            #TODO: reenable later
-            #treebank.test_gold = copy.deepcopy(treebank.testfile)
-            if not os.path.exists(treebank.testfile):
-                raise Exception("Test file not found")
-            clean_test = os.path.join(outdir,'test_clean' + ext)
-            utils.remove_ellipsis_lines(treebank.testfile,clean_test)
-            treebank.testfile = clean_test
-    else:
-        if not options.shared_task:
-            treebank.dev_gold = treebank.devfile
-            treebank.test_gold = treebank.testfile
+    if not options.shared_task:
+        treebank.dev_gold = treebank.devfile
+        treebank.test_gold = treebank.testfile
