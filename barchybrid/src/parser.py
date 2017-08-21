@@ -23,10 +23,10 @@ def run(om,options,i):
 
         print 'Preparing vocab'
         if options.multiling:
-            words, w2i, pos, rels, cpos, langs, ch= utils.vocab(om.languages,path_is_dir=True)
+            words, w2i, pos, cpos, rels, langs, ch= utils.vocab(om.languages,path_is_dir=True)
 
         else:
-            words, w2i, pos, rels, cpos, langs, ch= utils.vocab(cur_treebank.trainfile)
+            words, w2i, pos, cpos, rels, langs, ch= utils.vocab(cur_treebank.trainfile)
 
         with open(os.path.join(outdir, options.params), 'w') as paramsfp:
             pickle.dump((words, w2i, pos, rels, cpos, langs,

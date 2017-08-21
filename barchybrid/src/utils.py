@@ -133,14 +133,13 @@ def vocab(conll_path, path_is_dir=False):
     posCount = Counter()
     cposCount = Counter()
     relCount = Counter()
+    langCounter = Counter()
 
     if path_is_dir:
         data = read_conll_dir(conll_path,"train")
-        language_list = []
     else:
         conllFP = open(conll_path,'r')
         data = read_conll(conllFP,False)
-        language_list = None
 
     for sentence in data:
         wordsCount.update([node.norm for node in sentence if isinstance(node, ConllEntry)])
@@ -152,13 +151,15 @@ def vocab(conll_path, path_is_dir=False):
         cposCount.update([node.cpos for node in sentence if isinstance(node, ConllEntry)])
         relCount.update([node.relation for node in sentence if isinstance(node, ConllEntry)])
         #TODO:this is hacky to do that at every word - should do it at every new lang
-        if path_is_dir and node.language_id not in language_list:
-            language_list.append(node.language_id)
+        if path_is_dir:
+            langCounter.update([node.language_id for node in sentence if
+                                isinstance(node, ConllEntry)])
 
 
     return (wordsCount, {w: i for i, w in enumerate(wordsCount.keys())},
             posCount.keys(), cposCount.keys(), relCount.keys(),
-            language_list, charsCount.keys())
+            langCounter.keys() if langCounter else None, charsCount.keys())
+
 
 def conll_dir_to_list(languages, data_dir,shared_task=False, shared_task_data_dir=None):
     import json
