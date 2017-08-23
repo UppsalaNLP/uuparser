@@ -287,12 +287,12 @@ def write_conll(fn, conll_gen):
 def write_conll_multiling(conll_gen, languages):
     lang_dict = {language.name:language for language in languages}
     cur_lang = conll_gen[0][0].language_id
-    outfile = open(cur_lang.outfilename,'w')
+    outfile = open(lang_dict[cur_lang].outfilename,'w')
     for sentence in conll_gen:
         if cur_lang != sentence[0].language_id:
             outfile.close()
             cur_lang = sentence[0].language_id
-            outfile = open(cur_lang.outfilename,'w')
+            outfile = open(lang_dict[cur_lang].outfilename,'w')
         for entry in sentence[1:]:
             outfile.write(str(entry) + '\n')
         outfile.write('\n')
