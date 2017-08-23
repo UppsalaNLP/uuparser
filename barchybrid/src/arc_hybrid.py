@@ -8,7 +8,7 @@ import numpy as np
 
 class ArcHybridLSTM:
     def __init__(self, words, pos, rels, cpos, langs, w2i, ch, options):
-        self.model = dy.Model()
+        self.model = dy.ParameterCollection()
         self.trainer = dy.AdamTrainer(self.model, alpha=options.learning_rate)
         random.seed(1)
 
@@ -211,7 +211,7 @@ class ArcHybridLSTM:
         self.model.save(filename)
 
     def Load(self, filename):
-        self.model.load(filename)
+        self.model.populate(filename)
 
     def Init(self):
         evec = self.elookup[1] if self.external_embedding is not None else None
@@ -576,5 +576,5 @@ class ArcHybridLSTM:
 
             dy.renew_cg()
 
-        self.trainer.update_epoch()
+        self.trainer.update()
         print "Loss: ", mloss/iSentence
