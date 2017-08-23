@@ -18,6 +18,9 @@ The techniques behind the original parser are described in the paper [Simple and
  * Python 2.7 interpreter
  * [DyNet library](https://github.com/clab/dynet/tree/master/python)
 
+    Note: the current version is Dynet 2.0 but dynet 1.0 was used in both releases 1.0 and 2.0
+
+
 #### Train a parsing model
 
 To train a set of parsing models for a set of treebanks:
