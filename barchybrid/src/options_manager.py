@@ -19,7 +19,7 @@ class OptionsManager(object):
                             --usehead (you can use multiple)")
             #the diff between two is one is r/l/most child / the other is
             #element in the sentence
-            #paper:
+            #Eli's paper:
                 #extended feature set
                 # rightmost and leftmost modifiers of s0, s1 and s2 + leftmost
                 # modifier of b0
@@ -32,13 +32,9 @@ class OptionsManager(object):
                 self.conllu = (os.path.splitext(options.conll_dev.lower())[1] == '.conllu')
             self.treebank = utils.Treebank(options.conll_train, \
                                            options.conll_dev, options.conll_test)
-            #this contains bullshit if I don't specify stuff...
             self.treebank.iso_id = None
-            prepare_data(self.treebank, options.output,\
-                                            options,self.conllu)
 
         else:
-            #different models for all the languages
             self.conllu = True
             language_list = utils.parse_list_arg(options.include)
             json_treebanks = utils.conll_dir_to_list(language_list,options.datadir,options.shared_task,
@@ -50,21 +46,17 @@ class OptionsManager(object):
                 language.modelDir= "%s/%s"%(options.modelDir,language.iso_id)
                 model = "%s/%s"%(language.modelDir,options.model)
                 if options.predictFlag and not os.path.exists(model):
-                    for otherl in json_treebanks:
-                        if otherl.lcode == language.lcode:
-                            if otherl.lcode == otherl.iso_id:
-                                language.modelDir = "%s/%s"%(options.modelDir,otherl.iso_id)
+                    if not options.shared_task:
+                        raise Exception("Model not found. Path tried: %s"%model)
+                    else:
+                        #find model for the language in question
+                        for otherl in json_treebanks:
+                            if otherl.lcode == language.lcode:
+                                if otherl.lcode == otherl.iso_id:
+                                    language.modelDir = "%s/%s"%(options.modelDir,otherl.iso_id)
 
                 if not os.path.exists(language.outdir):
                     os.mkdir(language.outdir)
-                try:
-                    prepare_data(language, language.outdir, options,\
-                             self.conllu)
-                except Exception as e:
-                    message = "Failing on %s. Error: %s \n"%(language.iso_id,str(e))
-                    print message
-                    sys.stderr.write(message)
-                    language.removeme =True
 
             for language in self.languages:
                 if language.removeme:
@@ -79,12 +71,3 @@ class OptionsManager(object):
         #this is now useless
         options.drop_proj = False
 
-
-def prepare_data(treebank,outdir,options,conllu=True):
-    if conllu:
-        ext = '.conllu'
-    else:
-        ext = '.conll'
-    if not options.shared_task:
-        treebank.dev_gold = treebank.devfile
-        treebank.test_gold = treebank.testfile

@@ -96,10 +96,10 @@ def run(om,options,i):
     else: #if predict - so
         params = os.path.join(modelDir,options.params)
         with open(params, 'r') as paramsfp:
-            words, w2i, pos, rels, cpos, langs, stored_opt,  ch= pickle.load(paramsfp)
+            words, w2i, pos,rels, cpos,langs, stored_opt,  ch= pickle.load(paramsfp)
 
-            parser = ArcHybridLSTM(words, pos, rels, cpos, langs,
-                                   w2i, ch, stored_opt)
+            parser = ArcHybridLSTM(words, pos, rels, cpos, langs, w2i,
+                               ch, stored_opt)
             model = os.path.join(modelDir, options.model)
             parser.Load(model)
 

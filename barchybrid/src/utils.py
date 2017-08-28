@@ -69,6 +69,7 @@ class UDtreebank(Treebank):
             self.testfile = location + self.iso_id + '.txt'
             if not os.path.exists(self.testfile):
                 self.testfile = shared_task_data_dir + self.iso_id + '.conllu'
+            self.dev_gold = shared_task_data_dir + self.iso_id + '.conllu'
             self.test_gold = shared_task_data_dir + self.iso_id + '.conllu'
             self.outfilename = treebank_info['outfile']
         else:
@@ -79,6 +80,7 @@ class UDtreebank(Treebank):
             #TODO: change if using data that has the test sets
             self.testfile = files_prefix + "-ud-dev.conllu"
             self.test_gold= files_prefix + "-ud-dev.conllu"
+            self.dev_gold= files_prefix + "-ud-dev.conllu"
             self.outfilename = self.iso_id + '.conllu'
 
 class ParseForest:
