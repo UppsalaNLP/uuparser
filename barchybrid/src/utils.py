@@ -190,7 +190,7 @@ def read_conll_dir(languages,filetype,drop_proj=False,maxSize=-1):
     elif filetype == "dev":
         return chain(*(read_conll(open(lang.devfile,'r'),drop_proj,lang.name) for lang in languages if os.path.exists(lang.devfile)))
     elif filetype == "test":
-        return chain(*(read_conll(open(lang.testfile,'r'),drop_proj,s_lang_dict[lang.name]) for lang in languages))
+        return chain(*(read_conll(open(lang.testfile,'r'),drop_proj,lang.name) for lang in languages))
 
 
 def read_conll_max(fh, maxSize, proj=True, language=None):
