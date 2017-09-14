@@ -208,8 +208,16 @@ def read_conll_max(fh, maxSize, proj=True, language=None):
         tok = line.strip().split('\t')
         if not tok or line.strip() == '':
             if len(tokens)>1:
-                if not proj or isProj([t for t in tokens if isinstance(t, ConllEntry)]):
-                    all_tokens.append(list(tokens))
+                conll_tokens = [t for t in tokens if isinstance(t,ConllEntry)]
+                if not proj or isProj(conll_tokens):
+                    inorder_tokens = inorder(conll_tokens)
+                    for i,t in enumerate(inorder_tokens):
+                        t.projective_order = i
+                    for tok in conll_tokens:
+                        tok.rdeps = [i.id for i in conll_tokens if i.parent_id == tok.id]
+                        if tok.id != 0:
+                            tok.parent_entry = [i for i in conll_tokens if i.id == tok.parent_id][0]
+                    all_tokens.append(list(conll_tokens))
                 else:
                     #print 'Non-projective sentence dropped'
                     dropped += 1
