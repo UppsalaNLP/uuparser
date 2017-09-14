@@ -29,13 +29,23 @@ python src/parser.py --dynet-seed 123456789 --outdir [results directory] --datad
 
 For optimal results you should add the following to the command prompt `--k 3 --usehead --userl`. These switch will set the stack to 3 elements; use the BiLSTM of the head of trees on the stack as feature vectors; and add the BiLSTM of the right/leftmost children to the feature vectors.
 
+#### Pick a model
+These commands save one model per epoch and evaluates it on the dev set.
+For prediction, the parser expects a model directory with one model and a parameter file for each language in a subdirectory.
+E.g.: models/en/barchybrid.model | models/en/params.pickle
+Before using your models for prediction, you probably want to pick one model per language. You can do this manually by looking at performance on the dev sets and copying the model and parameter files.
+Alternatively, you can use a script to do it for many languages at a time. This script expects a file with one iso code per line and a directory of trained models with evaluation on the dev sets. It creates a directory called 'models' and copies the best performing model on the dev set as measured by LAS. If models are found but no evaluation (some treebanks do not have a dev set), it picks the last epoch trained.
+
+```
+python scripts/pick_model.py iso_codes.txt dir_with_models
+```
 
 #### Parse data with your parsing model
 
 
 ##### Input similar to the shared task setup (a list of conllu files with a metadata.json file describing their content)
 
-python src/parser.py --predict --outdir [results directory] --modeldir [a directory containing one model per lanaguage] --datadir [input directory] --include [languages to include denoted by their ISO id] --pseudo-proj --shared_task --shared_task_datadir [the shared task input directory] --dynet-mem 5000
+python src/parser.py --predict --outdir [results directory] --modeldir [a directory containing one model per language] --datadir [input directory] --include [languages to include denoted by their ISO id] --pseudo-proj --shared_task --shared_task_datadir [the shared task input directory] --dynet-mem 5000
 
 ##### Input has the same structure as the training data, and we take the dev files
 
