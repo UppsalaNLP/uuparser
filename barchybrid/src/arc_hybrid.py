@@ -4,13 +4,13 @@ from operator import itemgetter
 from itertools import chain
 import utils, time, random
 import numpy as np
-
+from copy import deepcopy
 
 class ArcHybridLSTM:
     def __init__(self, words, pos, rels, cpos, langs, w2i, ch, options):
+
         self.model = dy.ParameterCollection()
         self.trainer = dy.AdamTrainer(self.model, alpha=options.learning_rate)
-        random.seed(1)
 
         rels.append('runk')
 
@@ -20,21 +20,19 @@ class ArcHybridLSTM:
         self.activation = self.activations[options.activation]
 
         self.oracle = options.oracle
+        self.disableBilstm = options.disableBilstm
         self.multiling = options.multiling
         self.ldims = options.lstm_dims
         self.cldims = options.chlstm_dims
         self.wdims = options.wembedding_dims
-        self.rdims = options.rembedding_dims
         self.cdims = options.cembedding_dims
         self.langdims = options.lembedding_dims
         self.wordsCount = words
-        self.vocab = {word: ind+3 for word, ind in w2i.iteritems()}
-        self.chars = { ind: word+3 for word, ind in enumerate(ch)}
-        self.pos = {word: ind+3 for ind, word in enumerate(pos)}
-        self.cpos = {word: ind+3 for ind, word in enumerate(cpos)}
+        self.vocab = {word: ind+2 for word, ind in w2i.iteritems()} # +2 for MLP padding vector and OOV vector
+        self.chars = {char: ind+1 for ind, char in enumerate(ch)} # +1 for OOV vector
         self.rels = {word: ind for ind, word in enumerate(rels)}
         if langs:
-            self.langs = {word: ind for ind, word in enumerate(langs)}
+            self.langs = {lang: ind+1 for ind, lang in enumerate(langs)} # +1 for padding vector
         else:
             self.langs = None
         self.irels = rels
@@ -51,58 +49,34 @@ class ArcHybridLSTM:
 
         self.external_embedding = None
         if options.external_embedding is not None:
-            external_embedding_fp = open(options.external_embedding,'r')
-            external_embedding_fp.readline()
-            self.external_embedding = {}
-            for line in external_embedding_fp:
-                line = line.strip().split()
-                self.external_embedding[line[0]] = [float(f) for f in line[1:]]
-
-            external_embedding_fp.close()
-
-            self.edim = len(self.external_embedding.values()[0])
-            self.noextrn = [0.0 for _ in xrange(self.edim)] #???
-            self.extrnd = {word: i + 3 for i, word in enumerate(self.external_embedding)}
-            self.elookup = self.model.add_lookup_parameters((len(self.external_embedding) + 3, self.edim))
-            for word, i in self.extrnd.iteritems():
-                self.elookup.init_row(i, self.external_embedding[word])
-            self.extrnd['*PAD*'] = 1
-            self.extrnd['*INITIAL*'] = 2
-
-            print 'Load external embedding. Vector dimensions', self.edim
+            self.get_external_embeddings(options.external_embedding)
 
         dims = self.wdims + (self.edim if self.external_embedding is\
                                       not None else 0) + (self.langdims if
                                                           self.multiling else 0) + 2 * self.cldims
 
-        self.surfaceBuilders = [dy.VanillaLSTMBuilder(1, dims, self.ldims, self.model),
-                                dy.VanillaLSTMBuilder(1, dims, self.ldims, self.model)]
-        self.bsurfaceBuilders = [dy.VanillaLSTMBuilder(1, 2* self.ldims,
-                                                    self.ldims , self.model),
-                                 dy.VanillaLSTMBuilder(1, 2* self.ldims,
+        if not self.disableBilstm:
+            self.surfaceBuilders = [dy.VanillaLSTMBuilder(1, dims, self.ldims, self.model),
+                                    dy.VanillaLSTMBuilder(1, dims, self.ldims, self.model)]
+            self.bsurfaceBuilders = [dy.VanillaLSTMBuilder(1, 2* self.ldims,
+                                                        self.ldims , self.model),
+                                     dy.VanillaLSTMBuilder(1, 2* self.ldims,
                                                     self.ldims , self.model)]
+        else:
+            self.ldims = int(dims * 0.5)
 
         self.charBuilders = [dy.VanillaLSTMBuilder(1, self.cdims, self.cldims, self.model),
                              dy.VanillaLSTMBuilder(1, self.cdims, self.cldims, self.model)]
 
         self.hidden_units = options.hidden_units
         self.hidden2_units = options.hidden2_units
-        self.vocab['*PAD*'] = 1
-        if self.langs:
-            self.langs['*PAD*'] = 1
 
+        self.clookup = self.model.add_lookup_parameters((len(ch) + 1, self.cdims))
+        self.wlookup = self.model.add_lookup_parameters((len(words) + 2, self.wdims))
+        if self.multiling and self.langdims > 0:
+            self.langslookup = self.model.add_lookup_parameters((len(langs) + 1, self.langdims))
 
-        self.vocab['*INITIAL*'] = 2
-        if self.langs:
-            self.langs['*INITIAL*'] = 2
-
-        self.clookup = self.model.add_lookup_parameters((len(ch) + 3, self.cdims))
-        self.wlookup = self.model.add_lookup_parameters((len(words) + 3, self.wdims))
-        self.rlookup = self.model.add_lookup_parameters((len(rels), self.rdims))
-        if self.multiling:
-            self.langslookup = self.model.add_lookup_parameters((len(langs) + 3, self.langdims))
-
-        #used in the PaddingVec 
+        #used in the PaddingVec
         self.word2lstm = self.model.add_parameters((self.ldims * 2, dims))
         self.word2lstmbias = self.model.add_parameters((self.ldims *2))
         self.chPadding = self.model.add_parameters((self.cldims *2))
@@ -117,7 +91,7 @@ class ArcHybridLSTM:
         self.outLayer = self.model.add_parameters((4, self.hidden2_units if self.hidden2_units > 0 else self.hidden_units))
         self.outBias = self.model.add_parameters((4))
 
-        # r stands for relation 
+        # r stands for relation
 
         self.rhidLayer = self.model.add_parameters((self.hidden_units, self.ldims * 2 * self.nnvecs * (self.k + 1)))
         self.rhidBias = self.model.add_parameters((self.hidden_units))
@@ -127,7 +101,6 @@ class ArcHybridLSTM:
 
         self.routLayer = self.model.add_parameters((2 * len(self.irels) + 2, self.hidden2_units if self.hidden2_units > 0 else self.hidden_units))
         self.routBias = self.model.add_parameters((2 * len(self.irels) + 2))
-
 
     def __evaluate(self, stack, buf, train):
         #feature rep
@@ -142,7 +115,7 @@ class ArcHybridLSTM:
                 # MLP\theta(x) = W2 * tanh(W1 * x * b1) + b2
                 #x = input
                 #W1 = (r)hidLayer; W2 = (r)outLayer
-                #b1 = (r)hidBias; b2 = (r)outBias 
+                #b1 = (r)hidBias; b2 = (r)outBias
                 # MLP\theta(x) = (r)output
 
             routput = (self.routLayer.expr() * self.activation(self.rhid2Bias.expr() + self.rhid2Layer.expr() * self.activation(self.rhidLayer.expr() * input + self.rhidBias.expr())) + self.routBias.expr())
@@ -208,15 +181,17 @@ class ArcHybridLSTM:
 
 
     def Save(self, filename):
+        print 'Saving model to ' + filename
         self.model.save(filename)
 
     def Load(self, filename):
+        print 'Loading model from ' + filename
         self.model.populate(filename)
 
     def Init(self):
         evec = self.elookup[1] if self.external_embedding is not None else None
         paddingWordVec = self.wlookup[1]
-        paddingLangVec = self.langslookup[1] if self.multiling else None
+        paddingLangVec = self.langslookup[0] if self.multiling and self.langdims > 0 else None
 
         self.paddingVec = dy.tanh(self.word2lstm.expr() * dy.concatenate(filter(None,
                                                                           [paddingWordVec,
@@ -226,22 +201,34 @@ class ArcHybridLSTM:
         self.empty = self.paddingVec if self.nnvecs == 1 else dy.concatenate([self.paddingVec for _ in xrange(self.nnvecs)])
 
 
+
+    def get_external_embeddings(self,external_embedding_file):
+        external_embedding_fp = codecs.open(external_embedding_file,'r',encoding='utf-8')
+        external_embedding_fp.readline()
+        self.external_embedding = {}
+        for line in external_embedding_fp:
+            line = line.strip().split()
+            self.external_embedding[line[0]] = [float(f) for f in line[1:]]
+
+        external_embedding_fp.close()
+
+        self.edim = len(self.external_embedding.values()[0])
+        self.noextrn = [0.0 for _ in xrange(self.edim)] #???
+        self.extrnd = {word: i + 3 for i, word in enumerate(self.external_embedding)}
+        self.elookup = self.model.add_lookup_parameters((len(self.external_embedding) + 3, self.edim))
+        for word, i in self.extrnd.iteritems():
+            self.elookup.init_row(i, self.external_embedding[word])
+        self.extrnd['*PAD*'] = 1
+        self.extrnd['*INITIAL*'] = 2
+
+        print 'Load external embedding. Vector dimensions', self.edim
+
     def getWordEmbeddings(self, sentence, train):
         for root in sentence:
             wordcount = float(self.wordsCount.get(root.norm, 0))
             noDropFlag =  not train or (random.random() < (wordcount/(0.25+wordcount)))
             root.wordvec = self.wlookup[int(self.vocab.get(root.norm, 0)) if noDropFlag else 0]
-
-            self.charBuilders[0].set_dropout(0.33 if train else 0)
-            self.charBuilders[1].set_dropout(0.33 if train else 0)
-            forward  = self.charBuilders[0].initial_state()
-            backward = self.charBuilders[1].initial_state()
-
-            for char, charRev in zip(root.form, reversed(root.form)):
-                forward = forward.add_input(self.clookup[self.chars.get(char,0)])
-                backward = backward.add_input(self.clookup[self.chars.get(charRev,0)])
-
-            root.chVec = dy.concatenate([forward.output(), backward.output()])
+            self.run_char_bilstm(root,train)
 
             if self.external_embedding is not None:
                 if not noDropFlag and random.random() < 0.5:
@@ -257,15 +244,34 @@ class ArcHybridLSTM:
 
             if self.multiling:
                 root.langvec = self.langslookup[self.langs[root.language_id]] if self.langdims > 0 else None
-                root.word_ext_vec = dy.concatenate(filter(None, [root.wordvec,
-                                                              root.evec,
-                                                              root.chVec,
-                                                              root.langvec]))
             else:
-                root.word_ext_vec = dy.concatenate(filter(None, [root.wordvec,
-                                                              root.evec,
-                                                              root.chVec]))
+                root.langvec = None
+            root.word_ext_vec = dy.concatenate(filter(None, [root.wordvec,
+                                                          root.evec,
+                                                          root.chVec,
+                                                          root.langvec]))
+        if not self.disableBilstm:
+            self.run_bilstms(sentence,train)
+        else:
+            for root in sentence:
+                root.vec = root.word_ext_vec
 
+    def run_char_bilstm(self,root,train):
+        if root.form != "*root*": # no point running a character analysis over this placeholder token
+            self.charBuilders[0].set_dropout(0.33 if train else 0)
+            self.charBuilders[1].set_dropout(0.33 if train else 0)
+            forward  = self.charBuilders[0].initial_state()
+            backward = self.charBuilders[1].initial_state()
+
+            for char, charRev in zip(root.form, reversed(root.form)):
+                forward = forward.add_input(self.clookup[self.chars.get(char,0)])
+                backward = backward.add_input(self.clookup[self.chars.get(charRev,0)])
+
+            root.chVec = dy.concatenate([forward.output(), backward.output()])
+        else:
+            root.chVec = self.chPadding.expr() # use the padding vector if it's the root token
+
+    def run_bilstms(self,sentence,train):
         self.surfaceBuilders[0].set_dropout(0.33 if train else 0)
         self.surfaceBuilders[1].set_dropout(0.33 if train else 0)
         forward  = self.surfaceBuilders[0].initial_state()
@@ -285,14 +291,51 @@ class ArcHybridLSTM:
         bforward  = self.bsurfaceBuilders[0].initial_state()
         bbackward = self.bsurfaceBuilders[1].initial_state()
 
-
         for froot, rroot in zip(sentence, reversed(sentence)):
             bforward = bforward.add_input(froot.vec)
             bbackward = bbackward.add_input( rroot.vec)
             froot.bfvec = bforward.output()
             rroot.bbvec = bbackward.output()
+
         for root in sentence:
             root.vec = dy.concatenate( [root.bfvec, root.bbvec] )
+
+    def apply_transition(self,best,stack,buf,hoffset):
+        if best[1] == 2:
+            #SHIFT
+            stack.roots.append(buf.roots[0])
+            del buf.roots[0]
+
+        elif best[1] == 3:
+            #SWAP
+            child = stack.roots.pop()
+            buf.roots.insert(1,child)
+
+        elif best[1] == 0:
+            #LEFT-ARC
+            child = stack.roots.pop()
+            parent = buf.roots[0]
+
+            #predict rel and label
+            child.pred_parent_id = parent.id
+            child.pred_relation = best[0]
+
+        elif best[1] == 1:
+            #RIGHT-ARC
+            child = stack.roots.pop()
+            parent = stack.roots[-1]
+
+            child.pred_parent_id = parent.id
+            child.pred_relation = best[0]
+
+        #update the representation of head for attaching transitions
+        if best[1] == 0 or best[1] == 1:
+            #linear order #not really - more like the deepest
+            if self.rlMostFlag:
+                parent.lstms[best[1] + hoffset] = child.lstms[best[1] + hoffset]
+                #actual children
+            if self.rlFlag:
+                parent.lstms[best[1] + hoffset] = child.vec
 
     def calculate_cost(self,scores,s0,s1,b,beta,stack_ids):
         if len(scores[0]) == 0:
@@ -333,7 +376,8 @@ class ArcHybridLSTM:
 
     def Predict(self, data):
         reached_max_swap = 0
-        for iSentence, sentence in data:
+        for iSentence, sentence in enumerate(data,1):
+            sentence = deepcopy(sentence)
             reached_swap_for_i_sentence = False
             max_swap = 2*len(sentence)
             iSwap = 0
@@ -359,52 +403,15 @@ class ArcHybridLSTM:
                     reached_max_swap += 1
                     reached_swap_for_i_sentence = True
                     print "reached max swap in %d out of %d sentences"%(reached_max_swap, iSentence)
-
-
-                if best[1] == 2:
-                    #SHIFT
-                    stack.roots.append(buf.roots[0])
-                    del buf.roots[0]
-
-                elif best[1] == 3:
-                    #SWAP
+                self.apply_transition(best,stack,buf,hoffset)
+                if best[1] == 3:
                     iSwap += 1
-                    child = stack.roots.pop()
-                    buf.roots.insert(1,child)
-
-                elif best[1] == 0:
-                    #LEFT-ARC
-                    child = stack.roots.pop()
-                    parent = buf.roots[0]
-
-                    #predict rel and label 
-                    child.pred_parent_id = parent.id
-                    child.pred_relation = best[0]
-
-
-
-                elif best[1] == 1:
-                    #RIGHT-ARC
-                    child = stack.roots.pop()
-                    parent = stack.roots[-1]
-
-                    child.pred_parent_id = parent.id
-                    child.pred_relation = best[0]
-
-                #update the representation of head for attaching transitions
-                if best[1] == 0 or best[1] == 1:
-                    #linear order
-                    if self.rlMostFlag:
-                        parent.lstms[best[1] + hoffset] = child.lstms[best[1] + hoffset]
-                    #actual children
-                    if self.rlFlag:
-                        parent.lstms[best[1] + hoffset] = child.vec
 
             dy.renew_cg()
             yield sentence
 
 
-    def Train(self, shuffledData):
+    def Train(self, trainData):
         mloss = 0.0
         eloss = 0.0
         eerrors = 0
@@ -413,21 +420,21 @@ class ArcHybridLSTM:
         ninf = -float('inf')
 
 
+        beg = time.time()
         start = time.time()
 
-        random.shuffle(shuffledData)
-        print "Length of training data: ", len(shuffledData)
+        random.shuffle(trainData) # in certain cases the data will already have been shuffled after being read from file or while creating dev data
+        print "Length of training data: ", len(trainData)
 
         errs = []
 
         self.Init()
 
-        trainData = shuffledData
-        if self.debug:
-            trainData = shuffledData[:200]
+        #if self.debug:
+        #    trainData = trainData[:200]
 
-        for iSentence, sentence in enumerate(trainData):
-            if iSentence % 100 == 0 and iSentence != 0:
+        for iSentence, sentence in enumerate(trainData,1):
+            if iSentence % 100 == 0:
                 loss_message = 'Processing sentence number: %d'%iSentence + \
                 ' Loss: %.3f'%(eloss / etotal)+ \
                 ' Errors: %.3f'%((float(eerrors)) / etotal)+\
@@ -439,6 +446,8 @@ class ArcHybridLSTM:
                 eloss = 0.0
                 etotal = 0
                 lerrors = 0
+
+            sentence = deepcopy(sentence) # ensures we are working with a clean copy of sentence and allows memory to be recycled each time round the loop
 
             conll_sentence = [entry for entry in sentence if isinstance(entry, utils.ConllEntry)]
             conll_sentence = conll_sentence[1:] + [conll_sentence[0]]
@@ -487,6 +496,7 @@ class ArcHybridLSTM:
                     else:
                         best = bestValid if ( (not self.oracle) or (bestValid[2] - bestWrong[2] > 1.0) or (bestValid[2] > bestWrong[2] and random.random() > 0.1) ) else bestWrong
 
+                #updates for the dynamic oracle
                 if best[1] == 2:
                     #SHIFT
                     if shift_case ==2:
@@ -495,47 +505,15 @@ class ArcHybridLSTM:
                         blocked_deps = [d for d in b[0].rdeps if d in stack_ids]
                         for d in blocked_deps:
                             b[0].rdeps.remove(d)
-                    stack.roots.append(buf.roots[0])
-                    del buf.roots[0]
 
-                elif best[1] == 3:
-                    #SWAP
-                    child = stack.roots.pop()
-                    buf.roots.insert(1,child)
-
-                elif best[1] == 0:
-                    #LEFT-ARC
+                elif best[1] == 0 or best[1] == 1:
+                    #LA or RA
+                    child = s0[0]
                     s0[0].rdeps = []
                     if s0[0].id in s0[0].parent_entry.rdeps:
                         s0[0].parent_entry.rdeps.remove(s0[0].id)
-                    child = stack.roots.pop()
-                    parent = buf.roots[0]
 
-                    child.pred_parent_id = parent.id
-                    child.pred_relation = best[0]
-
-
-                elif best[1] == 1:
-                    #RIGHT-ARC
-                    s0[0].rdeps = []
-                    if s0[0].id in s0[0].parent_entry.rdeps:
-                        s0[0].parent_entry.rdeps.remove(s0[0].id)
-                    child = stack.roots.pop()
-                    parent = stack.roots[-1]
-
-                    child.pred_parent_id = parent.id
-                    child.pred_relation = best[0]
-
-                #update the representation of head for attaching transitions
-                if best[1] == 0 or best[1] == 1:
-                    #linear order
-                    if self.rlMostFlag:
-                        parent.lstms[best[1] + hoffset] = child.lstms[best[1] + hoffset]
-                    #actual children
-                    if self.rlFlag:
-                        parent.lstms[best[1] + hoffset] = child.vec
-
-
+                self.apply_transition(best,stack,buf,hoffset)
 
                 if bestValid[2] < bestWrong[2] + 1.0:
                     loss = bestWrong[3] - bestValid[3]
@@ -578,3 +556,4 @@ class ArcHybridLSTM:
 
         self.trainer.update()
         print "Loss: ", mloss/iSentence
+        print "Total Training Time: %.2gs"%(time.time()-beg)
