@@ -376,8 +376,8 @@ class ArcHybridLSTM:
 
     def Predict(self, data):
         reached_max_swap = 0
-        for iSentence, sentence in enumerate(data,1):
-            sentence = deepcopy(sentence)
+        for iSentence, osentence in enumerate(data,1):
+            sentence = deepcopy(osentence)
             reached_swap_for_i_sentence = False
             max_swap = 2*len(sentence)
             iSwap = 0
@@ -408,7 +408,14 @@ class ArcHybridLSTM:
                     iSwap += 1
 
             dy.renew_cg()
-            yield sentence
+
+            #keep in memory the information we need, not all the vectors
+            oconll_sentence = [entry for entry in osentence if isinstance(entry, utils.ConllEntry)]
+            oconll_sentence = oconll_sentence[1:] + [oconll_sentence[0]]
+            for tok_o, tok in zip(oconll_sentence, conll_sentence):
+                tok_o.pred_relation = tok.pred_relation
+                tok_o.pred_parent_id = tok.pred_parent_id
+            yield osentence
 
 
     def Train(self, trainData):
