@@ -1,8 +1,9 @@
 import dynet as dy
 
 class MLP(object):
-    def __init__(self, model=None, in_dim, hid_dim, out_dim, activation=dy.tanh):
+    def __init__(self, model, in_dim, hid_dim, out_dim, activation=dy.tanh):
         ##
+        model = dy.ParameterCollection()
         self._W1 = model.add_parameters((hid_dim, in_dim))
         self._b1 = model.add_parameters(hid_dim)
         self._W2 = model.add_parameters((out_dim, hid_dim))
