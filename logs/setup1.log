@@ -1,0 +1,57 @@
+Using external embedding: None
+Preparing vocab
+Reading ../data/train.conllu
+3001 sentences read
+Time: 2.6s
+Saving params to ../EXP/params.pickle
+Finished collecting vocab
+Initializing blstm arc hybrid:
+Starting epoch 1
+Reading ../data/train.conllu
+3001 sentences read
+Time: 2.3s
+Length of training data:  3001
+Processing sentence number: 100 Loss: 1.498 Errors: 0.564 Labeled Errors: 0.602 Time: 11s
+Processing sentence number: 200 Loss: 1.185 Errors: 0.523 Labeled Errors: 0.554 Time: 9.7s
+Processing sentence number: 300 Loss: 1.097 Errors: 0.522 Labeled Errors: 0.555 Time: 11s
+Processing sentence number: 400 Loss: 0.973 Errors: 0.505 Labeled Errors: 0.536 Time: 9.6s
+Processing sentence number: 500 Loss: 1.043 Errors: 0.552 Labeled Errors: 0.592 Time: 9.2s
+Processing sentence number: 600 Loss: 0.953 Errors: 0.502 Labeled Errors: 0.534 Time: 9.6s
+Processing sentence number: 700 Loss: 1.086 Errors: 0.580 Labeled Errors: 0.624 Time: 9.5s
+Processing sentence number: 800 Loss: 0.948 Errors: 0.502 Labeled Errors: 0.532 Time: 9.1s
+Processing sentence number: 900 Loss: 1.032 Errors: 0.496 Labeled Errors: 0.523 Time: 12s
+Processing sentence number: 1000 Loss: 0.921 Errors: 0.482 Labeled Errors: 0.511 Time: 9.9s
+Processing sentence number: 1100 Loss: 1.024 Errors: 0.500 Labeled Errors: 0.528 Time: 11s
+Processing sentence number: 1200 Loss: 0.971 Errors: 0.521 Labeled Errors: 0.552 Time: 11s
+Processing sentence number: 1300 Loss: 0.945 Errors: 0.517 Labeled Errors: 0.550 Time: 9.7s
+Processing sentence number: 1400 Loss: 1.046 Errors: 0.570 Labeled Errors: 0.601 Time: 10s
+Processing sentence number: 1500 Loss: 0.991 Errors: 0.506 Labeled Errors: 0.537 Time: 11s
+Processing sentence number: 1600 Loss: 1.310 Errors: 0.724 Labeled Errors: 0.765 Time: 10s
+Processing sentence number: 1700 Loss: 1.222 Errors: 0.669 Labeled Errors: 0.720 Time: 9.8s
+Processing sentence number: 1800 Loss: 1.014 Errors: 0.527 Labeled Errors: 0.554 Time: 11s
+Processing sentence number: 1900 Loss: 0.920 Errors: 0.516 Labeled Errors: 0.543 Time: 9.6s
+Processing sentence number: 2000 Loss: 0.981 Errors: 0.527 Labeled Errors: 0.562 Time: 9.1s
+Processing sentence number: 2100 Loss: 0.966 Errors: 0.519 Labeled Errors: 0.552 Time: 9.4s
+Processing sentence number: 2200 Loss: 1.031 Errors: 0.521 Labeled Errors: 0.554 Time: 12s
+Processing sentence number: 2300 Loss: 0.976 Errors: 0.525 Labeled Errors: 0.560 Time: 11s
+Processing sentence number: 2400 Loss: 0.960 Errors: 0.530 Labeled Errors: 0.561 Time: 11s
+Processing sentence number: 2500 Loss: 1.218 Errors: 0.559 Labeled Errors: 0.598 Time: 10s
+Processing sentence number: 2600 Loss: 1.143 Errors: 0.610 Labeled Errors: 0.657 Time: 10s
+Processing sentence number: 2700 Loss: 1.086 Errors: 0.590 Labeled Errors: 0.630 Time: 11s
+Processing sentence number: 2800 Loss: 1.341 Errors: 0.717 Labeled Errors: 0.772 Time: 11s
+Processing sentence number: 2900 Loss: 0.970 Errors: 0.542 Labeled Errors: 0.573 Time: 9.9s
+Processing sentence number: 3000 Loss: 0.965 Errors: 0.553 Labeled Errors: 0.588 Time: 10s
+Loss:  30.7063096618
+Total Training Time: 3.1e+02s
+Finished epoch 1
+Saving model to ../EXP/barchybrid.model1
+Predicting on dev data for noname
+Reading ../data/dev.conllu
+2002 sentences read
+Time: 50s
+Writing to ../EXP/dev_epoch_1.conllu
+Wrote 2002 sentences
+Evaluating dev prediction for noname
+Writing to ../EXP/dev_epoch_1.conllu.txt
+Best dev score of 2.25 found at epoch 1
+Copying ../EXP/barchybrid.model1 to ../EXP/barchybrid.model

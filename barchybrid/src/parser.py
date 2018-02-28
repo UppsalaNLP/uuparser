@@ -1,4 +1,4 @@
-from optparse import OptionParser
+from optparse import OptionParser, OptionGroup
 from arc_hybrid import ArcHybridLSTM
 from options_manager import OptionsManager
 import pickle, utils, os, time, sys, copy, itertools, re, random
@@ -16,7 +16,7 @@ def run(om,options,i):
     if options.shared_task:
         outdir = options.shared_task_outdir
 
-    if not options.predictFlag: # training
+    if not options.predict: # training
 
         print 'Preparing vocab'
         if options.multiling:
@@ -41,9 +41,9 @@ def run(om,options,i):
             print 'Starting epoch ' + str(epoch)
 
             if options.multiling:
-                traindata = list(utils.read_conll_dir(om.languages, "train", options.maxCorpus))
+                traindata = list(utils.read_conll_dir(om.languages, "train", options.max_sentences))
             else:
-                traindata = list(utils.read_conll(cur_treebank.trainfile, cur_treebank.iso_id,options.maxCorpus))
+                traindata = list(utils.read_conll(cur_treebank.trainfile, cur_treebank.iso_id,options.max_sentences))
 
             parser.Train(traindata)
             print 'Finished epoch ' + str(epoch)
@@ -77,9 +77,8 @@ def run(om,options,i):
                         utils.write_conll(cur_treebank.outfilename, pred)
                         if options.pred_eval:
                             print "Evaluating dev prediction for " + cur_treebank.name
-                            utils.evaluate(cur_treebank.dev_gold,cur_treebank.outfilename,om.conllu)
+                            score = utils.evaluate(cur_treebank.dev_gold,cur_treebank.outfilename,om.conllu)
                             if options.model_selection:
-                                score = utils.get_LAS_score(cur_treebank.outfilename + '.txt')
                                 if score > cur_treebank.dev_best[1]:
                                     cur_treebank.dev_best = [epoch,score]
 
@@ -106,7 +105,7 @@ def run(om,options,i):
         params = os.path.join(modeldir,options.params)
         print 'Reading params from ' + params
         with open(params, 'r') as paramsfp:
-            words, w2i, pos,rels, cpos,langs, stored_opt,  ch= pickle.load(paramsfp)
+            words, w2i, pos, rels, cpos, langs, stored_opt, ch = pickle.load(paramsfp)
 
             parser = ArcHybridLSTM(words, pos, rels, cpos, langs, w2i,
                                ch, stored_opt)
@@ -148,75 +147,110 @@ def run(om,options,i):
             print 'Finished predicting'
 
 if __name__ == '__main__':
-    parser = OptionParser()
-    parser.add_option("--trainfile", dest="trainfile", help="Annotated CONLL(U) train file", metavar="FILE")
-    parser.add_option("--devfile", dest="devfile", help="Annotated CONLL(U) dev file", metavar="FILE")
-    parser.add_option("--testfile", dest="testfile", help="Annotated CONLL(U) test file", metavar="FILE")
-    parser.add_option("--params", dest="params", help="Parameters file", metavar="FILE", default="params.pickle")
-    parser.add_option("--extrn", dest="external_embedding", help="External embeddings", metavar="FILE")
-    parser.add_option("--model", dest="model", help="Load/Save model file", metavar="FILE", default="barchybrid.model")
-    parser.add_option("--wembedding", help="word embedding dimension", type="int", dest="wembedding_dims", default=100)
-    parser.add_option("--lstmdims", help="dimension of the lstm", type="int", dest="lstm_dims", default=125)
-    parser.add_option("--lembedding", help="dimension of the language\
-                      embeddings", type="int", dest="lembedding_dims", default=12)
-    parser.add_option("--cembedding", help="dimension of the character\
-                      embedding", type="int", dest="cembedding_dims", default=12)
-    parser.add_option("--chlstmdims", help="character LSTM dimension", type="int", dest="chlstm_dims", default=50)
-    parser.add_option("--epochs", help='number of epochs', type="int", dest="epochs", default=30)
-    parser.add_option("--hidden", help='hidden units of the MLP hidden layer', type="int", dest="hidden_units", default=100)
-    parser.add_option("--hidden2", help='hidden units of the second layer of the MLP',  type="int", dest="hidden2_units", default=0)
-    parser.add_option("--k", help='number of items in the stack fed to the MLP', type="int", dest="window", default=3)
-    parser.add_option("--lr", help='learning rate', type="float", dest="learning_rate", default=0.001)
-    parser.add_option("--outdir", help='output directory', type="string", dest="outdir", default="EXP")
-    parser.add_option("--shared_task_outdir", type="string", dest="shared_task_outdir", default="EXP")
-    parser.add_option("--modeldir", help='directory where models will be saved', type="string", dest="modelDir", default="EXP")
-    parser.add_option("--activation", help='activation function in the MLP', type="string", dest="activation", default="tanh")
-    parser.add_option("--dynet-seed", type="int", help="Random seed for Dynet", dest="dynet_seed", metavar="INTEGER")
-    parser.add_option("--use-default-seed", action="store_true", dest="use_default_seed", help="Use default random seed for Python", default=False)
-    parser.add_option("--disableoracle", help='use the static oracle instead of\
-                      the dynamic oracle', action="store_false", dest="oracle", default=True)
-    parser.add_option("--disable-head", help='disable using the head of word\
-                      vectors fed to the MLP', action="store_false", dest="headFlag", default=True)
-    parser.add_option("--disable-rlmost", help='disable using leftmost and\
-                      rightmost dependents of words fed to the MLP', action="store_false", dest="rlMostFlag", default=True)
-    parser.add_option("--userl", action="store_true", dest="rlFlag", default=False)
-    parser.add_option("--predict", help='parse', action="store_true", dest="predictFlag", default=False)
-    parser.add_option("--dynet-mem", type="int", dest="cnn_mem", default=512)
-    parser.add_option("--disablebilstm", help='disable the BiLSTM feature\
-                      extactor', action="store_true", dest="disableBilstm", default=False)
-    parser.add_option("--disable-pred-eval", action="store_false", dest="pred_eval", default=True)
-    parser.add_option("--disable-pred-dev", action="store_false", dest="pred_dev", default=True)
-    parser.add_option("--multiling", help='train a multilingual parser with\
-                      language embeddings', action="store_true", dest="multiling", default=False)
-    parser.add_option("--datadir", help='input directory with train/dev/test\
-                      files', dest="datadir", default=None)
-    parser.add_option("--include", dest="include", default =None,\
-                        help="The languages to be run if using UD - None\
-                        by default - if None - need to specify dev,train,test.\
-                      \n Used in combination with multiling: trains a common \
-                      parser for all languages. Otherwise, train monolingual \
-                      parsers for each")
-    #TODO: reenable this
-    parser.add_option("--continue", dest="continueTraining", action="store_true", default=False)
-    parser.add_option("--continueModel", dest="continueModel", help="Load model file, \
-                      when continuing to train a previously trained model", metavar="FILE", default=None)
-    parser.add_option("--first-epoch", type="int", dest="first_epoch", default=1)
-    parser.add_option("--debug", action="store_true", dest="debug", default=False)
-    parser.add_option("--debug-train-sents", type="int", dest="debug_train_sents", default=150)
-    parser.add_option("--debug-dev-sents", type="int", dest="debug_dev_sents", default=100)
-    parser.add_option("--debug-test-sents", type="int", dest="debug_test_sents", default=50)
-    parser.add_option("--shared_task", action="store_true", dest="shared_task", default=False)
-    parser.add_option("--metadata_file", dest="metadataF", default='src/utils/metadata.json')
-    parser.add_option("--shared_task_datadir", type="string", dest="shared_task_datadir", default="EXP")
-    parser.add_option("--max-sentences", help='only train using n sentences', type="int", dest="maxCorpus", default=-1)
-    parser.add_option("--create-dev", help='create dev data if no dev file is\
-                      provided', action="store_true", dest="create_dev", default=False)
-    parser.add_option("--min-train-sents", help='minimum number of training\
-                      sentences required in order to create a dev file', type="int", dest="min_train_sents", default=1000)
-    parser.add_option("--dev-percent", help='percentage of training data to use\
-                      as dev data', type="float", dest="dev_percent", default=5)
 
-    parser.add_option("--disable-model-selection", action="store_false", dest="model_selection", default=True)
+    parser = OptionParser()
+    parser.add_option("--outdir", metavar="PATH", help='Output directory')
+    parser.add_option("--datadir", metavar="PATH",
+        help="Input directory with UD train/dev/test files; obligatory if using --include")
+    parser.add_option("--modeldir", metavar="PATH",
+        help='Directory where models will be saved, defaults to same as --outdir if not specified')
+    parser.add_option("--params", metavar="FILE", default="params.pickle", help="Parameters file")
+    parser.add_option("--model", metavar="FILE", default="barchybrid.model",
+        help="Load/Save model file")
+
+    group = OptionGroup(parser, "Experiment options")
+    group.add_option("--include", metavar="LIST", help="List of languages by ISO code to be run \
+if using UD. If not specified need to specify trainfile at least. When used in combination with \
+--multiling, trains a common parser for all languages. Otherwise, train monolingual parsers for \
+each")
+    group.add_option("--trainfile", metavar="FILE", help="Annotated CONLL(U) train file")
+    group.add_option("--devfile", metavar="FILE", help="Annotated CONLL(U) dev file")
+    group.add_option("--testfile", metavar="FILE", help="Annotated CONLL(U) test file")
+    group.add_option("--epochs", type="int", metavar="INTEGER", default=30,
+        help='Number of epochs')
+    group.add_option("--predict", help='Parse', action="store_true", default=False)
+    group.add_option("--multiling", action="store_true", default=False,
+        help='Train a multilingual parser with language embeddings')
+    group.add_option("--max-sentences", type="int", metavar="INTEGER",
+        help='Only train using n sentences per epoch', default=-1)
+    group.add_option("--create-dev", action="store_true", default=False,
+        help='Create dev data if no dev file is provided')
+    group.add_option("--min-train-sents", type="int", metavar="INTEGER", default=1000,
+        help='Minimum number of training sentences required in order to create a dev file')
+    group.add_option("--dev-percent", type="float", metavar="FLOAT", default=5,
+        help='Percentage of training data to use as dev data')
+    group.add_option("--disable-pred-dev", action="store_false", dest="pred_dev", default=True,
+        help='Disable prediction on dev data after each epoch')
+    group.add_option("--disable-pred-eval", action="store_false", dest="pred_eval", default=True,
+        help='Disable evaluation of prediction on dev data')
+    group.add_option("--disable-model-selection", action="store_false",
+        help="Disable choosing of model from best/last epoch", dest="model_selection", default=True)
+    group.add_option("--use-default-seed", action="store_true",
+        help="Use default random seed for Python", default=False)
+    #TODO: reenable this
+    group.add_option("--continue", dest="continueTraining", action="store_true", default=False)
+    group.add_option("--continueModel", metavar="FILE",
+        help="Load model file, when continuing to train a previously trained model")
+    group.add_option("--first-epoch", type="int", metavar="INTEGER", default=1)
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Parser options")
+    group.add_option("--disable-oracle", action="store_false", dest="oracle", default=True,
+        help='Use the static oracle instead of the dynamic oracle')
+    group.add_option("--disable-head", action="store_false", dest="headFlag", default=True,
+        help='Disable using the head of word vectors fed to the MLP')
+    group.add_option("--disable-rlmost", action="store_false", dest="rlMostFlag", default=True,
+        help='Disable using leftmost and rightmost dependents of words fed to the MLP')
+    group.add_option("--userl", action="store_true", dest="rlFlag", default=False)
+    group.add_option("--k", type="int", metavar="INTEGER", default=3,
+        help="Number of stack elements to feed to MLP")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Neural network options")
+    group.add_option("--dynet-seed", type="int", metavar="INTEGER",
+        help="Random seed for Dynet")
+    group.add_option("--dynet-mem", type="int", metavar="INTEGER",
+        help="Memory to assign Dynet in MB", default=512)
+    group.add_option("--learning-rate", type="float", metavar="FLOAT",
+        help="Learning rate for neural network optimizer", default=0.001)
+    group.add_option("--char-emb-size", type="int", metavar="INTEGER",
+        help="Character embedding dimensions", default=24)
+    group.add_option("--char-lstm-output-size", type="int", metavar="INTEGER",
+        help="Character BiLSTM dimensions", default=50)
+    group.add_option("--word-emb-size", type="int", metavar="INTEGER",
+        help="Word embedding dimensions", default=100)
+    group.add_option("--lang-emb-size", type="int", metavar="INTEGER",
+        help="Language embedding dimensions", default=12)
+    group.add_option("--lstm-output-size", type="int", metavar="INTEGER",
+        help="Word BiLSTM dimensions", default=125)
+    group.add_option("--mlp-hidden-dims", type="int", metavar="INTEGER",
+        help="MLP hidden layer dimensions", default=100)
+    group.add_option("--mlp-hidden2-dims", type="int", metavar="INTEGER",
+        help="MLP second hidden layer dimensions", default=0)
+    group.add_option("--external-embedding", metavar="FILE", help="External embeddings")
+    group.add_option("--activation", help="Activation function in the MLP", default="tanh")
+    group.add_option("--disable-bilstm", action="store_true", default=False,
+        help='disable the BiLSTM feature extactor')
+    group.add_option("--disable-lembed", action="store_false", dest="use_lembed",
+        help='disable the use of a language embedding when in multilingual mode', default=True)
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Debug options")
+    group.add_option("--debug", action="store_true",
+        help="Run parser in debug mode, with fewer sentences", default=False)
+    group.add_option("--debug-train-sents", type="int", metavar="INTEGER",
+        help="Number of training sentences in --debug mode", default=150)
+    group.add_option("--debug-dev-sents", type="int", metavar="INTEGER",
+        help="Number of dev sentences in --debug mode", default=100)
+    group.add_option("--debug-test-sents", type="int", metavar="INTEGER",
+        help="Number of test sentences in --debug mode", default=50)
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Shared task options")
+    group.add_option("--shared_task", action="store_true", dest="shared_task", default=False)
+    group.add_option("--shared_task_datadir", dest="shared_task_datadir", default="EXP")
+    group.add_option("--shared_task_outdir", dest="shared_task_outdir", default="EXP")
+    parser.add_option_group(group)
 
     (options, args) = parser.parse_args()
 

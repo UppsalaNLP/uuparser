@@ -52,6 +52,8 @@ class Treebank(object):
         self.name = 'noname'
         self.trainfile = trainfile
         self.devfile = devfile
+        self.dev_gold = devfile
+        self.test_gold = testfile
         self.testfile = testfile
         self.outfilename = None
 
@@ -151,7 +153,7 @@ def vocab(conll_path, path_is_dir=False):
     for sentence in data:
         wordsCount.update([node.norm for node in sentence if isinstance(node, ConllEntry)])
         for node in sentence:
-            if isinstance(node, ConllEntry):
+            if isinstance(node, ConllEntry) and not node.form == u"*root*":
                 charsCount.update(node.form)
         #TODO: aren't counters an overkill if we then just use the keys?
         posCount.update([node.pos for node in sentence if isinstance(node, ConllEntry)])
@@ -161,7 +163,6 @@ def vocab(conll_path, path_is_dir=False):
         if path_is_dir:
             langCounter.update([node.language_id for node in sentence if
                                 isinstance(node, ConllEntry)])
-
 
     return (wordsCount, {w: i for i, w in enumerate(wordsCount.keys())},
             posCount.keys(), cposCount.keys(), relCount.keys(),
@@ -227,12 +228,12 @@ def read_conll(filename, language=None, maxSize=-1, hard_lim=False, vocab_prep=F
                     if maxSize > 0:
                         if not hard_lim:
                             all_tokens.append(tokens)
-                        elif yield_count < maxSize:
+                        else:
                             yield tokens
                             yield_count += 1
-                        else:
-                            print "Capping size of corpus at " + str(yield_count) + " sentences"
-                            break;
+                            if yield_count == maxSize:
+                                print "Capping size of corpus at " + str(yield_count) + " sentences"
+                                break;
                     else:
                         yield tokens
                 else:
@@ -314,11 +315,12 @@ def evaluate(gold,test,conllu):
     scoresfile = test + '.txt'
     print "Writing to " + scoresfile
     if not conllu:
-        os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile + ' &')
-        return None
+        #os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile + ' &')
+        os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile )
     else:
         os.system('python src/utils/evaluation_script/conll17_ud_eval.py -v -w src/utils/evaluation_script/weights.clas ' + gold + ' ' + test + ' > ' + scoresfile)
-        return get_LAS_score(scoresfile)
+    score = get_LAS_score(scoresfile,conllu)
+    return score
 
 def inorder(sentence):
     queue = [sentence[0]]
@@ -344,7 +346,7 @@ def generate_seed():
 def set_seeds(options):
     global dynet_seed
     global python_seed
-    if not options.predictFlag: # seeds shouldn't make any different when predicting so can always use defaults
+    if not options.predict: # seeds shouldn't make any different when predicting so can always use defaults
         # the order of everything here is crucial
         if options.use_default_seed: # user requests default seeds
             print "Using default Python seed"
@@ -360,11 +362,16 @@ def set_seeds(options):
 #            dynet_seed = generate_seed()
 #            print "Generated Dynet seed: " + str(dynet_seed)
 
-def get_LAS_score(filename):
+def get_LAS_score(filename, conllu=True):
     score = None
     with codecs.open(filename,'r',encoding='utf-8') as fh:
-        for line in fh:
-            if re.match(r'^LAS',line):
-                elements = line.split()
-                score = float(elements[6]) # should extract the F1 score
+        if conllu:
+            for line in fh:
+                if re.match(r'^LAS',line):
+                    elements = line.split()
+                    score = float(elements[6]) # should extract the F1 score
+        else:
+            las_line = [line for line in fh][0]
+            score = float(las_line.split('=')[1].split()[0])
+
     return score

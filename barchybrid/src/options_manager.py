@@ -18,7 +18,7 @@ class OptionsManager(object):
         if options.include and not options.datadir:
             raise Exception("You need to specify the data dir to include UD languages")
 
-        if not options.predictFlag:
+        if not options.predict:
             if not options.include and not options.trainfile:
                 raise Exception("If not using the --include option, you must specify your training data with --trainfile")
         else:
@@ -33,7 +33,7 @@ class OptionsManager(object):
             print "Creating output directory " + options.outdir
             os.mkdir(options.outdir)
 
-        if not options.predictFlag and not (options.rlFlag or options.rlMostFlag or options.headFlag):
+        if not options.predict and not (options.rlFlag or options.rlMostFlag or options.headFlag):
             raise Exception("Must include either head, rl or rlmost (For example, if you specified --disable-head and --disable-rlmost, you must specify --userl)")
 
         if options.rlFlag and options.rlMostFlag:
@@ -47,6 +47,7 @@ class OptionsManager(object):
 
         options.multi_monoling = False # set default
         self.iterations = 1 # set default
+        self.conllu = True #default
 
         if not options.include: # must specifiy explicitly train
             treebank = utils.Treebank(options.trainfile, \
@@ -55,7 +56,7 @@ class OptionsManager(object):
             treebank.outdir = options.outdir
             treebank.modeldir = options.modeldir
             #just one model specified by train/dev and/or test
-            if options.predictFlag:
+            if options.predict:
                 if not options.testfile:
                     raise Exception("--testfile must be specified")
                 elif not os.path.exists(options.testfile):
@@ -90,7 +91,7 @@ class OptionsManager(object):
                     print "Warning: skipping invalid language code " + lang
 
             if options.multiling:
-                if options.predictFlag:
+                if options.predict:
                     model = "%s/%s"%(options.modeldir,options.model)
                     if not os.path.exists(model): # in multilingual case need model to be found in first language specified
                         raise Exception("Model not found. Path tried: %s"%model)
@@ -112,13 +113,13 @@ class OptionsManager(object):
                     print ("Warning: language-specific subdirectory " + language.outdir
                         + " already exists, contents may be overwritten")
 
-                if not options.predictFlag:
+                if not options.predict:
                     self.prepareDev(language,options)
 
                 if options.debug: # it is important that prepareDev be called before createDebugData
                     self.createDebugData(language,options)
 
-                if options.predictFlag and options.multi_monoling:
+                if options.predict and options.multi_monoling:
                     language.modeldir= "%s/%s"%(options.modeldir,language.iso_id)
                     model = "%s/%s"%(language.modeldir,options.model)
                     if not os.path.exists(model): # in multilingual case need model to be found in first language specified
@@ -173,21 +174,22 @@ class OptionsManager(object):
     # if debug options is set, we read in the training, dev and test files as appropriate, cap the number of sentences and store
     # new files with these smaller data sets
     def createDebugData(self,treebank,options):
+        ext = '.conllu' if self.conllu else '.conll'
         print 'Creating smaller data sets for debugging'
-        if not options.predictFlag:
+        if not options.predict:
             traindata = list(utils.read_conll(treebank.trainfile,treebank.iso_id,maxSize=options.debug_train_sents,hard_lim=True))
-            train_file = os.path.join(treebank.outdir,'train-debug' + '.conllu') # location for the new train file
+            train_file = os.path.join(treebank.outdir,'train-debug' + ext) # location for the new train file
             utils.write_conll(train_file,traindata) # write the new dev data to file
             treebank.trainfile = train_file
-            if treebank.devfile and os.path.exists(treebank.devfile):
+            if treebank.devfile and os.path.exists(treebank.devfile) and options.pred_dev:
                 devdata = list(utils.read_conll(treebank.devfile,treebank.iso_id,maxSize=options.debug_dev_sents,hard_lim=True))
-                dev_file = os.path.join(treebank.outdir,'dev-debug' + '.conllu') # location for the new dev file
+                dev_file = os.path.join(treebank.outdir,'dev-debug' + ext) # location for the new dev file
                 utils.write_conll(dev_file,devdata) # write the new dev data to file
                 treebank.dev_gold = dev_file
                 treebank.devfile = dev_file
         else:
            testdata = list(utils.read_conll(treebank.testfile,treebank.iso_id,maxSize=options.debug_test_sents,hard_lim=True))
-           test_file = os.path.join(treebank.outdir,'test-debug' + '.conllu') # location for the new dev file
+           test_file = os.path.join(treebank.outdir,'test-debug' + ext) # location for the new dev file
            utils.write_conll(test_file,testdata) # write the new dev data to file
            treebank.test_gold = test_file
            treebank.testfile = test_file
