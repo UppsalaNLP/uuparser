@@ -36,11 +36,10 @@ class ArcHybridLSTM:
         self.nnvecs = (1 if self.headFlag else 0) + (2 if self.rlFlag or self.rlMostFlag else 0)
         self.feature_extractor = FeatureExtractor(self.model,words,rels,langs,w2i,ch,self.nnvecs,options)
 
-        mlp_in_dims = options.lstm_output_size*2*self.nnvecs*(self.k+1)
-
-        #@@MLP
-        self.unlabeled_MLP = MLP(self.model, mlp_in_dims, options.mlp_hidden_dims,4, self.activation)
-        self.labeled_MLP = MLP(self.model, mlp_in_dims, options.mlp_hidden_dims,2*len(rels)+2,self.activation)
+        #TODO: add possibility to have 2 layers
+        mlp_in_dims = self.feature_extractor.lstm_output_size*2*self.nnvecs*(self.k+1)
+        self.unlabeled_MLP = MLP(self.model, 'unlabeled', mlp_in_dims, options.mlp_hidden_dims,4, self.activation)
+        self.labeled_MLP = MLP(self.model, 'labeled' ,mlp_in_dims, options.mlp_hidden_dims,2*len(rels)+2,self.activation)
         self.trainer = dy.AdamTrainer(self.model, alpha=options.learning_rate)
 
     def __evaluate(self, stack, buf, train):
@@ -64,7 +63,6 @@ class ArcHybridLSTM:
         input = dy.concatenate(list(chain(*(topStack + topBuffer))))
 
         #scores, unlabeled scores
-        #@@MLP
         output = self.unlabeled_MLP(input)
         routput = self.labeled_MLP(input)
 
