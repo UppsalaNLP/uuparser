@@ -79,16 +79,22 @@ class OptionsManager(object):
         else:
             self.conllu = True # file is in conllu format
             language_list = utils.parse_list_arg(options.include) # languages requested by the user via the include flag
-            json_treebanks = utils.conll_dir_to_list(language_list,options.datadir,options.shared_task, # list of the available treebanks
-                                    options.shared_task_datadir)
-#            self.languages = [lang for lang in json_treebanks if lang.iso_id in language_list]
-            treebank_dict = {lang.iso_id: lang for lang in json_treebanks}
+            ud_treebanks = utils.conll_dir_to_list(
+                language_list, options.datadir, options.shared_task, # list of the available treebanks
+                options.shared_task_datadir,
+                options.treebanks_from_json
+            )
+            treebank_dict = {lang.iso_id: lang for lang in ud_treebanks}
             self.languages = []
+            found_invalid_treebank_id = False
             for lang in language_list:
                 if lang in treebank_dict:
                     self.languages.append(treebank_dict[lang])
                 else:
                     print "Warning: skipping invalid language code " + lang
+                    found_invalid_treebank_id = True
+            if found_invalid_treebank_id:
+                print "Supported treebank IDs:", ', '.join(sorted(treebank_dict.keys()))
 
             if options.multiling:
                 if options.predict:
@@ -127,7 +133,7 @@ class OptionsManager(object):
                             raise Exception("Model not found. Path tried: %s"%model)
                         else:
                             #find model for the language in question
-                            for otherl in json_treebanks:
+                            for otherl in ud_treebanks:
                                 if otherl.lcode == language.lcode:
                                     if otherl.lcode == otherl.iso_id:
                                         language.modeldir = "%s/%s"%(options.modeldir,otherl.iso_id)
