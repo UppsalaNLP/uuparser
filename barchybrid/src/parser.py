@@ -163,6 +163,9 @@ if __name__ == '__main__':
 if using UD. If not specified need to specify trainfile at least. When used in combination with \
 --multiling, trains a common parser for all languages. Otherwise, train monolingual parsers for \
 each")
+    group.add_option("--treebanks-from-json", action="store_true", default=False,
+        help='Read available treebanks from src/utils/ud_iso.json (or metadata.json in shared \
+task mode) rather than scanning datadir.')
     group.add_option("--trainfile", metavar="FILE", help="Annotated CONLL(U) train file")
     group.add_option("--devfile", metavar="FILE", help="Annotated CONLL(U) dev file")
     group.add_option("--testfile", metavar="FILE", help="Annotated CONLL(U) test file")

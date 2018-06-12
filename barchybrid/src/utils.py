@@ -169,9 +169,26 @@ def vocab(conll_path, path_is_dir=False):
             langCounter.keys() if langCounter else None, charsCount.keys())
 
 
-def conll_dir_to_list(languages, data_dir,shared_task=False, shared_task_data_dir=None):
+def conll_dir_to_list(
+    languages, data_dir,
+    shared_task=False,
+    shared_task_data_dir=None,
+    treebanks_from_json=True,
+):
     import json
-    if shared_task:
+    if not treebanks_from_json:
+        treebank_metadata = []
+        for entry in os.listdir(data_dir):
+            candidate_dir = os.path.join(data_dir, entry)
+            if os.path.isdir(candidate_dir):
+                for filename in os.listdir(candidate_dir):
+                    fields = filename.split('-ud-')
+                    if len(fields) == 2 and fields[1] == 'train.conllu':
+                        treebank_metadata.append((
+                            entry.decode('utf-8'),
+                            fields[0].decode('utf-8')
+                        ))
+    elif shared_task:
         metadataFile = shared_task_data_dir +'/metadata.json'
         metadata = codecs.open(metadataFile, 'r',encoding='utf-8')
         json_str = metadata.read()
@@ -181,9 +198,9 @@ def conll_dir_to_list(languages, data_dir,shared_task=False, shared_task_data_di
         json_str = ud_iso_file.read()
         iso_dict = json.loads(json_str)
         treebank_metadata = iso_dict.items()
-    json_treebanks= [UDtreebank(treebank_info,data_dir,shared_task, shared_task_data_dir) \
+    ud_treebanks = [UDtreebank(treebank_info, data_dir, shared_task, shared_task_data_dir) \
             for treebank_info in treebank_metadata ]
-    return json_treebanks
+    return ud_treebanks
 
 def read_conll_dir(languages,filetype,maxSize=-1):
     #print "Max size for each corpus: ", maxSize
