@@ -5,144 +5,125 @@ import pickle, utils, os, time, sys, copy, itertools, re, random
 from shutil import copyfile
 import codecs
 
-def run(om,options,i):
-
-    if options.multiling:
-        outdir = options.outdir
-    else:
-        cur_treebank = om.languages[i]
-        outdir = cur_treebank.outdir
-
-    if options.shared_task:
-        outdir = options.shared_task_outdir
+def run(experiment,options):
 
     if not options.predict: # training
 
-        print 'Preparing vocab'
-        if options.multiling:
-            words, w2i, pos, cpos, rels, langs, ch = utils.vocab(om.languages, path_is_dir=True)
+        paramsfile = os.path.join(experiment.outdir, options.params)
 
-        else:
-            words, w2i, pos, cpos, rels, langs, ch = utils.vocab(cur_treebank.trainfile)
-
-        paramsfile = os.path.join(outdir, options.params)
-        with open(paramsfile, 'w') as paramsfp:
-            print 'Saving params to ' + paramsfile
-            pickle.dump((words, w2i, pos, rels, cpos, langs,
-                         options, ch), paramsfp)
+        if not options.continueTraining:
+            print 'Preparing vocab'
+            vocab = utils.get_vocab(experiment.treebanks,"train")
             print 'Finished collecting vocab'
 
-        print 'Initializing blstm arc hybrid:'
-        parser = ArcHybridLSTM(words, pos, rels, cpos, langs, w2i,
-                               ch, options)
+            with open(paramsfile, 'w') as paramsfp:
+                print 'Saving params to ' + paramsfile
+                pickle.dump((vocab, options), paramsfp)
 
-        for epoch in xrange(options.first_epoch, options.first_epoch+options.epochs):
+                print 'Initializing blstm arc hybrid:'
+                parser = ArcHybridLSTM(vocab, options)
+        else:  #continue
+            if options.continueParams:
+                paramsfile = options.continueParams
+            with open(paramsfile, 'r') as paramsfp:
+                stored_vocab, stored_options = pickle.load(paramsfp)
+                print 'Initializing blstm arc hybrid:'
+                parser = ArcHybridLSTM(stored_vocab, stored_options)
+
+            parser.Load(options.continueModel)
+
+        dev_best = [options.epochs,-1.0] # best epoch, best score
+
+        for epoch in xrange(options.first_epoch, options.epochs+1):
 
             print 'Starting epoch ' + str(epoch)
-
-            if options.multiling:
-                traindata = list(utils.read_conll_dir(om.languages, "train", options.max_sentences))
-            else:
-                traindata = list(utils.read_conll(cur_treebank.trainfile, cur_treebank.iso_id,options.max_sentences))
-
-            parser.Train(traindata)
+            traindata = list(utils.read_conll_dir(experiment.treebanks, "train", options.max_sentences))
+            parser.Train(traindata,options)
             print 'Finished epoch ' + str(epoch)
 
-            model_file = os.path.join(outdir, options.model + str(epoch))
+            model_file = os.path.join(experiment.outdir, options.model + str(epoch))
             parser.Save(model_file)
 
             if options.pred_dev: # use the model to predict on dev data
 
-                if options.multiling:
-                    pred_langs = [lang for lang in om.languages if lang.pred_dev] # languages which have dev data on which to predict
-                    for lang in pred_langs:
-                        lang.outfilename = os.path.join(lang.outdir, 'dev_epoch_' + str(epoch) + '.conllu')
-                        print "Predicting on dev data for " + lang.name
-                    devdata = utils.read_conll_dir(pred_langs,"dev")
-                    pred = list(parser.Predict(devdata))
-                    if len(pred)>0:
-                        utils.write_conll_multiling(pred,pred_langs)
-                    else:
-                        print "Warning: prediction empty"
-                    if options.pred_eval:
-                        for lang in pred_langs:
-                            print "Evaluating dev prediction for " + lang.name
-                            utils.evaluate(lang.dev_gold,lang.outfilename,om.conllu)
-                else: # monolingual case
-                    if cur_treebank.pred_dev:
-                        print "Predicting on dev data for " + cur_treebank.name
-                        devdata = utils.read_conll(cur_treebank.devfile, cur_treebank.iso_id)
-                        cur_treebank.outfilename = os.path.join(outdir, 'dev_epoch_' + str(epoch) + ('.conll' if not om.conllu else '.conllu'))
-                        pred = list(parser.Predict(devdata))
-                        utils.write_conll(cur_treebank.outfilename, pred)
-                        if options.pred_eval:
-                            print "Evaluating dev prediction for " + cur_treebank.name
-                            score = utils.evaluate(cur_treebank.dev_gold,cur_treebank.outfilename,om.conllu)
-                            if options.model_selection:
-                                if score > cur_treebank.dev_best[1]:
-                                    cur_treebank.dev_best = [epoch,score]
+                # not all treebanks necessarily have dev data
+                pred_treebanks = [treebank for treebank in experiment.treebanks if treebank.pred_dev]
+                if pred_treebanks:
+                    for treebank in pred_treebanks:
+                        treebank.outfilename = os.path.join(treebank.outdir, 'dev_epoch_' + str(epoch) + '.conllu')
+                        print "Predicting on dev data for " + treebank.name
+                    pred = list(parser.Predict(pred_treebanks,"dev",options))
+                    utils.write_conll_multiling(pred,pred_treebanks)
 
-            if epoch == options.epochs: # at the last epoch choose which model to copy to barchybrid.model
-                if not options.model_selection:
-                    best_epoch = options.epochs # take the final epoch if model selection off completely (for example multilingual case)
-                else:
-                    best_epoch = cur_treebank.dev_best[0] # will be final epoch by default if model selection not on for this treebank
-                    if cur_treebank.model_selection:
-                        print "Best dev score of " + str(cur_treebank.dev_best[1]) + " found at epoch " + str(cur_treebank.dev_best[0])
+                    if options.pred_eval: # evaluate the prediction against gold data
+                        mean_score = 0.0
+                        for treebank in pred_treebanks:
+                            score = utils.evaluate(treebank.dev_gold,treebank.outfilename,options.conllu)
+                            print "Dev score %.2f at epoch %i for %s"%(score,epoch,treebank.name)
+                            mean_score += score
+                        if len(pred_treebanks) > 1: # multiling case
+                            mean_score = mean_score/len(pred_treebanks)
+                            print "Mean dev score %.2f at epoch %i"%(mean_score,epoch)
+                        if options.model_selection:
+                            if mean_score > dev_best[1]:
+                                dev_best = [epoch,mean_score] # update best dev score
+                            # hack to print the word "mean" if the dev score is an average
+                            mean_string = "mean " if len(pred_treebanks) > 1 else ""
+                            print "Best %sdev score %.2f at epoch %i"%(mean_string,dev_best[1],dev_best[0])
 
-                bestmodel_file = os.path.join(outdir,"barchybrid.model" + str(best_epoch))
-                model_file = os.path.join(outdir,"barchybrid.model")
+
+            # at the last epoch choose which model to copy to barchybrid.model
+            if epoch == options.epochs:
+                bestmodel_file = os.path.join(experiment.outdir,"barchybrid.model" + str(dev_best[0]))
+                model_file = os.path.join(experiment.outdir,"barchybrid.model")
                 print "Copying " + bestmodel_file + " to " + model_file
                 copyfile(bestmodel_file,model_file)
+                best_dev_file = os.path.join(experiment.outdir,"best_dev_epoch.txt")
+                with open (best_dev_file, 'w') as fh:
+                    print "Writing best scores to: " + best_dev_file
+                    if len(experiment.treebanks) == 1:
+                        fh.write("Best dev score %s at epoch %i\n"%(dev_best[1],dev_best[0]))
+                    else:
+                        fh.write("Best mean dev score %s at epoch %i\n"%(dev_best[1],dev_best[0]))
 
     else: #if predict - so
 
-        if options.multiling:
-            modeldir = options.modeldir
-        else:
-            modeldir = om.languages[i].modeldir
-
-        params = os.path.join(modeldir,options.params)
+        params = os.path.join(experiment.modeldir,options.params)
         print 'Reading params from ' + params
         with open(params, 'r') as paramsfp:
-            words, w2i, pos, rels, cpos, langs, stored_opt, ch = pickle.load(paramsfp)
+            stored_vocab, stored_opt = pickle.load(paramsfp)
 
-            parser = ArcHybridLSTM(words, pos, rels, cpos, langs, w2i,
-                               ch, stored_opt)
-            model = os.path.join(modeldir, options.model)
+            # we need to update/add certain options based on new user input
+            utils.fix_stored_options(stored_opt,options)
+
+            parser = ArcHybridLSTM(stored_vocab, stored_opt)
+            model = os.path.join(experiment.modeldir, options.model)
             parser.Load(model)
-
-            if options.multiling:
-                testdata = utils.read_conll_dir(om.languages,"test")
-            else:
-                testdata = utils.read_conll(cur_treebank.testfile,cur_treebank.iso_id)
 
             ts = time.time()
 
-            if options.multiling:
-                for l in om.languages:
-                    l.outfilename = os.path.join(outdir, l.outfilename)
-                pred = list(parser.Predict(testdata))
-                utils.write_conll_multiling(pred,om.languages)
-            else:
-                if cur_treebank.outfilename:
-                    cur_treebank.outfilename = os.path.join(outdir,cur_treebank.outfilename)
-                else:
-                    cur_treebank.outfilename = os.path.join(outdir, 'out' + ('.conll' if not om.conllu else '.conllu'))
-                utils.write_conll(cur_treebank.outfilename, parser.Predict(testdata))
+            for treebank in experiment.treebanks:
+                if options.predict_all_epochs: # name outfile after epoch number in model file
+                    try:
+                        m = re.search('(\d+)$',options.model)
+                        epoch = m.group(1)
+                        treebank.outfilename = 'dev_epoch_%s.conllu'%epoch
+                    except AttributeError:
+                        raise Exception("No epoch number found in model file (e.g. barchybrid.model22)")
+                if not treebank.outfilename:
+                    treebank.outfilename = 'out' + ('.conll' if not options.conllu else '.conllu')
+                treebank.outfilename = os.path.join(treebank.outdir, treebank.outfilename)
+
+            pred = list(parser.Predict(experiment.treebanks,"test",stored_opt))
+            utils.write_conll_multiling(pred,experiment.treebanks)
 
             te = time.time()
 
             if options.pred_eval:
-                if options.multiling:
-                    for l in om.languages:
-                        print "Evaluating on " + l.name
-                        score = utils.evaluate(l.test_gold,l.outfilename,om.conllu)
-                        print "Obtained LAS F1 score of %.2f on %s" %(score,l.name)
-                else:
-                    print "Evaluating on " + cur_treebank.name
-                    score = utils.evaluate(cur_treebank.test_gold,cur_treebank.outfilename,om.conllu)
-                    print "Obtained LAS F1 score of %.2f on %s" %(score,cur_treebank.name)
+                for treebank in experiment.treebanks:
+                    print "Evaluating on " + treebank.name
+                    score = utils.evaluate(treebank.test_gold,treebank.outfilename,options.conllu)
+                    print "Obtained LAS F1 score of %.2f on %s" %(score,treebank.name)
 
             print 'Finished predicting'
 
@@ -151,7 +132,11 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("--outdir", metavar="PATH", help='Output directory')
     parser.add_option("--datadir", metavar="PATH",
-        help="Input directory with UD train/dev/test files; obligatory if using --include")
+        help="Input directory with UD files; obligatory if using --include")
+    parser.add_option("--testdir", metavar="PATH",
+        help="Input directory with UD test files")
+    parser.add_option("--golddir", metavar="PATH",
+        help="Directory with gold UD test files (default is same as testdir)")
     parser.add_option("--modeldir", metavar="PATH",
         help='Directory where models will be saved, defaults to same as --outdir if not specified')
     parser.add_option("--params", metavar="FILE", default="params.pickle", help="Parameters file")
@@ -163,6 +148,8 @@ if __name__ == '__main__':
 if using UD. If not specified need to specify trainfile at least. When used in combination with \
 --multiling, trains a common parser for all languages. Otherwise, train monolingual parsers for \
 each")
+    group.add_option("--json-isos", metavar="FILE", help="JSON file with treebank to ISO dictionary",
+        default="./src/utils/ud2.2_iso.json")
     group.add_option("--trainfile", metavar="FILE", help="Annotated CONLL(U) train file")
     group.add_option("--devfile", metavar="FILE", help="Annotated CONLL(U) dev file")
     group.add_option("--testfile", metavar="FILE", help="Annotated CONLL(U) test file")
@@ -185,13 +172,17 @@ each")
         help='Disable evaluation of prediction on dev data')
     group.add_option("--disable-model-selection", action="store_false",
         help="Disable choosing of model from best/last epoch", dest="model_selection", default=True)
-    group.add_option("--use-default-seed", action="store_true",
-        help="Use default random seed for Python", default=False)
     #TODO: reenable this
     group.add_option("--continue", dest="continueTraining", action="store_true", default=False)
-    group.add_option("--continueModel", metavar="FILE",
-        help="Load model file, when continuing to train a previously trained model")
+    parser.add_option("--continueModel", dest="continueModel", help="Load model file, when continuing to train a previously trained model", metavar="FILE", default=None)
+    parser.add_option("--continueParams", dest="continueParams", help="Load param file, when continuing to train a previously trained model", metavar="FILE", default=None)
     group.add_option("--first-epoch", type="int", metavar="INTEGER", default=1)
+    group.add_option("--predict-all-epochs", help='Ensures outfiles contain epoch number from model file',
+        action="store_true", default=False)
+    group.add_option("--forced-tbank-emb", type="string", default=None)
+    group.add_option("--char-map-file", help="Load character mapping from json", metavar="FILE", default=None)
+    group.add_option("--unfiltered-vecs", help='Use unfiltered external embeddings',
+        action="store_true", default=False)
     parser.add_option_group(group)
 
     group = OptionGroup(parser, "Parser options")
@@ -214,43 +205,43 @@ each")
     group.add_option("--learning-rate", type="float", metavar="FLOAT",
         help="Learning rate for neural network optimizer", default=0.001)
     group.add_option("--char-emb-size", type="int", metavar="INTEGER",
-        help="Character embedding dimensions", default=24)
+        help="Character embedding dimensions", default=500)
     group.add_option("--char-lstm-output-size", type="int", metavar="INTEGER",
-        help="Character BiLSTM dimensions", default=50)
+        help="Character BiLSTM dimensions", default=100)
     group.add_option("--word-emb-size", type="int", metavar="INTEGER",
         help="Word embedding dimensions", default=100)
-    group.add_option("--lang-emb-size", type="int", metavar="INTEGER",
-        help="Language embedding dimensions", default=12)
+    group.add_option("--pos-emb-size", type="int", metavar="INTEGER",
+        help="Pos embedding dimensions", default=0)
+    group.add_option("--tbank-emb-size", type="int", metavar="INTEGER",
+        help="Treebank embedding dimensions", default=12)
     group.add_option("--lstm-output-size", type="int", metavar="INTEGER",
         help="Word BiLSTM dimensions", default=125)
     group.add_option("--mlp-hidden-dims", type="int", metavar="INTEGER",
         help="MLP hidden layer dimensions", default=100)
     group.add_option("--mlp-hidden2-dims", type="int", metavar="INTEGER",
         help="MLP second hidden layer dimensions", default=0)
-    group.add_option("--external-embedding", metavar="FILE", help="External embeddings")
+    group.add_option("--ext-emb-file", metavar="FILE", help="External embeddings")
+    group.add_option("--ext-emb-dir", metavar="PATH", help='Directory containing external embeddings')
+    group.add_option("--max-ext-emb", type="int", metavar="INTEGER",
+        help='Maximum number of external embeddings to load', default=-1)
     group.add_option("--activation", help="Activation function in the MLP", default="tanh")
-    group.add_option("--disable-bilstm", action="store_true", default=False,
-        help='disable the BiLSTM feature extactor')
-    group.add_option("--disable-lembed", action="store_false", dest="use_lembed",
-        help='disable the use of a language embedding when in multilingual mode', default=True)
+    group.add_option("--no-bilstms", type="int", metavar="INTEGER",
+        help='Number of stacked BiLstms - set to 0 to disable', default=2)
     parser.add_option_group(group)
 
     group = OptionGroup(parser, "Debug options")
     group.add_option("--debug", action="store_true",
         help="Run parser in debug mode, with fewer sentences", default=False)
     group.add_option("--debug-train-sents", type="int", metavar="INTEGER",
-        help="Number of training sentences in --debug mode", default=150)
+        help="Number of training sentences in --debug mode", default=20)
     group.add_option("--debug-dev-sents", type="int", metavar="INTEGER",
-        help="Number of dev sentences in --debug mode", default=100)
+        help="Number of dev sentences in --debug mode", default=20)
     group.add_option("--debug-test-sents", type="int", metavar="INTEGER",
-        help="Number of test sentences in --debug mode", default=50)
+        help="Number of test sentences in --debug mode", default=20)
     parser.add_option_group(group)
 
     group = OptionGroup(parser, "Shared task options")
-    group.add_option("--shared_task", action="store_true", dest="shared_task", default=False)
-    group.add_option("--shared_task_datadir", dest="shared_task_datadir", default="EXP")
-    group.add_option("--shared_task_outdir", dest="shared_task_outdir", default="EXP")
-    parser.add_option_group(group)
+    group.add_option("--shared-task", action="store_true", default=False)
 
     (options, args) = parser.parse_args()
 
@@ -258,5 +249,7 @@ each")
     utils.set_seeds(options)
 
     om = OptionsManager(options)
-    for i in range(om.iterations):
-        run(om,options,i)
+    experiments = om.create_experiment_list(options) # list of namedtuples
+    for experiment in experiments:
+        run(experiment,options)
+
