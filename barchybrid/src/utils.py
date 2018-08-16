@@ -57,6 +57,7 @@ class Treebank(object):
         self.test_gold = testfile
         self.testfile = testfile
         self.outfilename = None
+        self.proxy_tbank = None
 
 class UDtreebank(Treebank):
     def __init__(self, treebank_info, options):
@@ -221,6 +222,8 @@ def get_lang_from_tbank_name(tbank_name):
     return lang
 
 def get_lang_from_tbank_id(tbank_id):
+    if not tbank_id:
+        return None
 
     if not reverse_iso_dict:
         load_reverse_iso_dict()
