@@ -33,7 +33,7 @@ python src/parser.py --outdir [results directory] --datadir [directory of UD fil
 
 The parser has numerous options to allow you to fine-control its behaviour. For a full list, type:
 
-parser src/parser.py --help
+python src/parser.py --help
 
 We recommend you set the --dynet-mem option to a larger number when running the full training procedure on larger treebanks.
 Commonly used values are 5000 and 10000 (in MB).
