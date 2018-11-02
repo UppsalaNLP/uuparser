@@ -1,3 +1,4 @@
+from elmo import ELMo
 from utils import ParseForest, read_conll, write_conll
 from operator import itemgetter
 from itertools import chain
@@ -29,6 +30,8 @@ class ArcHybridLSTM:
 
         self.oracle = options.oracle
 
+        # Load ELMo if the option is set
+        self.elmo = ELMo(options.elmo) if options.elmo is not None else None
 
         self.headFlag = options.headFlag
         self.rlMostFlag = options.rlMostFlag
@@ -37,7 +40,8 @@ class ArcHybridLSTM:
 
         #dimensions depending on extended features
         self.nnvecs = (1 if self.headFlag else 0) + (2 if self.rlFlag or self.rlMostFlag else 0)
-        self.feature_extractor = FeatureExtractor(self.model,options,vocab,self.nnvecs)
+        self.feature_extractor = FeatureExtractor(
+            self.model, options, vocab, self.nnvecs, self.elmo)
         self.irels = self.feature_extractor.irels
 
         if options.no_bilstms > 0:

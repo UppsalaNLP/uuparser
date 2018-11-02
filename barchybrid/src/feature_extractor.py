@@ -1,17 +1,19 @@
 from bilstm import BiLSTM
 import utils
 import dynet as dy
+import numpy as np
 import random
 from collections import defaultdict
 import codecs, re, os
 
 class FeatureExtractor(object):
-    def __init__(self,model,options,vocab,nnvecs):
+    def __init__(self, model, options, vocab, nnvecs, elmo):
 
         self.word_counts, words, chars, pos, cpos, self.irels, treebanks, langs = vocab
 
         self.model = model
         self.nnvecs = nnvecs
+        self.elmo = elmo
 
         extra_words = 2 # MLP padding vector and OOV vector
         self.words = {word: ind for ind, word in enumerate(words,extra_words)}
@@ -39,9 +41,13 @@ class FeatureExtractor(object):
                     self.external_embedding["chars"].update(utils.get_external_embeddings(options,lang,self.chars,chars=True))
             self.init_lookups(options)
 
-        self.lstm_input_size = options.word_emb_size + options.pos_emb_size + options.tbank_emb_size +\
-            2* (options.char_lstm_output_size if options.char_emb_size > 0 else 0)
-
+        elmo_emb_size = self.elmo.emb_dim if self.elmo else 0
+        self.lstm_input_size = (
+                options.word_emb_size + elmo_emb_size +
+                options.pos_emb_size + options.tbank_emb_size +
+                2 * (options.char_lstm_output_size
+                     if options.char_emb_size > 0 else 0)
+        )
         print "Word-level LSTM input size: " + str(self.lstm_input_size)
 
         self.bilstms = []
@@ -81,7 +87,14 @@ class FeatureExtractor(object):
             dy.concatenate([self.paddingVec for _ in xrange(self.nnvecs)])
 
     def getWordEmbeddings(self, sentence, train, options, test_embeddings=defaultdict(lambda:{})):
-        for root in sentence:
+
+        if self.elmo:
+            sentence_text = " ".join([entry.form for entry in sentence[:-1]])
+
+            elmo_sentence_representation = \
+                self.elmo.get_sentence_representation(sentence_text)
+
+        for i, root in enumerate(sentence):
             root.vecs = defaultdict(lambda: None) # all vecs are None by default (possibly a little risky?)
             if options.word_emb_size > 0:
                 if train:
@@ -112,11 +125,19 @@ class FeatureExtractor(object):
                     utils.reverse_iso_dict[treebank_id] in self.treebanks:
                     treebank_id = utils.reverse_iso_dict[treebank_id]
                 root.vecs["treebank"] = self.treebank_lookup[self.treebanks[treebank_id]]
+            if self.elmo:
+                elmo_embedding = elmo_sentence_representation[i]
+                root.vecs["elmo"] = np.mean(elmo_embedding, axis=0)
+                # 1) Lookup Elmo layers for sentence
+                # 2) Apply linear function
+                # 3) add output of linaer function
+                # root.vecs['elmo'] =
 
             root.vec = dy.concatenate(filter(None, [root.vecs["word"],
-                                                        root.vecs["pos"],
-                                                        root.vecs["char"],
-                                                        root.vecs["treebank"]]))
+                                                    root.vecs["elmo"],
+                                                    root.vecs["pos"],
+                                                    root.vecs["char"],
+                                                    root.vecs["treebank"]]))
 
         for bilstm in self.bilstms:
             bilstm.set_token_vecs(sentence,train)
