@@ -128,12 +128,16 @@ class FeatureExtractor(object):
                     treebank_id = utils.reverse_iso_dict[treebank_id]
                 root.vecs["treebank"] = self.treebank_lookup[self.treebanks[treebank_id]]
             if self.elmo:
-                elmo_embedding = elmo_sentence_representation
+                if i < len(sentence) - 1:
+                    # Don't look up the 'root' word
+                    elmo_embedding = elmo_sentence_representation[i]
 
-                root.vecs["elmo"] = np.mean(elmo_embedding, axis=0)
+                    root.vecs["elmo"] = np.mean(elmo_embedding, axis=0)
 
-                # 2) Apply linear function
-                # 3) add output of linaer function
+                    # 2) Apply linear function
+                    # 3) add output of linaer function
+                else:
+                    root.vecs["elmo"] = np.zeros(self.elmo.emb_dim)
 
                 root.vecs["elmo"] = dy.inputTensor(root.vecs["elmo"])
 

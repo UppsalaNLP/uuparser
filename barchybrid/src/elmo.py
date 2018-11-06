@@ -7,8 +7,12 @@ import h5py
 class ELMo(object):
 
     def __init__(self, elmo_file):
+        print "Reading ELMo embeddings from '%s'" % elmo_file
         self.weights = h5py.File(elmo_file, 'r')
-        self.sentence_to_index = json.loads(self.weights['sentence_to_index'])
+
+        self.sentence_to_index = json.loads(
+            self.weights['sentence_to_index'][0])
+
         self.num_layers, _, self.emb_dim = self.weights['0'].shape
 
     def get_sentence_representation(self, sentence):
@@ -51,4 +55,4 @@ class ELMo(object):
             for layer in self.sentence_weights:
                 layers.append(layer[i])
             
-            return np.asarray(layers)
+            return np.array(layers)
