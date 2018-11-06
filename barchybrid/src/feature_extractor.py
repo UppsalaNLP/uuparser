@@ -15,6 +15,9 @@ class FeatureExtractor(object):
         self.nnvecs = nnvecs
         self.elmo = elmo
 
+        if self.elmo:
+            self.elmo.init_weights(model)
+
         extra_words = 2 # MLP padding vector and OOV vector
         self.words = {word: ind for ind, word in enumerate(words,extra_words)}
         self.word_lookup = self.model.add_lookup_parameters((len(self.words)+extra_words, options.word_emb_size))
@@ -37,7 +40,7 @@ class FeatureExtractor(object):
             for lang in langs:
                 if options.word_emb_size > 0:
                     self.external_embedding["words"].update(utils.get_external_embeddings(options,lang,self.words.viewkeys()))
-                if options.char_emb_size > 0:
+                elif options.char_emb_size > 0:
                     self.external_embedding["chars"].update(utils.get_external_embeddings(options,lang,self.chars,chars=True))
             self.init_lookups(options)
 
@@ -130,16 +133,10 @@ class FeatureExtractor(object):
             if self.elmo:
                 if i < len(sentence) - 1:
                     # Don't look up the 'root' word
-                    elmo_embedding = elmo_sentence_representation[i]
-
-                    root.vecs["elmo"] = np.mean(elmo_embedding, axis=0)
-
-                    # 2) Apply linear function
-                    # 3) add output of linaer function
+                    root.vecs["elmo"] = elmo_sentence_representation[i]
                 else:
-                    root.vecs["elmo"] = np.zeros(self.elmo.emb_dim)
-
-                root.vecs["elmo"] = dy.inputTensor(root.vecs["elmo"])
+                    # TODO
+                    root.vecs["elmo"] = dy.zeros(self.elmo.emb_dim)
 
             root.vec = dy.concatenate(filter(None, [root.vecs["word"],
                                                     root.vecs["elmo"],

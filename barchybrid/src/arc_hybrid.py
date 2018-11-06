@@ -227,7 +227,7 @@ class ArcHybridLSTM:
                     test_embeddings["words"].update(utils.get_external_embeddings(options,lang,new_test_words))
                 if len(test_langs) > 1 and test_embeddings["words"]:
                     print "External embeddings found for %i words (out of %i)"%(len(test_embeddings["words"]),len(new_test_words))
-        if options.char_emb_size > 0:
+        elif options.char_emb_size > 0:
             new_test_chars = set(test_chars) - self.feature_extractor.chars.viewkeys()
             print "Number of OOV char types at test time: %i (out of %i)"%(len(new_test_chars),len(test_chars))
             if len(new_test_chars) > 0:
