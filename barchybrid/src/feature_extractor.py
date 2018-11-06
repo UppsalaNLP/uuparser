@@ -73,12 +73,14 @@ class FeatureExtractor(object):
 
     def Init(self,options):
         paddingWordVec = self.word_lookup[1] if options.word_emb_size > 0 else None
+        paddingElmoVec = dy.zeros(self.elmo.emb_dim) if self.elmo else None
         paddingPosVec = self.pos_lookup[1] if options.pos_emb_size > 0 else None
         paddingCharVec = self.charPadding.expr() if options.char_emb_size > 0 else None
         paddingTbankVec = self.treebank_lookup[0] if options.tbank_emb_size > 0 else None
 
         self.paddingVec = dy.tanh(self.word2lstm.expr() *\
             dy.concatenate(filter(None,[paddingWordVec,
+                                        paddingElmoVec,
                                         paddingPosVec,
                                         paddingCharVec,
                                         paddingTbankVec])) + self.word2lstmbias.expr())
@@ -126,12 +128,14 @@ class FeatureExtractor(object):
                     treebank_id = utils.reverse_iso_dict[treebank_id]
                 root.vecs["treebank"] = self.treebank_lookup[self.treebanks[treebank_id]]
             if self.elmo:
-                elmo_embedding = elmo_sentence_representation[i]
+                elmo_embedding = elmo_sentence_representation
+
                 root.vecs["elmo"] = np.mean(elmo_embedding, axis=0)
-                # 1) Lookup Elmo layers for sentence
+
                 # 2) Apply linear function
                 # 3) add output of linaer function
-                # root.vecs['elmo'] =
+
+                root.vecs["elmo"] = dy.inputTensor(root.vecs["elmo"])
 
             root.vec = dy.concatenate(filter(None, [root.vecs["word"],
                                                     root.vecs["elmo"],
