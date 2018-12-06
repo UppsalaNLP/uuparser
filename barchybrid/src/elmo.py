@@ -11,7 +11,7 @@ class ELMo(object):
         print "Reading ELMo embeddings from '%s'" % elmo_file
         self.sentence_data = h5py.File(elmo_file, 'r')
         self.weights = []
-        self.gamma = gamma
+        self.gamma = None
 
         self.sentence_to_index = json.loads(
             self.sentence_data['sentence_to_index'][0])
@@ -36,6 +36,7 @@ class ELMo(object):
     def init_weights(self, model):
         self.weights = model.add_parameters(
             self.num_layers, name="elmo-layer-weights")
+        self.gamma = model.add_parameters(1, name="elmo-gamma")
 
     class Sentence(object):
 
