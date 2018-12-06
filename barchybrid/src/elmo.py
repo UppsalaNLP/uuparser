@@ -7,11 +7,12 @@ import numpy as np
 
 class ELMo(object):
 
-    def __init__(self, elmo_file, gamma=1.0):
+    def __init__(self, elmo_file, gamma=1.0, learn_gamma=False):
         print "Reading ELMo embeddings from '%s'" % elmo_file
         self.sentence_data = h5py.File(elmo_file, 'r')
         self.weights = []
-        self.gamma = None
+
+        self.gamma = None if learn_gamma else gamma
 
         self.sentence_to_index = json.loads(
             self.sentence_data['sentence_to_index'][0])
@@ -36,7 +37,10 @@ class ELMo(object):
     def init_weights(self, model):
         self.weights = model.add_parameters(
             self.num_layers, name="elmo-layer-weights")
-        self.gamma = model.add_parameters(1, name="elmo-gamma")
+
+        if self.gamma is None:
+            print("ELMo: Learning gamma factor...")
+            self.gamma = model.add_parameters(1, name="elmo-gamma")
 
     class Sentence(object):
 

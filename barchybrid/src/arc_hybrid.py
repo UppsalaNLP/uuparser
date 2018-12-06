@@ -31,8 +31,11 @@ class ArcHybridLSTM:
         self.oracle = options.oracle
 
         # Load ELMo if the option is set
-        self.elmo = ELMo(options.elmo, options.elmo_gamma) \
-            if options.elmo is not None else None
+        self.elmo = ELMo(
+            options.elmo,
+            options.elmo_gamma,
+            options.elmo_learn_gamma
+        ) if options.elmo is not None else None
 
         self.headFlag = options.headFlag
         self.rlMostFlag = options.rlMostFlag
