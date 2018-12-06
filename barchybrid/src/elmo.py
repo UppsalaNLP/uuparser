@@ -37,7 +37,7 @@ class ELMo(object):
     def init_weights(self, model):
         self.weights = model.add_parameters(
             self.num_layers, name="elmo-layer-weights", init="uniform",
-            scale=1/self.num_layers)
+            scale=1.0)
 
         if self.gamma is None:
             print("ELMo: Learning gamma factor...")
