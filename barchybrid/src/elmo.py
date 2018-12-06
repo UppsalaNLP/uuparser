@@ -1,15 +1,17 @@
 import json
-import numpy as np
+
 import dynet as dy
 import h5py
+import numpy as np
 
 
 class ELMo(object):
 
-    def __init__(self, elmo_file):
+    def __init__(self, elmo_file, gamma=1.0):
         print "Reading ELMo embeddings from '%s'" % elmo_file
         self.sentence_data = h5py.File(elmo_file, 'r')
         self.weights = []
+        self.gamma = gamma
 
         self.sentence_to_index = json.loads(
             self.sentence_data['sentence_to_index'][0])
@@ -32,14 +34,8 @@ class ELMo(object):
         return ELMo.Sentence(self.sentence_data[sentence_index], self)
 
     def init_weights(self, model):
-        self.weights = [
-            model.add_parameters(
-                1,
-                init=1.0 / self.num_layers,
-                name="elmo-weight-%s" % i
-            )
-            for i in range(self.num_layers)
-        ]
+        self.weights = model.add_parameters(
+            self.num_layers, name="elmo-layer-weights")
 
     class Sentence(object):
 
@@ -55,13 +51,14 @@ class ELMo(object):
             """
             layers = self._get_sentence_layers(i)
 
+            normalized_weights = dy.softmax(self.elmo.weights)
             y_hat = [
                 dy.inputTensor(layer) * weight
-                for layer, weight in zip(layers, self.elmo.weights)
+                for layer, weight in zip(layers, normalized_weights)
             ]
 
             # Sum the layer contents together
-            return dy.esum(y_hat)
+            return dy.esum(y_hat) * self.elmo.gamma
 
         def _get_sentence_layers(self, i):
             """
