@@ -36,11 +36,12 @@ class ELMo(object):
 
     def init_weights(self, model):
         self.weights = model.add_parameters(
-            self.num_layers, name="elmo-layer-weights")
+            self.num_layers, name="elmo-layer-weights", init="uniform",
+            scale=1/self.num_layers)
 
         if self.gamma is None:
             print("ELMo: Learning gamma factor...")
-            self.gamma = model.add_parameters(1, name="elmo-gamma")
+            self.gamma = model.add_parameters(1, name="elmo-gamma", init=1.0)
 
     class Sentence(object):
 
