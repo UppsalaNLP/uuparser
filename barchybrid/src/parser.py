@@ -145,9 +145,9 @@ if __name__ == '__main__':
     parser.add_option("--elmo", metavar="FILE", default=None,
                       help="HDF5 file that contains ELMo layers for sentences.")
     parser.add_option("--elmo_gamma", type="float", metavar="FLOAT",
-                      default=1.0, help="Gamma factor to tune elmo.")
+                      default=1.0, help="Gamma factor to tune ELMo.")
     parser.add_option("--elmo_learn_gamma", action="store_true",
-                      default=False, help="Learn the gamma factor for elmo.")
+                      default=False, help="Learn the gamma factor for ELMo.")
 
     group = OptionGroup(parser, "Experiment options")
     group.add_option("--include", metavar="LIST", help="List of languages by ISO code to be run \
