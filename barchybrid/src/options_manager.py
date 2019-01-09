@@ -21,7 +21,8 @@ class OptionsManager(object):
                 raise Exception("You need to specify --datadir")
             elif options.shared_task and not options.testdir:
                 raise Exception("You need to specify --testdir")
-            if options.predict and not (options.datadir or options.testdir):
+            if options.predict and not (options.datadir or options.testdir or
+                                        options.testfile):
                 raise Exception("You need to specify --testdir")
 
         if not options.predict:

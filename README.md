@@ -46,9 +46,9 @@ This ensures that Python's random number generator and Dynet both produce the sa
 
 The following is a typical command for training separate models for UD_Swedish, UD_Russian, and UD_English:
 
-python src/parser.py --outdir my_output --datadir ud-treebanks-v2.0 --include "sv ru en" --dynet-seed 123456789 --dynet-mem 10000
+python src/parser.py --outdir my_output --datadir ud-treebanks-v2.0 --include "sv_talbanken en_partut ru_syntagrus" --dynet-seed 123456789 --dynet-mem 10000
 
-The output files will be created in my_output/sv, my_output/ru, and my_output/en.
+The output files will be created in my_output/sv_talbanken, my_output/ru_syntagrus, and my_output/en_partut.
 This command assumes that the directory UD_Swedish exists in ud-treebanks-v2.0 and contains at least the file sv-ud-train.conllu (and the same for the other two languages).
 If dev data is also found (sv-ud-dev.conllu), model selection will be performed by default by parsing the dev data at each epoch and choosing the model from the epoch with the highest LAS.
 
@@ -69,6 +69,11 @@ Information about this technique is detailed in:
 
 To train a multi-treebank model, simply add the --multiling flag at both training and test time.
 The output model files will be stored by default directly in the specified output directory rather than in treebank-specific subdirectories.
+
+#### ELMo
+
+Results can be improved by using ELMo, this can be done with [the fork of this parser by Johannes Gontrum](https://github.com/jgontrum/uuparser-with-elmo). 
+(To be merged soon)
 
 #### Citation
 
