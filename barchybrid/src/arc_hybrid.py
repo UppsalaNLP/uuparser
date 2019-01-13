@@ -221,24 +221,52 @@ class ArcHybridLSTM:
             char_map = json.loads(char_map_fh.read())
         # should probably use a namedtuple in get_vocab to make this prettier
         _, test_words, test_chars, _, _, _, test_treebanks, test_langs = utils.get_vocab(treebanks,datasplit,char_map)
-        # get external embeddings for the set of words and chars in the test vocab but not in the training vocab
-        test_embeddings = defaultdict(lambda:{})
-        if options.word_emb_size > 0:
-            new_test_words = set(test_words) - self.feature_extractor.words.viewkeys()
-            print "Number of OOV word types at test time: %i (out of %i)"%(len(new_test_words),len(test_words))
-            if len(new_test_words) > 0: # no point loading embeddings if there are no words to look for
+
+        # get external embeddings for the set of words and chars in the
+        # test vocab but not in the training vocab
+        test_embeddings = defaultdict(lambda: {})
+        if options.word_emb_size > 0 and options.ext_word_emb_file:
+            new_test_words = \
+                set(test_words) - self.feature_extractor.words.viewkeys()
+
+            print "Number of OOV word types at test time: %i (out of %i)" % (
+                len(new_test_words), len(test_words))
+
+            if len(new_test_words) > 0:
+                # no point loading embeddings if there are no words to look for
                 for lang in test_langs:
-                    test_embeddings["words"].update(utils.get_external_embeddings(options,lang,new_test_words))
+                    embeddings = utils.get_external_embeddings(
+                        options,
+                        emb_file=options.ext_word_emb_file,
+                        lang=lang,
+                        words=new_test_words
+                    )
+                    test_embeddings["words"].update(embeddings)
                 if len(test_langs) > 1 and test_embeddings["words"]:
-                    print "External embeddings found for %i words (out of %i)"%(len(test_embeddings["words"]),len(new_test_words))
-        elif options.char_emb_size > 0:
-            new_test_chars = set(test_chars) - self.feature_extractor.chars.viewkeys()
-            print "Number of OOV char types at test time: %i (out of %i)"%(len(new_test_chars),len(test_chars))
+                    print "External embeddings found for %i words "\
+                          "(out of %i)" % \
+                          (len(test_embeddings["words"]), len(new_test_words))
+
+        if options.char_emb_size > 0:
+            new_test_chars = \
+                set(test_chars) - self.feature_extractor.chars.viewkeys()
+            print "Number of OOV char types at test time: %i (out of %i)" % (
+                len(new_test_chars), len(test_chars))
+
             if len(new_test_chars) > 0:
                 for lang in test_langs:
-                    test_embeddings["chars"].update(utils.get_external_embeddings(options,lang,new_test_chars,chars=True))
+                    embeddings = utils.get_external_embeddings(
+                        options,
+                        emb_file=options.ext_char_emb_file,
+                        lang=lang,
+                        words=new_test_chars,
+                        chars=True
+                    )
+                    test_embeddings["chars"].update(embeddings)
                 if len(test_langs) > 1 and test_embeddings["chars"]:
-                    print "External embeddings found for %i chars (out of %i)"%(len(test_embeddings["chars"]),len(new_test_chars))
+                    print "External embeddings found for %i chars "\
+                          "(out of %i)" % \
+                          (len(test_embeddings["chars"]), len(new_test_chars))
 
         data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
         for iSentence, osentence in enumerate(data,1):
