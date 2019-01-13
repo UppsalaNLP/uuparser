@@ -489,36 +489,41 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
 
     return embeddings
 
-def get_external_embeddings(options,lang=None,words=None,chars=False):
+
+def get_external_embeddings(options, emb_file=None, emb_dir=None,
+                            lang=None, words=None, chars=False):
 
     external_embedding = {}
 
-    if options.ext_emb_file:
+    if emb_file:
+        external_embedding = extract_embeddings_from_file(
+            emb_file, words, options.max_ext_emb)
 
-        external_embedding = extract_embeddings_from_file(options.ext_emb_file,
-            words, options.max_ext_emb)
-
-    elif options.ext_emb_dir:
-
+    elif emb_dir:
         if not lang:
             raise Exception("No language specified for external embeddings")
         else:
-
             lang_iso_dict = load_lang_iso_dict(options.json_isos)
-            emb_dir = os.path.join(options.ext_emb_dir,lang)
+            emb_dir = os.path.join(emb_dir, lang)
 
             if chars:
-                emb_file = os.path.join(emb_dir,lang_iso_dict[lang] + '.vectors.chars.txt')
+                emb_file = os.path.join(
+                    emb_dir,lang_iso_dict[lang] + '.vectors.chars.txt')
             else:
                 if options.shared_task or options.unfiltered_vecs:
-                    emb_file = os.path.join(emb_dir,lang_iso_dict[lang] + '.vectors.txt')
+                    emb_file = os.path.join(
+                        emb_dir,lang_iso_dict[lang] + '.vectors.txt')
                 else:
-                    emb_file = os.path.join(emb_dir,lang_iso_dict[lang] + '.vectors.filtered.txt')
+                    emb_file = os.path.join(
+                        emb_dir,lang_iso_dict[lang] + '.vectors.filtered.txt')
 
             if os.path.exists(emb_file):
-                external_embedding.update(extract_embeddings_from_file(emb_file, words, options.max_ext_emb))
+                embeddings = extract_embeddings_from_file(
+                    emb_file, words, options.max_ext_emb)
+                external_embedding.update(embeddings)
             else:
-                print "Warning: %s does not exist, proceeding without"%(emb_file)
+                print "Warning: %s does not exist, proceeding without" \
+                      % emb_file
 
     return external_embedding
 
@@ -528,14 +533,14 @@ def get_external_embeddings(options,lang=None,words=None,chars=False):
 def fix_stored_options(stored_opt,options):
 
     stored_opt.predict = True
-    # force langauge embedding needs to be passed to parser!
+    # force language embedding needs to be passed to parser!
     stored_opt.forced_tbank_emb = options.forced_tbank_emb
     stored_opt.ext_emb_dir = options.ext_emb_dir
-    stored_opt.ext_emb_file = options.ext_emb_file
+    stored_opt.ext_word_emb_file = options.ext_word_emb_file
+    stored_opt.ext_char_emb_file = options.ext_char_emb_file
     stored_opt.max_ext_emb = options.max_ext_emb
     stored_opt.shared_task = options.shared_task
     if hasattr(options,'char_map_file'):
         stored_opt.char_map_file = options.char_map_file
     if hasattr(stored_opt,'lang_emb_size'):
         stored_opt.tbank_emb_size = stored_opt.lang_emb_size
-

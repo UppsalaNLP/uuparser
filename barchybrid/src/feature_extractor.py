@@ -35,13 +35,55 @@ class FeatureExtractor(object):
         self.treebank_lookup = self.model.add_lookup_parameters((len(treebanks)+extra_treebanks, options.tbank_emb_size))
 
         # initialise word vectors with external embeddings where they exist
-        if (options.ext_emb_dir or options.ext_emb_file) and not options.predict:
-            self.external_embedding = defaultdict(lambda:{})
-            for lang in langs:
-                if options.word_emb_size > 0:
-                    self.external_embedding["words"].update(utils.get_external_embeddings(options,lang,self.words.viewkeys()))
-                elif options.char_emb_size > 0:
-                    self.external_embedding["chars"].update(utils.get_external_embeddings(options,lang,self.chars,chars=True))
+        if not options.predict:
+            self.external_embedding = defaultdict(lambda: {})
+
+            if options.ext_word_emb_file and options.word_emb_size > 0:
+                # Load pre-trained word embeddings
+                for lang in langs:
+                    embeddings = utils.get_external_embeddings(
+                        options,
+                        emb_file=options.ext_word_emb_file,
+                        lang=lang,
+                        words=self.words.viewkeys()
+                    )
+                    self.external_embedding["words"].update(embeddings)
+
+            if options.ext_char_emb_file and options.char_emb_size > 0:
+                # Load pre-trained character embeddings
+                for lang in langs:
+                    embeddings = utils.get_external_embeddings(
+                        options,
+                        emb_file=options.ext_char_emb_file,
+                        lang=lang,
+                        words=self.chars,
+                        chars=True
+                    )
+                    self.external_embedding["chars"].update(embeddings)
+
+            if options.ext_emb_dir:
+                # For every language, load the data for the word and character
+                # embeddings from a directory.
+                for lang in langs:
+                    if options.word_emb_size > 0:
+                        embeddings = utils.get_external_embeddings(
+                            options,
+                            emb_dir=options.ext_emb_dir,
+                            lang=lang,
+                            words=self.words.viewkeys()
+                        )
+                        self.external_embedding["words"].update(embeddings)
+
+                    if options.char_emb_size > 0:
+                        embeddings = utils.get_external_embeddings(
+                            options,
+                            emb_dir=options.ext_emb_dir,
+                            lang=lang,
+                            words=self.chars,
+                            chars=True
+                        )
+                        self.external_embedding["chars"].update(embeddings)
+
             self.init_lookups(options)
 
         elmo_emb_size = self.elmo.emb_dim if self.elmo else 0

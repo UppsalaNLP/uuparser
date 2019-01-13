@@ -226,7 +226,10 @@ each")
         help="MLP hidden layer dimensions", default=100)
     group.add_option("--mlp-hidden2-dims", type="int", metavar="INTEGER",
         help="MLP second hidden layer dimensions", default=0)
-    group.add_option("--ext-emb-file", metavar="FILE", help="External embeddings")
+    group.add_option("--ext-word-emb-file", metavar="FILE",
+                     help="External word embeddings")
+    group.add_option("--ext-char-emb-file", metavar="FILE",
+                     help="External character embeddings")
     group.add_option("--ext-emb-dir", metavar="PATH", help='Directory containing external embeddings')
     group.add_option("--max-ext-emb", type="int", metavar="INTEGER",
         help='Maximum number of external embeddings to load', default=-1)
