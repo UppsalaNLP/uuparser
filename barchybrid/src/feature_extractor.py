@@ -7,16 +7,24 @@ from collections import defaultdict
 import codecs, re, os
 
 class FeatureExtractor(object):
-    def __init__(self, model, options, vocab, nnvecs, elmo):
+    def __init__(self, model, options, vocab, nnvecs):
 
         self.word_counts, words, chars, pos, cpos, self.irels, treebanks, langs = vocab
 
         self.model = model
         self.nnvecs = nnvecs
-        self.elmo = elmo
 
-        if self.elmo:
+        # Load ELMo if the option is set
+        if options.elmo is not None:
+            from elmo import ELMo
+            self.elmo = ELMo(
+                options.elmo,
+                options.elmo_gamma,
+                options.elmo_learn_gamma
+            )
             self.elmo.init_weights(model)
+        else:
+            self.elmo = None
 
         extra_words = 2 # MLP padding vector and OOV vector
         self.words = {word: ind for ind, word in enumerate(words,extra_words)}
@@ -35,6 +43,7 @@ class FeatureExtractor(object):
         self.treebank_lookup = self.model.add_lookup_parameters((len(treebanks)+extra_treebanks, options.tbank_emb_size))
 
         # initialise word vectors with external embeddings where they exist
+        # This part got ugly - TODO: refactor
         if not options.predict:
             self.external_embedding = defaultdict(lambda: {})
 
