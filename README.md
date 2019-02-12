@@ -70,10 +70,20 @@ Information about this technique is detailed in:
 To train a multi-treebank model, simply add the --multiling flag at both training and test time.
 The output model files will be stored by default directly in the specified output directory rather than in treebank-specific subdirectories.
 
-#### ELMo
+#### Using ELMo continous word embeddings
 
-Results can be improved by using ELMo, this can be done with [the fork of this parser by Johannes Gontrum](https://github.com/jgontrum/uuparser-with-elmo). 
-(To be merged soon)
+UUParser supports ELMo embeddings as an input to the LSTM. 
+Specify a HDF5 file containing the layers for each word using the `--elmo` options.
+The file must contain all sentences from a treebank and be tokenized according
+to the gold segmentation. Additionally, UUParser expects all three layers to be present
+ as the task-specific weights are learned during training.
+ 
+The weights for the English treebanks EWT, GUM, and LinES can be downloaded [here](https://www.dropbox.com/sh/kyaq2mt07qpbtxt/AACD6LsEJrqgaURaAZ-fvHpoa?dl=0).
+
+You can also specify the gamma scalar using `--elmo_gamma` or set `--elmo_learn_gamma`
+to learn the value during training.
+
+Credits to Johannes Gontrum for this addition.
 
 #### Citation
 

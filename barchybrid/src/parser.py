@@ -142,6 +142,12 @@ if __name__ == '__main__':
     parser.add_option("--params", metavar="FILE", default="params.pickle", help="Parameters file")
     parser.add_option("--model", metavar="FILE", default="barchybrid.model",
         help="Load/Save model file")
+    parser.add_option("--elmo", metavar="FILE", default=None,
+                      help="HDF5 file that contains ELMo layers for sentences.")
+    parser.add_option("--elmo_gamma", type="float", metavar="FLOAT",
+                      default=1.0, help="Gamma factor to tune ELMo.")
+    parser.add_option("--elmo_learn_gamma", action="store_true",
+                      default=False, help="Learn the gamma factor for ELMo.")
 
     group = OptionGroup(parser, "Experiment options")
     group.add_option("--include", metavar="LIST", help="List of languages by ISO code to be run \
@@ -220,7 +226,10 @@ each")
         help="MLP hidden layer dimensions", default=100)
     group.add_option("--mlp-hidden2-dims", type="int", metavar="INTEGER",
         help="MLP second hidden layer dimensions", default=0)
-    group.add_option("--ext-emb-file", metavar="FILE", help="External embeddings")
+    group.add_option("--ext-word-emb-file", metavar="FILE",
+                     help="External word embeddings")
+    group.add_option("--ext-char-emb-file", metavar="FILE",
+                     help="External character embeddings")
     group.add_option("--ext-emb-dir", metavar="PATH", help='Directory containing external embeddings')
     group.add_option("--max-ext-emb", type="int", metavar="INTEGER",
         help='Maximum number of external embeddings to load', default=-1)

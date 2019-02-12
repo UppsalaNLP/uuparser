@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+numpy = "*"
+dynet = "*"
+jupyter = "*"
+"h5py" = "*"
+
+[dev-packages]
+"autopep8" = "*"
+isort = "*"
+
+[requires]
+python_version = "2.7"
