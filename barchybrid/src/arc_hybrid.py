@@ -276,7 +276,7 @@ class ArcHybridLSTM:
 
             for root in conll_sentence:
                 root.lstms = [root.vec] if self.headFlag else []
-                root.lstms += [self.feature_extractor.paddingVec for _ in range(self.nnvecs - hoffset)]
+                root.lstms += [root.vec for _ in range(self.nnvecs - hoffset)]
                 root.relation = root.relation if root.relation in self.irels else 'runk'
 
 
@@ -346,7 +346,7 @@ class ArcHybridLSTM:
 
             for root in conll_sentence:
                 root.lstms = [root.vec] if self.headFlag else []
-                root.lstms += [self.feature_extractor.paddingVec for _ in range(self.nnvecs - hoffset)]
+                root.lstms += [root.vec for _ in range(self.nnvecs - hoffset)]
                 root.relation = root.relation if root.relation in self.irels else 'runk'
 
             while not (len(buf) == 1 and len(stack) == 0):
