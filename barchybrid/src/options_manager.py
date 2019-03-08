@@ -59,6 +59,8 @@ class OptionsManager(object):
             options.tbank_emb_size = 0
 
         options.conllu = True #default
+        if options.morpho_feat:
+            options.morpho_feat = options.morpho_feat.split("_")
 
 
     def create_experiment_list(self,options):
@@ -204,17 +206,23 @@ class OptionsManager(object):
         ext = '.conllu' if options.conllu else '.conll'
         print 'Creating smaller data sets for debugging'
         if not options.predict:
-            train_data = list(utils.read_conll(treebank.trainfile,maxSize=options.debug_train_sents,hard_lim=True))
+            train_data =\
+            list(utils.read_conll(treebank.trainfile,maxSize=options.debug_train_sents,hard_lim=True,
+                                 feats_used=options.morpho_feat))
             train_file = os.path.join(treebank.outdir,'train-debug' + ext) # location for the new train file
             utils.write_conll(train_file,train_data) # write the new dev data to file
             treebank.trainfile = train_file
             if treebank.devfile and os.path.exists(treebank.devfile) and options.pred_dev:
-                dev_data = list(utils.read_conll(treebank.devfile,maxSize=options.debug_dev_sents,hard_lim=True))
+                dev_data =\
+                list(utils.read_conll(treebank.devfile,maxSize=options.debug_dev_sents,hard_lim=True,
+                                     feats_used=options.morpho_feat))
                 dev_file = os.path.join(treebank.outdir,'dev-debug' + ext) # location for the new dev file
                 utils.write_conll(dev_file,dev_data) # write the new dev data to file
                 # have to create a separate debug gold file if not the same as input file
                 if treebank.dev_gold != treebank.devfile:
-                    dev_gold_data = list(utils.read_conll(treebank.dev_gold,maxSize=options.debug_dev_sents,hard_lim=True))
+                    dev_gold_data =\
+                    list(utils.read_conll(treebank.dev_gold,maxSize=options.debug_dev_sents,hard_lim=True,
+                                         feats_used=options.morpho_feat))
                     dev_gold_file = os.path.join(treebank.outdir,'dev-gold-debug' + ext) # location for the new dev file
                     utils.write_conll(dev_gold_file,dev_gold_data) # write the new dev gold data to file
                     treebank.dev_gold = dev_gold_file
@@ -222,11 +230,15 @@ class OptionsManager(object):
                     treebank.dev_gold = dev_file
                 treebank.devfile = dev_file # important to do this last
         else:
-            test_data = list(utils.read_conll(treebank.testfile,maxSize=options.debug_test_sents,hard_lim=True))
+            test_data =\
+            list(utils.read_conll(treebank.testfile,maxSize=options.debug_test_sents,hard_lim=True,
+                                 feats_used=options.morpho_feat))
             test_file = os.path.join(treebank.outdir,'test-debug' + ext) # location for the new dev file
             utils.write_conll(test_file,test_data) # write the new dev data to file
             if treebank.test_gold != treebank.testfile:
-                test_gold_data = list(utils.read_conll(treebank.test_gold,maxSize=options.debug_test_sents,hard_lim=True))
+                test_gold_data =\
+                list(utils.read_conll(treebank.test_gold,maxSize=options.debug_test_sents,hard_lim=True,
+                                     feats_used=options.morpho_feat))
                 test_gold_file = os.path.join(treebank.outdir,'test-gold-debug' + ext) # location for the new dev file
                 utils.write_conll(test_gold_file,test_gold_data) # write the new dev data to file
                 treebank.test_gold = test_gold_file

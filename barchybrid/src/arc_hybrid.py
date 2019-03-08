@@ -211,7 +211,9 @@ class ArcHybridLSTM:
             char_map_fh = codecs.open(options.char_map_file,encoding='utf-8')
             char_map = json.loads(char_map_fh.read())
         # should probably use a namedtuple in get_vocab to make this prettier
-        _, test_words, test_chars, _, _, _, test_treebanks, test_langs = utils.get_vocab(treebanks,datasplit,char_map)
+        _, test_words, test_chars, _, _, _,_, test_treebanks, test_langs =\
+        utils.get_vocab(treebanks,datasplit,char_map,
+                        feats_used=options.morpho_feat)
 
         # get external embeddings for the set of words and chars in the
         # test vocab but not in the training vocab
@@ -259,7 +261,8 @@ class ArcHybridLSTM:
                           "(out of %i)" % \
                           (len(test_embeddings["chars"]), len(new_test_chars))
 
-        data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
+        data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map,
+                                    feats_used=options.morpho_feat)
         for iSentence, osentence in enumerate(data,1):
             sentence = deepcopy(osentence)
             reached_swap_for_i_sentence = False

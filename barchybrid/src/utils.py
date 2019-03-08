@@ -12,7 +12,8 @@ reverse_iso_dict = {}
 
 class ConllEntry:
     def __init__(self, id, form, lemma, pos, cpos, feats=None, parent_id=None, relation=None,
-        deps=None, misc=None, treebank_id=None, proxy_tbank=None, language=None, char_rep=None):
+        deps=None, misc=None, treebank_id=None, proxy_tbank=None, language=None,
+                 char_rep=None, feats_used=None):
 
         self.id = id
         self.form = form
@@ -25,6 +26,20 @@ class ConllEntry:
 
         self.lemma = lemma
         self.feats = feats
+        feats_d = self.feats_to_dict(feats)
+        if not feats_used:
+            self.feats_parsing = None
+        elif feats_used[0] == 'all':
+            self.feats_parsing = self.feats
+        else:
+            self.feats_parsing = ''
+            for feat in feats_used:
+                if feat in feats_d:
+                    self.feats_parsing += feats_d[feat]
+                else:
+                    self.feats_parsing += '_'
+                self.feats_parsing += '+'
+
         self.deps = deps
         self.misc = misc
 
@@ -36,6 +51,14 @@ class ConllEntry:
 
         self.pred_pos = None
         self.pred_cpos = None
+
+    def feats_to_dict(self, features):
+        if features == "_" or features == '<U>':
+            return {}
+        else:
+            feats = features.split("|")
+            feats = [feat.split("=") for feat in feats]
+            return {feat[0]:feat[1] for feat in feats}
 
 
     def __str__(self):
@@ -143,12 +166,12 @@ def isProj(sentence):
 
     return len(forest.roots) == 1
 
-def get_vocab(treebanks,datasplit,char_map={}):
+def get_vocab(treebanks,datasplit, char_map={},feats_used='all'):
     """
     Collect frequencies of words, cpos, pos and deprels + languages.
     """
 
-    data = read_conll_dir(treebanks,datasplit,char_map=char_map)
+    data = read_conll_dir(treebanks,datasplit, char_map=char_map, feats_used=feats_used)
 
     # could use sets directly rather than counters for most of these,
     # but having the counts might be useful in the future or possibly for debugging etc
@@ -157,6 +180,8 @@ def get_vocab(treebanks,datasplit,char_map={}):
     posCount = Counter()
     cposCount = Counter()
     relCount = Counter()
+    morphoCount = Counter()
+    # one language can have several treebanks
     tbankCount = Counter() # note that one language can have several treebanks
     langCount = Counter()
 
@@ -169,6 +194,8 @@ def get_vocab(treebanks,datasplit,char_map={}):
                 posCount.update([node.pos])
                 cposCount.update([node.cpos])
                 relCount.update([node.relation])
+                if node.feats_parsing:
+                    morphoCount.update([node.feats_parsing])
                 treebank_id = node.treebank_id
                 tbankCount.update([treebank_id])
                 lang = get_lang_from_tbank_id(treebank_id)
@@ -178,8 +205,8 @@ def get_vocab(treebanks,datasplit,char_map={}):
     # loads the same when predicting with a saved model later on
     # this is also another reason not to use sets for everything here as they are unordered
     # which creates problems when loading from file at predict time
-    return (wordsCount, wordsCount.keys(), charsCount.keys(), posCount.keys(),
-       cposCount.keys(), relCount.keys(), tbankCount.keys(), langCount.keys())
+    return (wordsCount, wordsCount.keys(), charsCount.keys(), posCount.keys(), cposCount.keys(),
+            relCount.keys(), morphoCount.keys(), tbankCount.keys(), langCount.keys())
 
 def load_iso_dict(json_file='./src/utils/ud_iso.json'):
     print "Loading ISO dict from %s"%json_file
@@ -255,16 +282,24 @@ def get_all_treebanks(options):
 
     return json_treebanks
 
-def read_conll_dir(treebanks,filetype,maxSize=-1,char_map={}):
+def read_conll_dir(treebanks,filetype,maxSize=-1,char_map={}, feats_used=None):
     #print "Max size for each corpus: ", maxSize
     if filetype == "train":
-        return chain(*(read_conll(treebank.trainfile, treebank.iso_id, treebank.proxy_tbank, maxSize, train=True, char_map=char_map) for treebank in treebanks))
+        return chain(*(read_conll(treebank.trainfile, treebank.iso_id,
+                                  treebank.proxy_tbank, maxSize, train=True,
+                                  char_map=char_map, feats_used=feats_used) for treebank in treebanks))
     elif filetype == "dev":
-        return chain(*(read_conll(treebank.devfile, treebank.iso_id, treebank.proxy_tbank, train=False, char_map=char_map) for treebank in treebanks))
+        return chain(*(read_conll(treebank.devfile, treebank.iso_id,
+                                  treebank.proxy_tbank, train=False,
+                                  char_map=char_map, feats_used=feats_used) for treebank in treebanks))
     elif filetype == "test":
-        return chain(*(read_conll(treebank.testfile, treebank.iso_id, treebank.proxy_tbank, train=False, char_map=char_map) for treebank in treebanks))
+        return chain(*(read_conll(treebank.testfile, treebank.iso_id,
+                                  treebank.proxy_tbank, train=False,
+                                  char_map=char_map, feats_used=feats_used) for treebank in treebanks))
 
-def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_lim=False, vocab_prep=False, drop_nproj=False, train=True, char_map={}):
+def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1,
+               hard_lim=False, vocab_prep=False, drop_nproj=False, train=True,
+               char_map={}, feats_used=None):
     # hard lim means capping the corpus size across the whole training procedure
     # soft lim means using a sample of the whole corpus at each epoch
     fh = codecs.open(filename,'r',encoding='utf-8')
@@ -279,7 +314,9 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
     else:
         language = None
     root = ConllEntry(0, '*root*', '*root*', 'ROOT-POS', 'ROOT-CPOS', '_', -1, 'rroot',
-        '_', '_',treebank_id=treebank_id, proxy_tbank=proxy_tbank,language=language)
+        '_', '_',treebank_id=treebank_id,
+                      proxy_tbank=proxy_tbank,language=language,
+                      feats_used=feats_used)
     tokens = [root]
     yield_count = 0
     if maxSize > 0 and not hard_lim:
@@ -324,7 +361,11 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
                         char_rep = re.sub(char,char_map[language][char],char_rep)
                 if tok[2] == "_":
                     tok[2] = tok[1].lower()
-                token = ConllEntry(int(tok[0]), tok[1], tok[2], tok[4], tok[3], tok[5], int(tok[6]) if tok[6] != '_' else -1, tok[7], tok[8], tok[9],treebank_id=treebank_id,proxy_tbank=proxy_tbank,language=language,char_rep=char_rep)
+                token = ConllEntry(int(tok[0]), tok[1], tok[2], tok[4], tok[3],
+                                   tok[5], int(tok[6]) if tok[6] != '_' else -1,
+                                   tok[7], tok[8],
+                                   tok[9],treebank_id=treebank_id,proxy_tbank=proxy_tbank,language=language,char_rep=char_rep,
+                                  feats_used=feats_used)
 
                 tokens.append(token)
 

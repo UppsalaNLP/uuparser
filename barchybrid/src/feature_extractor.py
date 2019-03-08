@@ -9,7 +9,7 @@ import codecs, re, os
 class FeatureExtractor(object):
     def __init__(self, model, options, vocab, nnvecs):
 
-        self.word_counts, words, chars, pos, cpos, self.irels, treebanks, langs = vocab
+        self.word_counts, words, chars, pos, cpos, self.irels, morpho, treebanks, langs = vocab
 
         self.model = model
         self.nnvecs = nnvecs
@@ -34,6 +34,10 @@ class FeatureExtractor(object):
         self.pos = {pos: ind for ind, pos in enumerate(cpos,extra_pos)}
         self.pos_lookup = self.model.add_lookup_parameters((len(cpos)+extra_pos, options.pos_emb_size))
 
+        extra_morpho = 2 # MLP padding vector and OOV vector
+        self.morpho = {morpho: ind for ind, morpho in enumerate(morpho,extra_morpho)}
+        self.morpho_lookup = self.model.add_lookup_parameters((len(morpho)+extra_morpho, options.morpho_emb_size))
+
         extra_chars = 1 # OOV vector
         self.chars = {char: ind for ind, char in enumerate(chars,extra_chars)}
         self.char_lookup = self.model.add_lookup_parameters((len(chars)+extra_chars, options.char_emb_size))
@@ -42,7 +46,6 @@ class FeatureExtractor(object):
         self.treebanks = {treebank: ind for ind, treebank in enumerate(treebanks,extra_treebanks)}
         self.treebank_lookup = self.model.add_lookup_parameters((len(treebanks)+extra_treebanks, options.tbank_emb_size))
 
-        # initialise word vectors with external embeddings where they exist
         # This part got ugly - TODO: refactor
         if not options.predict:
             self.external_embedding = defaultdict(lambda: {})
@@ -99,6 +102,7 @@ class FeatureExtractor(object):
         self.lstm_input_size = (
                 options.word_emb_size + elmo_emb_size +
                 options.pos_emb_size + options.tbank_emb_size +
+                + options.morpho_emb_size +
                 2 * (options.char_lstm_output_size
                      if options.char_emb_size > 0 else 0)
         )
@@ -129,6 +133,7 @@ class FeatureExtractor(object):
         paddingWordVec = self.word_lookup[1] if options.word_emb_size > 0 else None
         paddingElmoVec = dy.zeros(self.elmo.emb_dim) if self.elmo else None
         paddingPosVec = self.pos_lookup[1] if options.pos_emb_size > 0 else None
+        paddingMorphoVec = self.morpho_lookup[1] if options.morpho_emb_size > 0 else None
         paddingCharVec = self.charPadding.expr() if options.char_emb_size > 0 else None
         paddingTbankVec = self.treebank_lookup[0] if options.tbank_emb_size > 0 else None
 
@@ -137,6 +142,7 @@ class FeatureExtractor(object):
                                         paddingElmoVec,
                                         paddingPosVec,
                                         paddingCharVec,
+                                        paddingMorphoVec,
                                         paddingTbankVec])) + self.word2lstmbias.expr())
 
         self.empty = self.paddingVec if self.nnvecs == 1 else\
@@ -166,6 +172,8 @@ class FeatureExtractor(object):
                         root.vecs["word"] = self.word_lookup[0]
             if options.pos_emb_size > 0:
                 root.vecs["pos"] = self.pos_lookup[self.pos.get(root.cpos,0)]
+            if options.morpho_emb_size > 0:
+                root.vecs["morpho"] = self.morpho_lookup[self.morpho.get(root.feats,0)]
             if options.char_emb_size > 0:
                 root.vecs["char"] = self.get_char_vector(root,train,test_embeddings["chars"])
             if options.tbank_emb_size > 0:
@@ -190,6 +198,7 @@ class FeatureExtractor(object):
                     root.vecs["elmo"] = dy.zeros(self.elmo.emb_dim)
 
             root.vec = dy.concatenate(filter(None, [root.vecs["word"],
+                                                    root.vecs["morpho"],
                                                     root.vecs["elmo"],
                                                     root.vecs["pos"],
                                                     root.vecs["char"],

@@ -13,7 +13,8 @@ def run(experiment,options):
 
         if not options.continueTraining:
             print 'Preparing vocab'
-            vocab = utils.get_vocab(experiment.treebanks,"train")
+            vocab = utils.get_vocab(experiment.treebanks,"train",
+                                    feats_used=options.morpho_feat)
             print 'Finished collecting vocab'
 
             with open(paramsfile, 'w') as paramsfp:
@@ -37,7 +38,10 @@ def run(experiment,options):
         for epoch in xrange(options.first_epoch, options.epochs+1):
 
             print 'Starting epoch ' + str(epoch)
-            traindata = list(utils.read_conll_dir(experiment.treebanks, "train", options.max_sentences))
+            traindata = list(utils.read_conll_dir(experiment.treebanks, "train",
+                                                  options.max_sentences,
+                                                  feats_used =
+                                                  options.morpho_feat))
             parser.Train(traindata,options)
             print 'Finished epoch ' + str(epoch)
 
@@ -218,6 +222,10 @@ each")
         help="Word embedding dimensions", default=100)
     group.add_option("--pos-emb-size", type="int", metavar="INTEGER",
         help="Pos embedding dimensions", default=0)
+    group.add_option("--morpho-emb-size", type="int", metavar="INTEGER",
+                     help="morpho embedding dimensions", default=0)
+    group.add_option("--morpho-feat", type="str", metavar="STRING",
+                     help="Morpho features used", default=None)
     group.add_option("--tbank-emb-size", type="int", metavar="INTEGER",
         help="Treebank embedding dimensions", default=12)
     group.add_option("--lstm-output-size", type="int", metavar="INTEGER",
