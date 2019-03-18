@@ -13,6 +13,7 @@ class OptionsManager(object):
         """
 
         # load these straight away to make sure they're always available
+        #TODO: options compatibility TB vs GB
         utils.load_iso_dict(options.json_isos)
         utils.load_reverse_iso_dict(options.json_isos)
 
@@ -44,10 +45,12 @@ class OptionsManager(object):
             print "Creating output directory " + options.outdir
             os.mkdir(options.outdir)
 
-        if not options.predict and not (options.rlFlag or options.rlMostFlag or options.headFlag):
+        if not options.graph_based and (not options.predict and not
+                                        (options.rlFlag or options.rlMostFlag or
+                                         options.headFlag)):
             raise Exception("Must include either head, rl or rlmost (For example, if you specified --disable-head and --disable-rlmost, you must specify --userl)")
 
-        if options.rlFlag and options.rlMostFlag:
+        if not options.graph_based and (options.rlFlag and options.rlMostFlag):
             print 'Warning: Switching off rlMostFlag to allow rlFlag to take precedence'
             options.rlMostFlag = False
 

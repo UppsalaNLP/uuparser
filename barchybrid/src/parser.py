@@ -1,11 +1,16 @@
 from optparse import OptionParser, OptionGroup
-from arc_hybrid import ArcHybridLSTM
 from options_manager import OptionsManager
 import pickle, utils, os, time, sys, copy, itertools, re, random
 from shutil import copyfile
 import codecs
 
 def run(experiment,options):
+    if options.graph_based:
+        from mstlstm import MSTParserLSTM as Parser
+        print 'Working with a graph-based parser'
+    else:
+        from arc_hybrid import ArcHybridLSTM as Parser
+        print 'Working with a transition-based parser'
 
     if not options.predict: # training
 
@@ -20,15 +25,15 @@ def run(experiment,options):
                 print 'Saving params to ' + paramsfile
                 pickle.dump((vocab, options), paramsfp)
 
-                print 'Initializing blstm arc hybrid:'
-                parser = ArcHybridLSTM(vocab, options)
+                print 'Initializing the model'
+                parser = Parser(vocab, options)
         else:  #continue
             if options.continueParams:
                 paramsfile = options.continueParams
             with open(paramsfile, 'r') as paramsfp:
                 stored_vocab, stored_options = pickle.load(paramsfp)
-                print 'Initializing blstm arc hybrid:'
-                parser = ArcHybridLSTM(stored_vocab, stored_options)
+                print 'Initializing the model:'
+                parser = Parser(stored_vocab, stored_options)
 
             parser.Load(options.continueModel)
 
@@ -96,7 +101,7 @@ def run(experiment,options):
             # we need to update/add certain options based on new user input
             utils.fix_stored_options(stored_opt,options)
 
-            parser = ArcHybridLSTM(stored_vocab, stored_opt)
+            parser = Parser(stored_vocab, stored_opt)
             model = os.path.join(experiment.modeldir, options.model)
             parser.Load(model)
 
@@ -191,7 +196,7 @@ each")
         action="store_true", default=False)
     parser.add_option_group(group)
 
-    group = OptionGroup(parser, "Parser options")
+    group = OptionGroup(parser, "Transition-based parser options")
     group.add_option("--disable-oracle", action="store_false", dest="oracle", default=True,
         help='Use the static oracle instead of the dynamic oracle')
     group.add_option("--disable-head", action="store_false", dest="headFlag", default=True,
@@ -201,6 +206,15 @@ each")
     group.add_option("--userl", action="store_true", dest="rlFlag", default=False)
     group.add_option("--k", type="int", metavar="INTEGER", default=3,
         help="Number of stack elements to feed to MLP")
+    parser.add_option_group(group)
+
+    group = OptionGroup(parser, "Graph-based parser options")
+    group.add_option("--graph-based", action="store_true", default=False,
+                     help='use the graph-based parser instead of the\
+                     transition-based')
+    parser.add_option("--disable-labels", action="store_false", dest="labelsFlag", default=True)
+    parser.add_option("--disable-costaug", action="store_false", dest="costaugFlag", default=True)
+    parser.add_option("--projective", action="store_true", dest="proj", default=False)
     parser.add_option_group(group)
 
     group = OptionGroup(parser, "Neural network options")

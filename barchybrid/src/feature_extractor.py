@@ -7,9 +7,9 @@ from collections import defaultdict
 import codecs, re, os
 
 class FeatureExtractor(object):
-    def __init__(self, model, options, vocab, nnvecs):
+    def __init__(self, model, options, vocab, nnvecs=1):
 
-        self.word_counts, words, chars, pos, cpos, self.irels, treebanks, langs = vocab
+        self.word_counts, words, chars, pos, cpos, rels, treebanks, langs = vocab
 
         self.model = model
         self.nnvecs = nnvecs
@@ -33,6 +33,9 @@ class FeatureExtractor(object):
         extra_pos = 2 # MLP padding vector and OOV vector
         self.pos = {pos: ind for ind, pos in enumerate(cpos,extra_pos)}
         self.pos_lookup = self.model.add_lookup_parameters((len(cpos)+extra_pos, options.pos_emb_size))
+
+        self.irels = rels
+        self.rels = {rel: ind for ind, rel in enumerate(rels)}
 
         extra_chars = 1 # OOV vector
         self.chars = {char: ind for ind, char in enumerate(chars,extra_chars)}
