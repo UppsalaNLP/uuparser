@@ -191,9 +191,11 @@ class MSTParserLSTM:
                 heads = decoder.parse_proj(scores, gold if self.costaugFlag else None)
             else:
                 if self.costaugFlag:
-                    scores += 1.
-                    for m, h in enumerate(gold):
-                        scores[h,m] -= 1.
+                    #augment the score of non-gold arcs
+                    for i in range(len(scores)):
+                        for j in range(len(scores)):
+                            if gold[j] != i:
+                                scores[i][j] += 1.
                 heads = chuliu_edmonds_one_root(scores.T)
                 heads[0] = -1
 
