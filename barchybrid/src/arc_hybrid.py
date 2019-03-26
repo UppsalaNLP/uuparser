@@ -65,8 +65,8 @@ class ArcHybridLSTM:
 
         #feature rep
         empty = self.feature_extractor.empty
-        topStack = [ stack.roots[-i-1].lstms if len(stack) > i else [empty] for i in xrange(self.k) ]
-        topBuffer = [ buf.roots[i].lstms if len(buf) > i else [empty] for i in xrange(1) ]
+        topStack = [ stack.roots[-i-1].lstms if len(stack) > i else [empty] for i in range(self.k) ]
+        topBuffer = [ buf.roots[i].lstms if len(buf) > i else [empty] for i in range(1) ]
 
         input = dy.concatenate(list(chain(*(topStack + topBuffer))))
         output = self.unlabeled_MLP(input)
@@ -116,11 +116,11 @@ class ArcHybridLSTM:
 
 
     def Save(self, filename):
-        print 'Saving model to ' + filename
+        print('Saving model to ' + filename)
         self.model.save(filename)
 
     def Load(self, filename):
-        print 'Loading model from ' + filename
+        print('Loading model from ' + filename)
         self.model.populate(filename)
 
 
@@ -220,7 +220,7 @@ class ArcHybridLSTM:
             new_test_words = \
                 set(test_words) - self.feature_extractor.words.viewkeys()
 
-            print "Number of OOV word types at test time: %i (out of %i)" % (
+            print("Number of OOV word types at test time: %i (out of %i)" %
                 len(new_test_words), len(test_words))
 
             if len(new_test_words) > 0:
@@ -234,14 +234,14 @@ class ArcHybridLSTM:
                     )
                     test_embeddings["words"].update(embeddings)
                 if len(test_langs) > 1 and test_embeddings["words"]:
-                    print "External embeddings found for %i words "\
+                    print("External embeddings found for %i words "\
                           "(out of %i)" % \
-                          (len(test_embeddings["words"]), len(new_test_words))
+                          (len(test_embeddings["words"]), len(new_test_words)))
 
         if options.char_emb_size > 0:
             new_test_chars = \
                 set(test_chars) - self.feature_extractor.chars.viewkeys()
-            print "Number of OOV char types at test time: %i (out of %i)" % (
+            print("Number of OOV char types at test time: %i (out of %i)" %
                 len(new_test_chars), len(test_chars))
 
             if len(new_test_chars) > 0:
@@ -255,9 +255,9 @@ class ArcHybridLSTM:
                     )
                     test_embeddings["chars"].update(embeddings)
                 if len(test_langs) > 1 and test_embeddings["chars"]:
-                    print "External embeddings found for %i chars "\
+                    print("External embeddings found for %i chars "\
                           "(out of %i)" % \
-                          (len(test_embeddings["chars"]), len(new_test_chars))
+                          (len(test_embeddings["chars"]), len(new_test_chars)))
 
         data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
         for iSentence, osentence in enumerate(data,1):
@@ -286,7 +286,7 @@ class ArcHybridLSTM:
                 if iSwap == max_swap and not reached_swap_for_i_sentence:
                     reached_max_swap += 1
                     reached_swap_for_i_sentence = True
-                    print "reached max swap in %d out of %d sentences"%(reached_max_swap, iSentence)
+                    print("reached max swap in %d out of %d sentences"%(reached_max_swap, iSentence))
                 self.apply_transition(best,stack,buf,hoffset)
                 if best[1] == SWAP:
                     iSwap += 1
@@ -315,7 +315,7 @@ class ArcHybridLSTM:
         start = time.time()
 
         random.shuffle(trainData) # in certain cases the data will already have been shuffled after being read from file or while creating dev data
-        print "Length of training data: ", len(trainData)
+        print("Length of training data: ", len(trainData))
 
         errs = []
 
@@ -328,7 +328,7 @@ class ArcHybridLSTM:
                 ' Errors: %.3f'%((float(eerrors)) / etotal)+\
                 ' Labeled Errors: %.3f'%(float(lerrors) / etotal)+\
                 ' Time: %.2gs'%(time.time()-start)
-                print loss_message
+                print(loss_message)
                 start = time.time()
                 eerrors = 0
                 eloss = 0.0
@@ -432,5 +432,5 @@ class ArcHybridLSTM:
             dy.renew_cg()
 
         self.trainer.update()
-        print "Loss: ", mloss/iSentence
-        print "Total Training Time: %.2gs"%(time.time()-beg)
+        print("Loss: ", mloss/iSentence)
+        print("Total Training Time: %.2gs"%(time.time()-beg))
