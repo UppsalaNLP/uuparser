@@ -264,6 +264,14 @@ def read_conll_dir(treebanks,filetype,maxSize=-1,char_map={}):
     elif filetype == "test":
         return chain(*(read_conll(treebank.testfile, treebank.iso_id, treebank.proxy_tbank, train=False, char_map=char_map) for treebank in treebanks))
 
+
+def generate_root_token():
+    return ConllEntry(0, '*root*', '*root*', 'ROOT-POS', 'ROOT-CPOS', '_', -1,
+        'rroot', '_', '_',treebank_id=treebank_id, proxy_tbank=proxy_tbank,
+        language=language
+    )
+
+
 def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_lim=False, vocab_prep=False, drop_nproj=False, train=True, char_map={}):
     # hard lim means capping the corpus size across the whole training procedure
     # soft lim means using a sample of the whole corpus at each epoch
@@ -278,9 +286,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
         language = get_lang_from_tbank_id(treebank_id)
     else:
         language = None
-    root = ConllEntry(0, '*root*', '*root*', 'ROOT-POS', 'ROOT-CPOS', '_', -1, 'rroot',
-        '_', '_',treebank_id=treebank_id, proxy_tbank=proxy_tbank,language=language)
-    tokens = [root]
+    tokens = [generate_root_token()]
     yield_count = 0
     if maxSize > 0 and not hard_lim:
         sents = []
@@ -313,7 +319,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
                 else:
                     #print 'Non-projective sentence dropped'
                     dropped += 1
-            tokens = [root]
+            tokens = [generate_root_token()]
         else:
             if line[0] == '#' or '-' in tok[0] or '.' in tok[0]: # a comment line, add to tokens as is
                 tokens.append(line.strip())
