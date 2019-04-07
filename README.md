@@ -1,5 +1,7 @@
 # UUParser: A transition-based dependency parser for Universal Dependencies
 
+This is a port to Python 3 of uuparser.
+
 This parser is based on [Eli Kiperwasser's transition-based parser](http://github.com/elikip/bist-parser) using BiLSTM feature extractors.
 We adapted the parser to Universal Dependencies and extended it as described in these papers:
 
@@ -17,7 +19,7 @@ The techniques behind the original parser are described in the paper [Simple and
 
 #### Required software
 
- * Python 2.7 interpreter
+ * Python 3 interpreter
  * [DyNet library](https://github.com/clab/dynet/tree/master/python)
 
     Note: the current version is Dynet 2.0 but Dynet 1.0 was used in both releases 1.0 and 2.0
