@@ -221,7 +221,7 @@ class ArcHybridLSTM:
                 set(test_words) - self.feature_extractor.words.keys()
 
             print("Number of OOV word types at test time: %i (out of %i)" %
-                len(new_test_words), len(test_words))
+                  (len(new_test_words), len(test_words)))
 
             if len(new_test_words) > 0:
                 # no point loading embeddings if there are no words to look for
@@ -242,7 +242,7 @@ class ArcHybridLSTM:
             new_test_chars = \
                 set(test_chars) - self.feature_extractor.chars.keys()
             print("Number of OOV char types at test time: %i (out of %i)" %
-                len(new_test_chars), len(test_chars))
+                  (len(new_test_chars), len(test_chars)))
 
             if len(new_test_chars) > 0:
                 for lang in test_langs:
@@ -433,4 +433,4 @@ class ArcHybridLSTM:
 
         self.trainer.update()
         print("Loss: ", mloss/iSentence)
-        print("Total Training Time: %.2gs"%(time.time()-beg))
+        print("Total Training Time: %.2gs" % (time.time()-beg))
