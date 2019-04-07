@@ -68,7 +68,7 @@ class MSTParserLSTM:
         test_embeddings = defaultdict(lambda: {})
         if options.word_emb_size > 0 and options.ext_word_emb_file:
             new_test_words = \
-                    set(test_words) - self.feature_extractor.words.viewkeys()
+                    set(test_words) - self.feature_extractor.words.keys()
 
             print "Number of OOV word types at test time: %i (out of %i)" % (
                 len(new_test_words), len(test_words))
@@ -90,7 +90,7 @@ class MSTParserLSTM:
 
         if options.char_emb_size > 0:
             new_test_chars = \
-                    set(test_chars) - self.feature_extractor.chars.viewkeys()
+                    set(test_chars) - self.feature_extractor.chars.keys()
             print "Number of OOV char types at test time: %i (out of %i)" % (
                 len(new_test_chars), len(test_chars))
 

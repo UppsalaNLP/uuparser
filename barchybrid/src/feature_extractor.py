@@ -57,7 +57,7 @@ class FeatureExtractor(object):
                         options,
                         emb_file=options.ext_word_emb_file,
                         lang=lang,
-                        words=self.words.viewkeys()
+                        words=self.words.keys()
                     )
                     self.external_embedding["words"].update(embeddings)
 
@@ -82,7 +82,7 @@ class FeatureExtractor(object):
                             options,
                             emb_dir=options.ext_emb_dir,
                             lang=lang,
-                            words=self.words.viewkeys()
+                            words=self.words.keys()
                         )
                         self.external_embedding["words"].update(embeddings)
 

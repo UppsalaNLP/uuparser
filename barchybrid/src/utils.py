@@ -463,6 +463,7 @@ def get_LAS_score(filename, conllu=True):
 
     return score
 
+import lzma
 
 def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_filename=None):
     # words should be a set used to filter the embeddings
@@ -471,19 +472,23 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
     line_count = 0
     error_count = 0 # e.g. invalid utf-8 in embeddings file
 
-    with open(filename,'r') as fh: # byte string
+    #with open(filename,'r') as fh: # byte string
+    with lzma.open(filename, mode='rt', encoding='utf-8') as fh:
 
-        fh.readline() # ignore first line with embedding stats
+        next(fh) # ignore first line with embedding stats
         embeddings = OrderedDict()
 
-        for line in fh:
+        while True:
             if max_emb < 0 or line_count < max_emb:
                 try:
+                    line = next(fh)
                     # only split on normal space, not e.g. non-break space
-                    eles = line.decode('utf-8').strip().split(" ")
+                    eles = line.strip().split(" ")
                     word = re.sub(u"\xa0"," ",eles[0]) # replace non-break space with regular space
                     if not words or word in words:
                         embeddings[word] = [float(f) for f in eles[1:]]
+                except StopIteration:
+                    break
                 except UnicodeDecodeError:
 #                    print("Unable to read word at line %i: %s"%(line_count, word))
                     error_count += 1
