@@ -4,7 +4,7 @@ import os,time
 from itertools import chain
 from operator import itemgetter
 import random
-import codecs, json
+import json
 
 # a global variable so we don't have to keep loading from file repeatedly
 iso_dict = {}
@@ -190,7 +190,7 @@ def get_vocab(treebanks,datasplit,char_map={}):
 def load_iso_dict(json_file='./src/utils/ud_iso.json'):
     print("Loading ISO dict from %s"%json_file)
     global iso_dict
-    ud_iso_file = codecs.open(json_file,encoding='utf-8')
+    ud_iso_file = open(json_file,encoding='utf-8')
     json_str = ud_iso_file.read()
     iso_dict = json.loads(json_str)
 
@@ -371,11 +371,11 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
 def write_conll(fn, conll_gen):
     print("Writing to " + fn)
     sents = 0
-    with codecs.open(fn, 'w', encoding='utf-8') as fh:
+    with open(fn, 'w', encoding='utf-8') as fh:
         for sentence in conll_gen:
             sents += 1
             for entry in sentence[1:]:
-                fh.write(unicode(entry) + '\n')
+                fh.write(entry + '\n')
                 #print(str(entry))
             fh.write('\n')
         print("Wrote " + str(sents) + " sentences")
@@ -385,17 +385,17 @@ def write_conll_multiling(conll_gen, treebanks):
     tbank_dict = {treebank.iso_id:treebank for treebank in treebanks}
     cur_tbank = conll_gen[0][0].treebank_id
     outfile = tbank_dict[cur_tbank].outfilename
-    fh = codecs.open(outfile,'w',encoding='utf-8')
+    fh = open(outfile,'w',encoding='utf-8')
     print("Writing to " + outfile)
     for sentence in conll_gen:
         if cur_tbank != sentence[0].treebank_id:
             fh.close()
             cur_tbank = sentence[0].treebank_id
             outfile = tbank_dict[cur_tbank].outfilename
-            fh = codecs.open(outfile,'w',encoding='utf-8')
+            fh = open(outfile,'w',encoding='utf-8')
             print("Writing to " + outfile)
         for entry in sentence[1:]:
-            fh.write(unicode(entry) + '\n')
+            fh.write(entry + '\n')
         fh.write('\n')
 
 
@@ -403,7 +403,7 @@ def parse_list_arg(l):
     """Return a list of line values if it's a file or a list of values if it
     is a string"""
     if os.path.isfile(l):
-        f = codecs.open(l, 'r', encoding='utf-8')
+        f = open(l, 'r', encoding='utf-8')
         return [line.strip("\n").split()[0] for line in f]
     else:
         return [el for el in l.split(" ")]
@@ -455,7 +455,7 @@ def generate_seed():
 
 def get_LAS_score(filename, conllu=True):
     score = None
-    with codecs.open(filename,'r',encoding='utf-8') as fh:
+    with open(filename,'r',encoding='utf-8') as fh:
         if conllu:
             for line in fh:
                 if re.match(r'^LAS',line):

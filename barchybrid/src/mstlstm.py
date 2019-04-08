@@ -58,7 +58,7 @@ class MSTParserLSTM:
     def Predict(self, treebanks, datasplit, options):
         char_map = {}
         if options.char_map_file:
-            char_map_fh = codecs.open(options.char_map_file,encoding='utf-8')
+            char_map_fh = open(options.char_map_file,encoding='utf-8')
             char_map = json.loads(char_map_fh.read())
         # should probably use a namedtuple in get_vocab to make this prettier
         _, test_words, test_chars, _, _, _, test_treebanks, test_langs = utils.get_vocab(treebanks,datasplit,char_map)

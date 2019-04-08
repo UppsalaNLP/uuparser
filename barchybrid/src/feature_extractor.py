@@ -4,7 +4,7 @@ import dynet as dy
 import numpy as np
 import random
 from collections import defaultdict
-import codecs, re, os
+import re, os
 
 class FeatureExtractor(object):
     def __init__(self, model, options, vocab, nnvecs=1):

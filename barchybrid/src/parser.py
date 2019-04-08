@@ -2,7 +2,6 @@ from optparse import OptionParser, OptionGroup
 from options_manager import OptionsManager
 import pickle, utils, os, time, sys, copy, itertools, re, random
 from shutil import copyfile
-import codecs
 
 
 def run(experiment,options):
