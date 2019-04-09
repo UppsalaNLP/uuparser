@@ -265,7 +265,7 @@ def read_conll_dir(treebanks,filetype,maxSize=-1,char_map={}):
         return chain(*(read_conll(treebank.testfile, treebank.iso_id, treebank.proxy_tbank, train=False, char_map=char_map) for treebank in treebanks))
 
 
-def generate_root_token():
+def generate_root_token(treebank_id, proxy_tbank, language):
     return ConllEntry(0, '*root*', '*root*', 'ROOT-POS', 'ROOT-CPOS', '_', -1,
         'rroot', '_', '_',treebank_id=treebank_id, proxy_tbank=proxy_tbank,
         language=language
@@ -286,7 +286,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
         language = get_lang_from_tbank_id(treebank_id)
     else:
         language = None
-    tokens = [generate_root_token()]
+    tokens = [generate_root_token(treebank_id, proxy_tbank, language)]
     yield_count = 0
     if maxSize > 0 and not hard_lim:
         sents = []
@@ -319,7 +319,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
                 else:
                     #print 'Non-projective sentence dropped'
                     dropped += 1
-            tokens = [generate_root_token()]
+            tokens = [generate_root_token(treebank_id, proxy_tbank, language)]
         else:
             if line[0] == '#' or '-' in tok[0] or '.' in tok[0]: # a comment line, add to tokens as is
                 tokens.append(line.strip())
