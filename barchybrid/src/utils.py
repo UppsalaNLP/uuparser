@@ -395,7 +395,7 @@ def write_conll_multiling(conll_gen, treebanks):
             fh = open(outfile,'w',encoding='utf-8')
             print("Writing to " + outfile)
         for entry in sentence[1:]:
-            fh.write(entry + '\n')
+            fh.write(str(entry) + '\n')
         fh.write('\n')
 
 
