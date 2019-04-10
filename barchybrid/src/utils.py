@@ -375,8 +375,7 @@ def write_conll(fn, conll_gen):
         for sentence in conll_gen:
             sents += 1
             for entry in sentence[1:]:
-                fh.write(entry + '\n')
-                #print(str(entry))
+                fh.write(str(entry) + '\n')
             fh.write('\n')
         print("Wrote " + str(sents) + " sentences")
 

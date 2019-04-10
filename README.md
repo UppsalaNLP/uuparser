@@ -1,7 +1,5 @@
 # UUParser: A transition-based dependency parser for Universal Dependencies
 
-This is a port to Python 3 of uuparser.
-
 This parser is based on [Eli Kiperwasser's transition-based parser](http://github.com/elikip/bist-parser) using BiLSTM feature extractors.
 We adapted the parser to Universal Dependencies and extended it as described in these papers:
 
@@ -85,7 +83,8 @@ The weights for the English treebanks EWT, GUM, and LinES can be downloaded [her
 You can also specify the gamma scalar using `--elmo_gamma` or set `--elmo_learn_gamma`
 to learn the value during training.
 
-Credits to Johannes Gontrum for this addition.
+Credits to Johannes Gontrum for this addition.   
+Credits to Giuseppe Attardi for porting the parser to python 3.
 
 #### Citation
 
