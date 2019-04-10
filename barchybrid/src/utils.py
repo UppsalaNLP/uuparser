@@ -4,11 +4,12 @@ import os,time
 from itertools import chain
 from operator import itemgetter
 import random
-import codecs, json
+import json
 
 # a global variable so we don't have to keep loading from file repeatedly
 iso_dict = {}
 reverse_iso_dict = {}
+
 
 class ConllEntry:
     def __init__(self, id, form, lemma, pos, cpos, feats=None, parent_id=None, relation=None,
@@ -48,6 +49,7 @@ class ConllEntry:
                   self.deps, self.misc]
         return '\t'.join(['_' if v is None else v for v in values])
 
+
 class Treebank(object):
     def __init__(self,trainfile,devfile,testfile):
         self.name = 'noname'
@@ -58,6 +60,7 @@ class Treebank(object):
         self.testfile = testfile
         self.outfilename = None
         self.proxy_tbank = None
+
 
 class UDtreebank(Treebank):
     def __init__(self, treebank_info, options):
@@ -101,6 +104,7 @@ class UDtreebank(Treebank):
             self.dev_gold = self.test_gold
         self.outfilename = self.iso_id + '.conllu'
 
+
 class ParseForest:
     def __init__(self, sentence):
         self.roots = list(sentence)
@@ -143,6 +147,7 @@ def isProj(sentence):
 
     return len(forest.roots) == 1
 
+
 def get_vocab(treebanks,datasplit,char_map={}):
     """
     Collect frequencies of words, cpos, pos and deprels + languages.
@@ -178,21 +183,24 @@ def get_vocab(treebanks,datasplit,char_map={}):
     # loads the same when predicting with a saved model later on
     # this is also another reason not to use sets for everything here as they are unordered
     # which creates problems when loading from file at predict time
-    return (wordsCount, wordsCount.keys(), charsCount.keys(), posCount.keys(),
-       cposCount.keys(), relCount.keys(), tbankCount.keys(), langCount.keys())
+    return (wordsCount, list(wordsCount.keys()), list(charsCount.keys()), list(posCount.keys()),
+            list(cposCount.keys()), list(relCount.keys()), list(tbankCount.keys()), list(langCount.keys()))
+
 
 def load_iso_dict(json_file='./src/utils/ud_iso.json'):
-    print "Loading ISO dict from %s"%json_file
+    print("Loading ISO dict from %s"%json_file)
     global iso_dict
-    ud_iso_file = codecs.open(json_file,encoding='utf-8')
+    ud_iso_file = open(json_file,encoding='utf-8')
     json_str = ud_iso_file.read()
     iso_dict = json.loads(json_str)
+
 
 def load_reverse_iso_dict(json_file='./src/utils/ud_iso.json'):
     global reverse_iso_dict
     if not iso_dict:
         load_iso_dict(json_file=json_file)
-    reverse_iso_dict = {v: k for k, v in iso_dict.iteritems()}
+    reverse_iso_dict = {v: k for k, v in iso_dict.items()}
+
 
 def load_lang_iso_dict(json_file='./src/utils/ud_iso.json'):
 
@@ -208,6 +216,7 @@ def load_lang_iso_dict(json_file='./src/utils/ud_iso.json'):
 
     return lang_iso_dict
 
+
 # convert treebank to language by removing everything after underscore
 def get_lang_from_tbank_name(tbank_name):
 
@@ -221,6 +230,7 @@ def get_lang_from_tbank_name(tbank_name):
 
     return lang
 
+
 def get_lang_from_tbank_id(tbank_id):
     if not tbank_id:
         return None
@@ -228,6 +238,7 @@ def get_lang_from_tbank_id(tbank_id):
     if not reverse_iso_dict:
         load_reverse_iso_dict()
     return get_lang_from_tbank_name(reverse_iso_dict[tbank_id])
+
 
 # gets everything before the underscore in treebank iso e.g. "sv_talbanken" -> "sv"
 # with an exception for the two Norwegian variants where it's useful to consider them
@@ -241,9 +252,11 @@ def get_lang_iso(treebank_iso):
         m = re.match(r'(.*_(nynorsk|bokmaal)?)',treebank_iso)
         return m.group(1).rstrip('_')
 
+
 # from a list of treebanks, return those that match a particular language
 def get_treebanks_from_lang(treebank_ids,lang):
    return [treebank_id for treebank_id in treebank_ids if get_lang_from_tbank_id(treebank_id) == lang]
+
 
 def get_all_treebanks(options):
 
@@ -255,8 +268,9 @@ def get_all_treebanks(options):
 
     return json_treebanks
 
+
 def read_conll_dir(treebanks,filetype,maxSize=-1,char_map={}):
-    #print "Max size for each corpus: ", maxSize
+    #print("Max size for each corpus: ", maxSize)
     if filetype == "train":
         return chain(*(read_conll(treebank.trainfile, treebank.iso_id, treebank.proxy_tbank, maxSize, train=True, char_map=char_map) for treebank in treebanks))
     elif filetype == "dev":
@@ -268,15 +282,14 @@ def read_conll_dir(treebanks,filetype,maxSize=-1,char_map={}):
 def generate_root_token(treebank_id, proxy_tbank, language):
     return ConllEntry(0, '*root*', '*root*', 'ROOT-POS', 'ROOT-CPOS', '_', -1,
         'rroot', '_', '_',treebank_id=treebank_id, proxy_tbank=proxy_tbank,
-        language=language
-    )
+        language=language)
 
 
 def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_lim=False, vocab_prep=False, drop_nproj=False, train=True, char_map={}):
     # hard lim means capping the corpus size across the whole training procedure
     # soft lim means using a sample of the whole corpus at each epoch
-    fh = codecs.open(filename,'r',encoding='utf-8')
-    print "Reading " + filename
+    fh = open(filename,'r',encoding='utf-8')
+    print("Reading " + filename)
     if vocab_prep and not hard_lim:
         maxSize = -1 # when preparing the vocab with a soft limit we need to use the whole corpus
     ts = time.time()
@@ -312,12 +325,12 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
                             yield tokens
                             yield_count += 1
                             if yield_count == maxSize:
-                                print "Capping size of corpus at " + str(yield_count) + " sentences"
+                                print("Capping size of corpus at " + str(yield_count) + " sentences")
                                 break;
                     else:
                         yield tokens
                 else:
-                    #print 'Non-projective sentence dropped'
+                    #print('Non-projective sentence dropped')
                     dropped += 1
             tokens = [generate_root_token(treebank_id, proxy_tbank, language)]
         else:
@@ -335,52 +348,54 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
                 tokens.append(token)
 
     if hard_lim and yield_count < maxSize:
-        print 'Warning: unable to yield ' + str(maxSize) + ' sentences, only ' + str(yield_count) + ' found'
+        print('Warning: unable to yield ' + str(maxSize) + ' sentences, only ' + str(yield_count) + ' found')
 
 # TODO: deal with case where there are still unyielded tokens
 # e.g. when there is no newline at end of file
 #    if len(tokens) > 1:
 #        yield tokens
 
-    print sents_read, 'sentences read'
+    print(sents_read, 'sentences read')
 
     if maxSize > 0 and not hard_lim:
         if len(sents) > maxSize:
             sents = random.sample(sents,maxSize)
-            print "Yielding " + str(len(sents)) + " random sentences"
+            print("Yielding " + str(len(sents)) + " random sentences")
         for toks in sents:
             yield toks
 
     te = time.time()
-    print 'Time: %.2gs'%(te-ts)
+    print('Time: %.2gs'%(te-ts))
+
 
 def write_conll(fn, conll_gen):
-    print "Writing to " + fn
+    print("Writing to " + fn)
     sents = 0
-    with codecs.open(fn, 'w', encoding='utf-8') as fh:
+    with open(fn, 'w', encoding='utf-8') as fh:
         for sentence in conll_gen:
             sents += 1
             for entry in sentence[1:]:
-                fh.write(unicode(entry) + '\n')
-                #print str(entry)
+                fh.write(entry + '\n')
+                #print(str(entry))
             fh.write('\n')
-        print "Wrote " + str(sents) + " sentences"
+        print("Wrote " + str(sents) + " sentences")
+
 
 def write_conll_multiling(conll_gen, treebanks):
     tbank_dict = {treebank.iso_id:treebank for treebank in treebanks}
     cur_tbank = conll_gen[0][0].treebank_id
     outfile = tbank_dict[cur_tbank].outfilename
-    fh = codecs.open(outfile,'w',encoding='utf-8')
-    print "Writing to " + outfile
+    fh = open(outfile,'w',encoding='utf-8')
+    print("Writing to " + outfile)
     for sentence in conll_gen:
         if cur_tbank != sentence[0].treebank_id:
             fh.close()
             cur_tbank = sentence[0].treebank_id
             outfile = tbank_dict[cur_tbank].outfilename
-            fh = codecs.open(outfile,'w',encoding='utf-8')
-            print "Writing to " + outfile
+            fh = open(outfile,'w',encoding='utf-8')
+            print("Writing to " + outfile)
         for entry in sentence[1:]:
-            fh.write(unicode(entry) + '\n')
+            fh.write(str(entry) + '\n')
         fh.write('\n')
 
 
@@ -388,18 +403,20 @@ def parse_list_arg(l):
     """Return a list of line values if it's a file or a list of values if it
     is a string"""
     if os.path.isfile(l):
-        f = codecs.open(l, 'r', encoding='utf-8')
+        f = open(l, 'r', encoding='utf-8')
         return [line.strip("\n").split()[0] for line in f]
     else:
         return [el for el in l.split(" ")]
+
 
 numberRegex = re.compile("[0-9]+|[0-9]+\\.[0-9]+|[0-9]+[0-9,]+");
 def normalize(word):
     return 'NUM' if numberRegex.match(word) else word.lower()
 
+
 def evaluate(gold,test,conllu):
     scoresfile = test + '.txt'
-    print "Writing to " + scoresfile
+    print("Writing to " + scoresfile)
     if not conllu:
         #os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile + ' &')
         os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile )
@@ -407,6 +424,7 @@ def evaluate(gold,test,conllu):
         os.system('python src/utils/evaluation_script/conll17_ud_eval.py -v -w src/utils/evaluation_script/weights.clas ' + gold + ' ' + test + ' > ' + scoresfile)
     score = get_LAS_score(scoresfile,conllu)
     return score
+
 
 def inorder(sentence):
     queue = [sentence[0]]
@@ -423,18 +441,21 @@ def inorder(sentence):
         return results
     return inorder_helper(sentence,queue[0].id)
 
+
 def set_seeds(options):
     python_seed = 1
     if not options.predict and options.dynet_seed: # seeds shouldn't make any difference when predicting
-        print "Using default Python seed"
+        print("Using default Python seed")
         random.seed(python_seed)
+
 
 def generate_seed():
     return random.randint(0,10**9) # this range seems to work for Dynet and Python's random function
 
+
 def get_LAS_score(filename, conllu=True):
     score = None
-    with codecs.open(filename,'r',encoding='utf-8') as fh:
+    with open(filename,'r',encoding='utf-8') as fh:
         if conllu:
             for line in fh:
                 if re.match(r'^LAS',line):
@@ -446,44 +467,50 @@ def get_LAS_score(filename, conllu=True):
 
     return score
 
+import lzma
+
 def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_filename=None):
     # words should be a set used to filter the embeddings
-    print "Extracting embeddings from", filename
+    print("Extracting embeddings from", filename)
     ts = time.time()
     line_count = 0
     error_count = 0 # e.g. invalid utf-8 in embeddings file
 
-    with open(filename,'r') as fh: # byte string
+    #with open(filename,'r') as fh: # byte string
+    with lzma.open(filename, mode='rt', encoding='utf-8') as fh:
 
-        fh.readline() # ignore first line with embedding stats
+        next(fh) # ignore first line with embedding stats
         embeddings = OrderedDict()
 
-        for line in fh:
+        while True:
             if max_emb < 0 or line_count < max_emb:
                 try:
+                    line = next(fh)
                     # only split on normal space, not e.g. non-break space
-                    eles = line.decode('utf-8').strip().split(" ")
+                    eles = line.strip().split(" ")
                     word = re.sub(u"\xa0"," ",eles[0]) # replace non-break space with regular space
                     if not words or word in words:
                         embeddings[word] = [float(f) for f in eles[1:]]
+                except StopIteration:
+                    break
                 except UnicodeDecodeError:
-#                    print "Unable to read word at line %i: %s"%(line_count, word)
+#                    print("Unable to read word at line %i: %s"%(line_count, word))
                     error_count += 1
                 line_count += 1
                 if line_count % 100000 == 0:
-                    print "Reading line: " + str(line_count)
+                    print("Reading line: " + str(line_count))
             else:
                 break
 
-    print "Read %i embeddings"%line_count
+    print("Read %i embeddings"%line_count)
     te = time.time()
-    print 'Time: %.2gs'%(te-ts)
-#    print "%i utf-8 errors"%error_count
+    print('Time: %.2gs'%(te-ts))
+#    print("%i utf-8 errors"%error_count)
     if words:
-        print "%i entries found from vocabulary (out of %i)"%(len(embeddings),len(words))
+        print("%i entries found from vocabulary (out of %i)"%(len(embeddings),len(words)))
 
     if filtered_filename and embeddings:
-        print "Writing filtered embeddings to " + filtered_filename
+        print("Writing filtered embeddings to " + filtered_filename)
         with open(filtered_filename,'w') as fh_filter:
             no_embeddings = len(embeddings)
             embedding_size = len(embeddings.itervalues().next())
@@ -494,6 +521,7 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
                 fh_filter.write(line)
 
     return embeddings
+
 
 
 def get_external_embeddings(options, emb_file=None, emb_dir=None,
@@ -528,10 +556,11 @@ def get_external_embeddings(options, emb_file=None, emb_dir=None,
                     emb_file, words, options.max_ext_emb)
                 external_embedding.update(embeddings)
             else:
-                print "Warning: %s does not exist, proceeding without" \
-                      % emb_file
+                print("Warning: %s does not exist, proceeding without" \
+                      % emb_file)
 
     return external_embedding
+
 
 # for the most part, we want to send stored options to the parser when in
 # --predict mode, however we want to allow some of these to be updated

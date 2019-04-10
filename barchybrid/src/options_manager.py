@@ -42,7 +42,7 @@ class OptionsManager(object):
         if not options.outdir:
             raise Exception("You must specify an output directory via the --outdir option")
         elif not os.path.exists(options.outdir): # create output directory if it doesn't exist
-            print "Creating output directory " + options.outdir
+            print("Creating output directory " + options.outdir)
             os.mkdir(options.outdir)
 
         if not options.graph_based and (not options.predict and not
@@ -51,7 +51,7 @@ class OptionsManager(object):
             raise Exception("Must include either head, rl or rlmost (For example, if you specified --disable-head and --disable-rlmost, you must specify --userl)")
 
         if not options.graph_based and (options.rlFlag and options.rlMostFlag):
-            print 'Warning: Switching off rlMostFlag to allow rlFlag to take precedence'
+            print('Warning: Switching off rlMostFlag to allow rlFlag to take precedence')
             options.rlMostFlag = False
 
         if options.word_emb_size == 0 and options.pos_emb_size == 0 and\
@@ -140,10 +140,10 @@ class OptionsManager(object):
                 else:
                     treebank.outdir = options.outdir
                 if not os.path.exists(treebank.outdir): # create language-specific output folder if it doesn't exist
-                    print "Creating language-specific output directory " + treebank.outdir
+                    print("Creating language-specific output directory " + treebank.outdir)
                     os.mkdir(treebank.outdir)
                 else:
-                    print ("Warning: language-specific subdirectory " + treebank.outdir
+                    print("Warning: language-specific subdirectory " + treebank.outdir
                         + " already exists, contents may be overwritten")
 
                 if not options.predict:
@@ -162,7 +162,7 @@ class OptionsManager(object):
 
                 treebanks.append(treebank)
             else:
-                print "Warning: skipping invalid language code " + iso
+                print("Warning: skipping invalid language code " + iso)
 
         return treebanks
 
@@ -179,7 +179,7 @@ class OptionsManager(object):
                     dev_file = os.path.join(treebank.outdir,'dev-split' + '.conllu') # location for the new dev file
                     train_file = os.path.join(treebank.outdir,'train-split' + '.conllu') # location for the new train file
                     dev_len = int(0.01*options.dev_percent*tot_sen)
-                    print ("Taking " + str(dev_len) + " of " + str(tot_sen)
+                    print("Taking " + str(dev_len) + " of " + str(tot_sen)
                             + " sentences from training data as new dev data for " + treebank.name)
                     random.shuffle(train_data)
                     dev_data = train_data[:dev_len]
@@ -191,21 +191,21 @@ class OptionsManager(object):
                     treebank.devfile = dev_file
                     treebank.trainfile = train_file
                 else: # not enough sentences
-                    print ("Warning: not enough sentences in training data to create dev set for "
+                    print("Warning: not enough sentences in training data to create dev set for "
                         + treebank.name + " (minimum required --min-train-size: " + str(options.min_train_sents) + ")")
                     treebank.pred_dev = False
             else: # option --create-dev not set
-                print ("Warning: No dev data for " + treebank.name
+                print("Warning: No dev data for " + treebank.name
                         + ", consider adding option --create-dev to create dev data from training set")
                 treebank.pred_dev = False
         if options.model_selection and not treebank.pred_dev:
-            print "Warning: can't do model selection for " + treebank.name + " as prediction on dev data is off"
+            print("Warning: can't do model selection for " + treebank.name + " as prediction on dev data is off")
 
     # if debug options is set, we read in the training, dev and test files as appropriate, cap the number of sentences and store
     # new files with these smaller data sets
     def createDebugData(self,treebank,options):
         ext = '.conllu' if options.conllu else '.conll'
-        print 'Creating smaller data sets for debugging'
+        print('Creating smaller data sets for debugging')
         if not options.predict:
             train_data = list(utils.read_conll(treebank.trainfile,maxSize=options.debug_train_sents,hard_lim=True))
             train_file = os.path.join(treebank.outdir,'train-debug' + ext) # location for the new train file
