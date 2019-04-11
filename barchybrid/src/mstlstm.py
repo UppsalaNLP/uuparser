@@ -52,7 +52,7 @@ class MSTParserLSTM:
 
 
     def Load(self, filename):
-        self.model.load(filename)
+        self.model.populate(filename)
 
 
     def Predict(self, treebanks, datasplit, options):
