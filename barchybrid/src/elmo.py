@@ -8,7 +8,7 @@ import numpy as np
 class ELMo(object):
 
     def __init__(self, elmo_file, gamma=1.0, learn_gamma=False):
-        print "Reading ELMo embeddings from '%s'" % elmo_file
+        print("Reading ELMo embeddings from '%s'" % elmo_file)
         self.sentence_data = h5py.File(elmo_file, 'r')
         self.weights = []
 
