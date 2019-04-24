@@ -148,7 +148,12 @@ class FeatureExtractor(object):
     def getWordEmbeddings(self, sentence, train, options, test_embeddings=defaultdict(lambda:{})):
 
         if self.elmo:
-            sentence_text = " ".join([entry.form for entry in sentence[:-1]])
+            # Get full text of sentence - excluding root, which is loaded differently 
+            # for transition and graph-based parsers. 
+            if options.graph_based:
+                sentence_text = " ".join([entry.form for entry in sentence[1:]])
+            else:
+                sentence_text = " ".join([entry.form for entry in sentence[:-1]])
 
             elmo_sentence_representation = \
                 self.elmo.get_sentence_representation(sentence_text)
