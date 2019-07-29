@@ -17,7 +17,7 @@ The techniques behind the original parser are described in the paper [Simple and
 
 #### Required software
 
- * Python 2.7 interpreter
+ * Python 3 (/!\ recent move from python 2.7 which was used for all releases).
  * [DyNet library](https://github.com/clab/dynet/tree/master/python)
 
     Note: the current version is Dynet 2.0 but Dynet 1.0 was used in both releases 1.0 and 2.0
@@ -84,6 +84,7 @@ You can also specify the gamma scalar using `--elmo_gamma` or set `--elmo_learn_
 to learn the value during training.
 
 Credits to Johannes Gontrum for this addition.
+Credits to Giuseppe Attardi for porting the parser to python 3.
 
 #### Citation
 

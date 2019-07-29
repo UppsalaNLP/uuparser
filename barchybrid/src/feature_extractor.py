@@ -4,7 +4,7 @@ import dynet as dy
 import numpy as np
 import random
 from collections import defaultdict
-import codecs, re, os
+import re, os
 
 class FeatureExtractor(object):
     def __init__(self, model, options, vocab, nnvecs=1):
@@ -57,7 +57,7 @@ class FeatureExtractor(object):
                         options,
                         emb_file=options.ext_word_emb_file,
                         lang=lang,
-                        words=self.words.viewkeys()
+                        words=self.words.keys()
                     )
                     self.external_embedding["words"].update(embeddings)
 
@@ -82,7 +82,7 @@ class FeatureExtractor(object):
                             options,
                             emb_dir=options.ext_emb_dir,
                             lang=lang,
-                            words=self.words.viewkeys()
+                            words=self.words.keys()
                         )
                         self.external_embedding["words"].update(embeddings)
 
@@ -105,7 +105,7 @@ class FeatureExtractor(object):
                 2 * (options.char_lstm_output_size
                      if options.char_emb_size > 0 else 0)
         )
-        print "Word-level LSTM input size: " + str(self.lstm_input_size)
+        print("Word-level LSTM input size: " + str(self.lstm_input_size))
 
         self.bilstms = []
         if options.no_bilstms > 0:
@@ -136,14 +136,15 @@ class FeatureExtractor(object):
         paddingTbankVec = self.treebank_lookup[0] if options.tbank_emb_size > 0 else None
 
         self.paddingVec = dy.tanh(self.word2lstm.expr() *\
-            dy.concatenate(filter(None,[paddingWordVec,
+            dy.concatenate(list(filter(None,[paddingWordVec,
                                         paddingElmoVec,
                                         paddingPosVec,
                                         paddingCharVec,
-                                        paddingTbankVec])) + self.word2lstmbias.expr())
+                                        paddingTbankVec]))) + self.word2lstmbias.expr())
 
         self.empty = self.paddingVec if self.nnvecs == 1 else\
-            dy.concatenate([self.paddingVec for _ in xrange(self.nnvecs)])
+            dy.concatenate([self.paddingVec for _ in range(self.nnvecs)])
+
 
     def getWordEmbeddings(self, sentence, train, options, test_embeddings=defaultdict(lambda:{})):
 
@@ -197,11 +198,11 @@ class FeatureExtractor(object):
                     # TODO
                     root.vecs["elmo"] = dy.zeros(self.elmo.emb_dim)
 
-            root.vec = dy.concatenate(filter(None, [root.vecs["word"],
+            root.vec = dy.concatenate(list(filter(None, [root.vecs["word"],
                                                     root.vecs["elmo"],
                                                     root.vecs["pos"],
                                                     root.vecs["char"],
-                                                    root.vecs["treebank"]]))
+                                                         root.vecs["treebank"]])))
 
         for bilstm in self.bilstms:
             bilstm.set_token_vecs(sentence,train)
@@ -224,19 +225,19 @@ class FeatureExtractor(object):
     def init_lookups(self,options):
 
         if self.external_embedding["words"]:
-            print 'Initialising %i word vectors with external embeddings'%len(self.external_embedding["words"])
+            print('Initialising %i word vectors with external embeddings'%len(self.external_embedding["words"]))
             for word in self.external_embedding["words"]:
                 if len(self.external_embedding["words"][word]) != options.word_emb_size:
                     raise Exception("Size of external embedding does not match specified word embedding size of %s"%(options.word_emb_size))
                 self.word_lookup.init_row(self.words[word],self.external_embedding["words"][word])
         elif options.word_emb_size > 0:
-            print 'No word external embeddings found: all vectors initialised randomly'
+            print('No word external embeddings found: all vectors initialised randomly')
 
         if self.external_embedding["chars"]:
-            print 'Initialising %i char vectors with external embeddings'%len(self.external_embedding["chars"])
+            print('Initialising %i char vectors with external embeddings'%len(self.external_embedding["chars"]))
             for char in self.external_embedding["chars"]:
                 if len(self.external_embedding["chars"][char]) != options.char_emb_size:
                     raise Exception("Size of external embedding does not match specified char embedding size of %s"%(options.char_emb_size))
                 self.char_lookup.init_row(self.chars[char],self.external_embedding["chars"][char])
         elif options.char_emb_size > 0:
-            print 'No character external embeddings found: all vectors initialised randomly'
+            print('No character external embeddings found: all vectors initialised randomly')
