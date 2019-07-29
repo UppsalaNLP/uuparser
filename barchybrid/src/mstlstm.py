@@ -86,8 +86,7 @@ class MSTParserLSTM:
                     if len(test_langs) > 1 and test_embeddings["words"]:
                         print("External embeddings found for %i words "\
                                 "(out of %i)" % \
-                                (len(test_embeddings["words"]),
-                                 len(new_test_words)))
+                                (len(test_embeddings["words"]), len(new_test_words)))
 
         if options.char_emb_size > 0:
             new_test_chars = \
@@ -108,8 +107,7 @@ class MSTParserLSTM:
                     if len(test_langs) > 1 and test_embeddings["chars"]:
                         print("External embeddings found for %i chars "\
                                 "(out of %i)" % \
-                                (len(test_embeddings["chars"]),
-                                 len(new_test_chars)))
+                                (len(test_embeddings["chars"]), len(new_test_chars)))
 
         data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
         for iSentence, osentence in enumerate(data,1):
@@ -126,8 +124,7 @@ class MSTParserLSTM:
                 ## ADD for handling multi-roots problem
                 rootHead = [head for head in heads if head==0]
                 if len(rootHead) != 1:
-                    print("it has multi-root, changing it for heading first root\
-                          for other roots")
+                    print("it has multi-root, changing it for heading first root for other roots")
                     rootHead = [seq for seq, head in enumerate(heads) if head == 0]
                     for seq in rootHead[1:]:heads[seq] = rootHead[0]
                 ## finish to multi-roots
