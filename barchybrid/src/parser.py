@@ -95,7 +95,7 @@ def run(experiment,options):
 
         params = os.path.join(experiment.modeldir,options.params)
         print('Reading params from ' + params)
-        with open(params, 'r') as paramsfp:
+        with open(params, 'rb') as paramsfp:
             stored_vocab, stored_opt = pickle.load(paramsfp)
 
             # we need to update/add certain options based on new user input
