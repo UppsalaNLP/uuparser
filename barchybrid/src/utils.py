@@ -476,7 +476,7 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
     error_count = 0 # e.g. invalid utf-8 in embeddings file
 
     #with open(filename,'r') as fh: # byte string
-    with lzma.open(filename, mode='rt', encoding='utf-8') as fh:
+    with open(filename, mode='rt', encoding='utf-8') as fh:
 
         next(fh) # ignore first line with embedding stats
         embeddings = OrderedDict()
