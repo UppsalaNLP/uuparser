@@ -1,11 +1,13 @@
-from utils import ParseForest, read_conll, write_conll
+from .utils import ParseForest, read_conll, write_conll
 from operator import itemgetter
 from itertools import chain
-import utils, time, random
+import time, random
 import numpy as np
 from copy import deepcopy
 from collections import defaultdict
 import json
+
+from . import utils
 
 class ArcHybridLSTM:
     def __init__(self, vocab, options):

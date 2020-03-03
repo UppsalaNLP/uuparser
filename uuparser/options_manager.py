@@ -1,8 +1,9 @@
 import os,sys,re
-import utils
 import copy
 import random
 from collections import namedtuple
+
+from . import utils
 
 class OptionsManager(object):
 

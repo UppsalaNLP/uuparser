@@ -1,10 +1,12 @@
 from operator import itemgetter
-import utils, time, random, decoder
+import time, random, decoder
 from chuliu_edmonds import chuliu_edmonds_one_root
 import numpy as np
 from multilayer_perceptron import biMLP
 from collections import defaultdict
 from copy import deepcopy
+
+from . import utils
 
 class MSTParserLSTM:
     def __init__(self, vocab, options):

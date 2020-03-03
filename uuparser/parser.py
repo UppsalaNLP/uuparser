@@ -1,7 +1,9 @@
 from optparse import OptionParser, OptionGroup
-from options_manager import OptionsManager
-import pickle, utils, os, time, sys, copy, itertools, re, random
+from .options_manager import OptionsManager
+import pickle, os, time, sys, copy, itertools, re, random
 from shutil import copyfile
+
+from . import utils
 
 
 def run(experiment,options):
@@ -133,8 +135,7 @@ def run(experiment,options):
             print('Finished predicting')
 
 
-if __name__ == '__main__':
-
+def main():
     parser = OptionParser()
     parser.add_option("--outdir", metavar="PATH", help='Output directory')
     parser.add_option("--datadir", metavar="PATH",
@@ -277,3 +278,5 @@ each")
     for experiment in experiments:
         run(experiment,options)
 
+if __name__ == '__main__':
+    main()
