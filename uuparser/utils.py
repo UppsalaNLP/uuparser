@@ -421,9 +421,9 @@ def evaluate(gold,test,conllu):
     print("Writing to " + scoresfile)
     if not conllu:
         #os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile + ' &')
-        os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile )
+        os.system(f'perl {UTILS_DIR}/eval.pl -g {gold} -s {test} > {scoresfile}')
     else:
-        os.system('python src/utils/evaluation_script/conll17_ud_eval.py -v -w src/utils/evaluation_script/weights.clas ' + gold + ' ' + test + ' > ' + scoresfile)
+        os.system(f'python {UTILS_DIR}/evaluation_script/conll17_ud_eval.py -v -w {UTILS_DIR}/evaluation_script/weights.clas {gold} {test} > {scoresfile}')
     score = get_LAS_score(scoresfile,conllu)
     return score
 
