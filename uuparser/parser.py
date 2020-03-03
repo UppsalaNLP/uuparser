@@ -162,7 +162,7 @@ if using UD. If not specified need to specify trainfile at least. When used in c
 --multiling, trains a common parser for all languages. Otherwise, train monolingual parsers for \
 each")
     group.add_option("--json-isos", metavar="FILE", help="JSON file with treebank to ISO dictionary",
-        default="./src/utils/ud2.2_iso.json")
+        default=str(utils.UTILS_PATH/"ud2.2_iso.json"))
     group.add_option("--trainfile", metavar="FILE", help="Annotated CONLL(U) train file")
     group.add_option("--devfile", metavar="FILE", help="Annotated CONLL(U) dev file")
     group.add_option("--testfile", metavar="FILE", help="Annotated CONLL(U) test file")

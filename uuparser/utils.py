@@ -5,6 +5,9 @@ from itertools import chain
 from operator import itemgetter
 import random
 import json
+import pathlib
+
+UTILS_PATH = pathlib.Path(__file__).parent/"utils"
 
 # a global variable so we don't have to keep loading from file repeatedly
 iso_dict = {}
@@ -187,7 +190,7 @@ def get_vocab(treebanks,datasplit,char_map={}):
             list(cposCount.keys()), list(relCount.keys()), list(tbankCount.keys()), list(langCount.keys()))
 
 
-def load_iso_dict(json_file='./src/utils/ud_iso.json'):
+def load_iso_dict(json_file=UTILS_PATH/'ud_iso.json'):
     print("Loading ISO dict from %s"%json_file)
     global iso_dict
     ud_iso_file = open(json_file,encoding='utf-8')
@@ -195,14 +198,14 @@ def load_iso_dict(json_file='./src/utils/ud_iso.json'):
     iso_dict = json.loads(json_str)
 
 
-def load_reverse_iso_dict(json_file='./src/utils/ud_iso.json'):
+def load_reverse_iso_dict(json_file=UTILS_PATH/'ud_iso.json'):
     global reverse_iso_dict
     if not iso_dict:
         load_iso_dict(json_file=json_file)
     reverse_iso_dict = {v: k for k, v in iso_dict.items()}
 
 
-def load_lang_iso_dict(json_file='./src/utils/ud_iso.json'):
+def load_lang_iso_dict(json_file=UTILS_PATH/'ud_iso.json'):
 
     if not iso_dict:
         load_iso_dict(json_file)
