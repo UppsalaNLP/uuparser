@@ -13,8 +13,8 @@ class ArcHybridLSTM:
     def __init__(self, vocab, options):
 
         # import here so we don't load Dynet if just running parser.py --help for example
-        from multilayer_perceptron import MLP
-        from feature_extractor import FeatureExtractor
+        from .multilayer_perceptron import MLP
+        from .feature_extractor import FeatureExtractor
         import dynet as dy
         global dy
 

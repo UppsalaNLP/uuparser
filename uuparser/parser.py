@@ -8,10 +8,10 @@ from . import utils
 
 def run(experiment,options):
     if options.graph_based:
-        from mstlstm import MSTParserLSTM as Parser
+        from .mstlstm import MSTParserLSTM as Parser
         print('Working with a graph-based parser')
     else:
-        from arc_hybrid import ArcHybridLSTM as Parser
+        from .arc_hybrid import ArcHybridLSTM as Parser
         print('Working with a transition-based parser')
 
     if not options.predict: # training
