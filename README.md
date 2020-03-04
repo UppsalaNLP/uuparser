@@ -36,17 +36,23 @@ The techniques behind the original parser are described in the paper [Simple and
   pip install uuparser
   ```
 
+Alternatively you can install directly from the master branch with `pip install git+https://github.com/UppsalaNLP/uuparser`.
+
 #### Train a parsing model
 
 To train a set of parsing models for a set of treebanks:
 
-python src/parser.py --outdir [results directory] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [treebanks to include denoted by their ISO id]
+```console
+uuparser --outdir [results directory] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [treebanks to include denoted by their ISO id]
+```
 
 #### Options
 
 The parser has numerous options to allow you to fine-control its behaviour. For a full list, type:
 
-python src/parser.py --help
+```console
+uuparser --help
+```
 
 We recommend you set the --dynet-mem option to a larger number when running the full training procedure on larger treebanks.
 Commonly used values are 5000 and 10000 (in MB).
@@ -59,7 +65,9 @@ This ensures that Python's random number generator and Dynet both produce the sa
 
 The following is a typical command for training separate models for UD_Swedish, UD_Russian, and UD_English:
 
-python src/parser.py --outdir my_output --datadir ud-treebanks-v2.0 --include "sv_talbanken en_partut ru_syntagrus" --dynet-seed 123456789 --dynet-mem 10000
+```console
+uuparser --outdir my_output --datadir ud-treebanks-v2.0 --include "sv_talbanken en_partut ru_syntagrus" --dynet-seed 123456789 --dynet-mem 10000
+```
 
 The output files will be created in my_output/sv_talbanken, my_output/ru_syntagrus, and my_output/en_partut.
 This command assumes that the directory UD_Swedish exists in ud-treebanks-v2.0 and contains at least the file sv-ud-train.conllu (and the same for the other two languages).
@@ -67,7 +75,9 @@ If dev data is also found (sv-ud-dev.conllu), model selection will be performed 
 
 #### Parse data with your parsing model
 
-python src/parser.py --predict --outdir [results directory] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [treebanks to include denoted by their ISO id]
+```console
+uuparser --predict --outdir [results directory] --datadir [directory of UD files with the structure UD\_\*\*/iso\_id-ud-train/dev.conllu] --include [treebanks to include denoted by their ISO id]
+```
 
 By default this will parse the dev data for the specified languages with the model files (by default barchybrid.model) found in treebank-specific subdirectories of outdir.
 Note that if you don't want to use the same directory for model files and output files, you can specify the --modeldir explictly.
