@@ -22,6 +22,19 @@ The techniques behind the original parser are described in the paper [Simple and
 
     Note: the current version is Dynet 2.0 but Dynet 1.0 was used in both releases 1.0 and 2.0
 
+### Installation
+
+- (Python > 3.7 only) install [Cython](https://cython.org/) first in order to be able to install [DyNet](https://github.com/clab/dynet)
+  
+  ```console
+  pip install cython
+  ```
+
+- Install with pip
+
+  ```console
+  pip install uuparser
+  ```
 
 #### Train a parsing model
 
