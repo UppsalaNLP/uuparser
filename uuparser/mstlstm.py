@@ -6,7 +6,7 @@ from multilayer_perceptron import biMLP
 from collections import defaultdict
 from copy import deepcopy
 
-from . import utils
+from uuparser import utils
 
 class MSTParserLSTM:
     def __init__(self, vocab, options):

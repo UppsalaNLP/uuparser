@@ -3,7 +3,7 @@ import copy
 import random
 from collections import namedtuple
 
-from . import utils
+from uuparser import utils
 
 class OptionsManager(object):
 

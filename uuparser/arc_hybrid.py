@@ -1,4 +1,4 @@
-from .utils import ParseForest, read_conll, write_conll
+from uuparser.utils import ParseForest, read_conll, write_conll
 from operator import itemgetter
 from itertools import chain
 import time, random
@@ -7,14 +7,14 @@ from copy import deepcopy
 from collections import defaultdict
 import json
 
-from . import utils
+from uuparser import utils
 
 class ArcHybridLSTM:
     def __init__(self, vocab, options):
 
         # import here so we don't load Dynet if just running parser.py --help for example
-        from .multilayer_perceptron import MLP
-        from .feature_extractor import FeatureExtractor
+        from uuparser.multilayer_perceptron import MLP
+        from uuparser.feature_extractor import FeatureExtractor
         import dynet as dy
         global dy
 

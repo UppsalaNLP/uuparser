@@ -1,17 +1,17 @@
 from optparse import OptionParser, OptionGroup
-from .options_manager import OptionsManager
+from uuparser.options_manager import OptionsManager
 import pickle, os, time, sys, copy, itertools, re, random
 from shutil import copyfile
 
-from . import utils
+from uuparser import utils
 
 
 def run(experiment,options):
     if options.graph_based:
-        from .mstlstm import MSTParserLSTM as Parser
+        from uuparser.mstlstm import MSTParserLSTM as Parser
         print('Working with a graph-based parser')
     else:
-        from .arc_hybrid import ArcHybridLSTM as Parser
+        from uuparser.arc_hybrid import ArcHybridLSTM as Parser
         print('Working with a transition-based parser')
 
     if not options.predict: # training

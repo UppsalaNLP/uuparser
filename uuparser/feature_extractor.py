@@ -1,11 +1,11 @@
-from .bilstm import BiLSTM
+from uuparser.bilstm import BiLSTM
 import dynet as dy
 import numpy as np
 import random
 from collections import defaultdict
 import re, os
 
-from . import utils
+from uuparser import utils
 
 class FeatureExtractor(object):
     def __init__(self, model, options, vocab, nnvecs=1):
