@@ -6,6 +6,7 @@ from operator import itemgetter
 import random
 import json
 import pathlib
+import subprocess
 
 UTILS_PATH = pathlib.Path(__file__).parent/"utils"
 
@@ -419,11 +420,12 @@ def normalize(word):
 def evaluate(gold,test,conllu):
     scoresfile = test + '.txt'
     print("Writing to " + scoresfile)
-    if not conllu:
-        #os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile + ' &')
-        os.system(f'perl {UTILS_PATH}/eval.pl -g {gold} -s {test} > {scoresfile}')
-    else:
-        os.system(f'python {UTILS_PATH}/evaluation_script/conll17_ud_eval.py -v -w {UTILS_PATH}/evaluation_script/weights.clas {gold} {test} > {scoresfile}')
+    with open(scoresfile, "w") as scoresfile_stream:
+        if not conllu:
+            #os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile + ' &')
+            subprocess.run(["perl", str(UTILS_PATH/"eval.pl"), "-g", gold, "-s", test], stdout=scoresfile_stream, check=True)
+        else:
+            subprocess.run(["python", str(UTILS_PATH/"evaluation_script/conll17_ud_eval.py"), "-v", "-w", str(UTILS_PATH/"evaluation_script/weights.clas"), gold, test], stdout=scoresfile_stream, check=True)
     score = get_LAS_score(scoresfile,conllu)
     return score
 
