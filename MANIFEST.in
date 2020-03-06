@@ -1,0 +1,4 @@
+include uuparser/utils/*.json
+include uuparser/utils/eval.pl
+include uuparser/utils/evaluation_script/conll17_ud_eval.py
+include uuparser/utils/evaluation_script/weights.clas

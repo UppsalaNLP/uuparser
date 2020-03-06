@@ -1,15 +1,17 @@
 from optparse import OptionParser, OptionGroup
-from options_manager import OptionsManager
-import pickle, utils, os, time, sys, copy, itertools, re, random
+from uuparser.options_manager import OptionsManager
+import pickle, os, time, sys, copy, itertools, re, random
 from shutil import copyfile
+
+from uuparser import utils
 
 
 def run(experiment,options):
     if options.graph_based:
-        from mstlstm import MSTParserLSTM as Parser
+        from uuparser.mstlstm import MSTParserLSTM as Parser
         print('Working with a graph-based parser')
     else:
-        from arc_hybrid import ArcHybridLSTM as Parser
+        from uuparser.arc_hybrid import ArcHybridLSTM as Parser
         print('Working with a transition-based parser')
 
     if not options.predict: # training
@@ -133,8 +135,7 @@ def run(experiment,options):
             print('Finished predicting')
 
 
-if __name__ == '__main__':
-
+def main():
     parser = OptionParser()
     parser.add_option("--outdir", metavar="PATH", help='Output directory')
     parser.add_option("--datadir", metavar="PATH",
@@ -161,7 +162,7 @@ if using UD. If not specified need to specify trainfile at least. When used in c
 --multiling, trains a common parser for all languages. Otherwise, train monolingual parsers for \
 each")
     group.add_option("--json-isos", metavar="FILE", help="JSON file with treebank to ISO dictionary",
-        default="./src/utils/ud2.2_iso.json")
+        default=str(utils.UTILS_PATH/"ud2.2_iso.json"))
     group.add_option("--trainfile", metavar="FILE", help="Annotated CONLL(U) train file")
     group.add_option("--devfile", metavar="FILE", help="Annotated CONLL(U) dev file")
     group.add_option("--testfile", metavar="FILE", help="Annotated CONLL(U) test file")
@@ -277,3 +278,5 @@ each")
     for experiment in experiments:
         run(experiment,options)
 
+if __name__ == '__main__':
+    main()
