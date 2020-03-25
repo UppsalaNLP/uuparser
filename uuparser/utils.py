@@ -91,8 +91,8 @@ class UDtreebank(Treebank):
 
             self.trainfile = os.path.join(data_path, self.iso_id + "-ud-train.conllu")
             self.devfile = os.path.join(test_path, self.iso_id + "-ud-dev.conllu")
-            self.testfile = os.path.join(test_path, self.iso_id + "-ud-dev.conllu")
-            self.test_gold = os.path.join(gold_path, self.iso_id + "-ud-dev.conllu")
+            self.testfile = os.path.join(test_path, self.iso_id + "-ud-test.conllu")
+            self.test_gold = os.path.join(gold_path, self.iso_id + "-ud-test.conllu")
             self.dev_gold = os.path.join(gold_path, self.iso_id + "-ud-dev.conllu")
         else:
             if not options.predict:
