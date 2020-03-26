@@ -87,7 +87,7 @@ def run(experiment,options):
                 print(f"Copying {bestmodel_file} to {model_file}")
                 copyfile(bestmodel_file,model_file)
                 best_dev_file = os.path.join(experiment.outdir,"best_dev_epoch.txt")
-                with open (best_dev_file, 'w') as fh:
+                with open(best_dev_file, 'w') as fh:
                     print(f"Writing best scores to: {best_dev_file}")
                     if len(experiment.treebanks) == 1:
                         fh.write(f"Best dev score {dev_best[1]} at epoch {dev_best[0]:d}\n")
