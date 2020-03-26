@@ -67,17 +67,17 @@ def run(experiment,options):
                         mean_score = 0.0
                         for treebank in pred_treebanks:
                             score = utils.evaluate(treebank.dev_gold,treebank.outfilename,options.conllu)
-                            print("Dev score %.2f at epoch %i for %s"%(score,epoch,treebank.name))
+                            print(f"Dev score {score:.2f} at epoch {epoch:d} for {treebank.name}")
                             mean_score += score
                         if len(pred_treebanks) > 1: # multiling case
                             mean_score = mean_score/len(pred_treebanks)
-                            print("Mean dev score %.2f at epoch %i"%(mean_score,epoch))
+                            print(f"Mean dev score {mean_score:.2f} at epoch {epoch:d}")
                         if options.model_selection:
                             if mean_score > dev_best[1]:
                                 dev_best = [epoch,mean_score] # update best dev score
                             # hack to printthe word "mean" if the dev score is an average
                             mean_string = "mean " if len(pred_treebanks) > 1 else ""
-                            print("Best %sdev score %.2f at epoch %i"%(mean_string,dev_best[1],dev_best[0]))
+                            print(f"Best {mean_string}dev score {dev_best[1]:.2f} at epoch {dev_best[0]:d}")
 
 
             # at the last epoch choose which model to copy to barchybrid.model
@@ -90,9 +90,9 @@ def run(experiment,options):
                 with open (best_dev_file, 'w') as fh:
                     print("Writing best scores to: " + best_dev_file)
                     if len(experiment.treebanks) == 1:
-                        fh.write("Best dev score %s at epoch %i\n"%(dev_best[1],dev_best[0]))
+                        fh.write(f"Best dev score {dev_best[1]} at epoch {dev_best[0]:d}\n")
                     else:
-                        fh.write("Best mean dev score %s at epoch %i\n"%(dev_best[1],dev_best[0]))
+                        fh.write(f"Best mean dev score {dev_best[1]} at epoch {dev_best[0]:d}\n")
 
     else: #if predict - so
 
@@ -115,7 +115,7 @@ def run(experiment,options):
                     try:
                         m = re.search('(\d+)$',options.model)
                         epoch = m.group(1)
-                        treebank.outfilename = 'dev_epoch_%s.conllu'%epoch
+                        treebank.outfilename = f'dev_epoch_{epoch}.conllu'
                     except AttributeError:
                         raise Exception("No epoch number found in model file (e.g. barchybrid.model22)")
                 if not treebank.outfilename:
@@ -131,7 +131,7 @@ def run(experiment,options):
                 for treebank in experiment.treebanks:
                     print("Evaluating on " + treebank.name)
                     score = utils.evaluate(treebank.test_gold,treebank.outfilename,options.conllu)
-                    print("Obtained LAS F1 score of %.2f on %s" %(score,treebank.name))
+                    print(f"Obtained LAS F1 score of {score:.2f} on {treebank.name}")
 
             print('Finished predicting')
 

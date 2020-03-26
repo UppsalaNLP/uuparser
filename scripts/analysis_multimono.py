@@ -34,23 +34,23 @@ def main(options,args):
 
 def get_lang_mean(exp_name, lang, no_runs, options):
     if options.final_epochs:
-        print("%s: mean of last %i epochs from %i runs for %s: " %(exp_name[1], options.no_epochs, no_runs, lang),end='')
+        print(f"{exp_name[1]}: mean of last {options.no_epochs:d} epochs from {no_runs:d} runs for {lang}: ",end='')
     else:
-        print("%s: mean of best %i epochs from %i runs for %s: " %(exp_name[1], options.no_epochs, no_runs, lang),end='')
+        print(f"{exp_name[1]}: mean of best {options.no_epochs:d} epochs from {no_runs:d} runs for {lang}: ",end='')
     lang_means = np.zeros((no_runs,))
     for ind in range(1,no_runs+1): # loop over other baseline experiments
         if ind==1:
-            scores_file = "./%s/%s/%s_scores.txt"%(exp_name[0],lang,lang)
+            scores_file = f"./{exp_name[0]}/{lang}/{lang}_scores.txt"
         else:
-            scores_file = "./%s-%i/%s/%s_scores.txt"%(exp_name[0],ind,lang,lang)
+            scores_file = f"./{exp_name[0]}-{ind:d}/{lang}/{lang}_scores.txt"
         scores = np.loadtxt(scores_file)
         if not options.final_epochs:
             scores = np.sort(scores)
         run_mean = np.mean(scores[-options.no_epochs:])
         lang_means[ind-1] = run_mean
-        print("%.2f "%run_mean,end='')
+        print(f"{run_mean:.2f} ",end='')
     lang_mean = np.mean(lang_means)
-    print("(%.2f)"%lang_mean)
+    print(f"({lang_mean:.2f})")
     return lang_mean
 
 if __name__ == "__main__":

@@ -229,7 +229,7 @@ class FeatureExtractor(object):
             print('Initialising %i word vectors with external embeddings'%len(self.external_embedding["words"]))
             for word in self.external_embedding["words"]:
                 if len(self.external_embedding["words"][word]) != options.word_emb_size:
-                    raise Exception("Size of external embedding does not match specified word embedding size of %s"%(options.word_emb_size))
+                    raise Exception(f"Size of external embedding does not match specified word embedding size of {options.word_emb_size}")
                 self.word_lookup.init_row(self.words[word],self.external_embedding["words"][word])
         elif options.word_emb_size > 0:
             print('No word external embeddings found: all vectors initialised randomly')
@@ -238,7 +238,7 @@ class FeatureExtractor(object):
             print('Initialising %i char vectors with external embeddings'%len(self.external_embedding["chars"]))
             for char in self.external_embedding["chars"]:
                 if len(self.external_embedding["chars"][char]) != options.char_emb_size:
-                    raise Exception("Size of external embedding does not match specified char embedding size of %s"%(options.char_emb_size))
+                    raise Exception(f"Size of external embedding does not match specified char embedding size of {options.char_emb_size}")
                 self.char_lookup.init_row(self.chars[char],self.external_embedding["chars"][char])
         elif options.char_emb_size > 0:
             print('No character external embeddings found: all vectors initialised randomly')
