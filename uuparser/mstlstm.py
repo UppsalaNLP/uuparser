@@ -9,6 +9,7 @@ from loguru import logger
 from uuparser import utils, decoder
 from uuparser.chuliu_edmonds import chuliu_edmonds_one_root
 from uuparser.multilayer_perceptron import biMLP
+from uuparser import utils
 
 class MSTParserLSTM:
     def __init__(self, vocab, options):
@@ -74,8 +75,9 @@ class MSTParserLSTM:
             new_test_words = \
                     set(test_words) - self.feature_extractor.words.keys()
 
-            print("Number of OOV word types at test time: %i (out of %i)" % (
-                len(new_test_words), len(test_words)))
+            logger.debug(
+                f"Number of OOV word types at test time: { len(new_test_words)} (out of {len(test_words)})"
+            )
 
             if len(new_test_words) > 0:
                 # no point loading embeddings if there are no words to look for
@@ -88,15 +90,19 @@ class MSTParserLSTM:
                     )
                     test_embeddings["words"].update(embeddings)
                     if len(test_langs) > 1 and test_embeddings["words"]:
-                        print("External embeddings found for %i words "\
-                                "(out of %i)" % \
-                                (len(test_embeddings["words"]), len(new_test_words)))
+                        logger.debug(
+                            "External embeddings found for {0} words (out of {1})".format(
+                                len(test_embeddings["words"]),
+                                len(new_test_words),
+                            ),
+                        )
 
         if options.char_emb_size > 0:
             new_test_chars = \
                     set(test_chars) - self.feature_extractor.chars.keys()
-            print("Number of OOV char types at test time: %i (out of %i)" % (
-                len(new_test_chars), len(test_chars)))
+            logger.debug(
+                f"Number of OOV char types at test time: {len(new_test_chars)} (out of {len(test_chars)})"
+            )
 
             if len(new_test_chars) > 0:
                 for lang in test_langs:
@@ -109,9 +115,12 @@ class MSTParserLSTM:
                     )
                     test_embeddings["chars"].update(embeddings)
                     if len(test_langs) > 1 and test_embeddings["chars"]:
-                        print("External embeddings found for %i chars "\
-                                "(out of %i)" % \
-                                (len(test_embeddings["chars"]), len(new_test_chars)))
+                        logger.debug(
+                            "External embeddings found for {0} chars (out of {1})".format(
+                                len(test_embeddings["chars"]),
+                                len(new_test_chars),
+                            ),
+                        )
 
         data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
         for iSentence, osentence in enumerate(data,1):
@@ -128,7 +137,9 @@ class MSTParserLSTM:
                 ## ADD for handling multi-roots problem
                 rootHead = [head for head in heads if head==0]
                 if len(rootHead) != 1:
-                    print("it has multi-root, changing it for heading first root for other roots")
+                    logger.debug(
+                        "it has multi-root, changing it for heading first root for other roots"
+                    )
                     rootHead = [seq for seq, head in enumerate(heads) if head == 0]
                     for seq in rootHead[1:]:heads[seq] = rootHead[0]
                 ## finish to multi-roots
@@ -173,12 +184,14 @@ class MSTParserLSTM:
 
         for iSentence, sentence in enumerate(trainData,1):
             if iSentence % 100 == 0 and iSentence != 0:
-                loss_message = f'Processing sentence number: {iSentence:d}' + \
-                        ' Loss: %.3f'%(eloss / etotal)+ \
-                        ' Errors: %.3f'%((float(eerrors)) / etotal)+\
-                        ' Labeled Errors: %.3f'%(float(lerrors) / etotal)+\
-                        ' Time: %.2gs'%(time.time()-start)
-                print(loss_message)
+                loss_message = (
+                    f'Processing sentence number: {iSentence}'
+                    f' Loss: {eloss / etotal:.3f}'
+                    f' Errors: {eerrors / etotal:.3f}'
+                    f' Labeled Errors: {lerrors / etotal:.3f}'
+                    f' Time: {time.time()-start:.2g}'
+                )
+                logger.info(loss_message)
                 start = time.time()
                 eerrors = 0
                 eloss = 0.0
@@ -248,5 +261,5 @@ class MSTParserLSTM:
             dy.renew_cg()
 
         self.trainer.update()
-        print("Loss: ", mloss/iSentence)
-        print("Total Training Time: %.2gs"%(time.time()-beg))
+        logger.info(f"Loss: {mloss/iSentence}")
+        logger.info(f"Total Training Time: {time.time()-beg:.2g}")
