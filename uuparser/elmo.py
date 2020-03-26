@@ -8,7 +8,7 @@ import numpy as np
 class ELMo(object):
 
     def __init__(self, elmo_file, gamma=1.0, learn_gamma=False):
-        print("Reading ELMo embeddings from '%s'" % elmo_file)
+        print(f"Reading ELMo embeddings from '{elmo_file}'")
         self.sentence_data = h5py.File(elmo_file, 'r')
         self.weights = []
 
@@ -28,8 +28,7 @@ class ELMo(object):
         sentence_index = self.sentence_to_index.get(sentence)
         if not sentence_index:
             raise ValueError(
-                "The sentence '%s' could not be found in the ELMo data."
-                % sentence
+                f"The sentence '{sentence}' could not be found in the ELMo data."
             )
 
         return ELMo.Sentence(self.sentence_data[sentence_index], self)

@@ -173,7 +173,7 @@ class MSTParserLSTM:
 
         for iSentence, sentence in enumerate(trainData,1):
             if iSentence % 100 == 0 and iSentence != 0:
-                loss_message = 'Processing sentence number: %d'%iSentence + \
+                loss_message = f'Processing sentence number: {iSentence:d}' + \
                         ' Loss: %.3f'%(eloss / etotal)+ \
                         ' Errors: %.3f'%((float(eerrors)) / etotal)+\
                         ' Labeled Errors: %.3f'%(float(lerrors) / etotal)+\

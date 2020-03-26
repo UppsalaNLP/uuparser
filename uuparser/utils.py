@@ -192,7 +192,7 @@ def get_vocab(treebanks,datasplit,char_map={}):
 
 
 def load_iso_dict(json_file=UTILS_PATH/'ud_iso.json'):
-    print("Loading ISO dict from %s"%json_file)
+    print(f"Loading ISO dict from {json_file}")
     global iso_dict
     ud_iso_file = open(json_file,encoding='utf-8')
     json_str = ud_iso_file.read()
@@ -506,19 +506,19 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
             else:
                 break
 
-    print("Read %i embeddings"%line_count)
+    print(f"Read {line_count:d} embeddings")
     te = time.time()
     print('Time: %.2gs'%(te-ts))
 #    print("%i utf-8 errors"%error_count)
     if words:
-        print("%i entries found from vocabulary (out of %i)"%(len(embeddings),len(words)))
+        print(f"{len(embeddings):d} entries found from vocabulary (out of {len(words):d})")
 
     if filtered_filename and embeddings:
         print("Writing filtered embeddings to " + filtered_filename)
         with open(filtered_filename,'w') as fh_filter:
             no_embeddings = len(embeddings)
             embedding_size = len(embeddings.itervalues().next())
-            fh_filter.write("%i %i\n"%(no_embeddings,embedding_size))
+            fh_filter.write(f"{no_embeddings:d} {embedding_size:d}\n")
             for word in embeddings:
                 line = re.sub(" ",u"\xa0",word).encode('utf-8') + " " + \
                     " ".join(["%.6f"%value for value in embeddings[word]]) + "\n"
@@ -560,8 +560,7 @@ def get_external_embeddings(options, emb_file=None, emb_dir=None,
                     emb_file, words, options.max_ext_emb)
                 external_embedding.update(embeddings)
             else:
-                print("Warning: %s does not exist, proceeding without" \
-                      % emb_file)
+                print(f"Warning: {emb_file} does not exist, proceeding without")
 
     return external_embedding
 

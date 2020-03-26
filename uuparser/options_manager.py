@@ -38,7 +38,7 @@ class OptionsManager(object):
             model = os.path.join(options.modeldir,options.model)
             # in monoling case we check later on language by language basis
             if options.multiling and not os.path.exists(model):
-                raise Exception("Model not found. Path tried: %s"%model)
+                raise Exception(f"Model not found. Path tried: {model}")
 
         if not options.outdir:
             raise Exception("You must specify an output directory via the --outdir option")
@@ -157,7 +157,7 @@ class OptionsManager(object):
                     treebank.modeldir = os.path.join(options.modeldir,treebank.iso_id)
                     model = os.path.join(treebank.modeldir,options.model)
                     if not os.path.exists(model):
-                        raise Exception("Model not found. Path tried: %s"%model)
+                        raise Exception(f"Model not found. Path tried: {model}")
                 else:
                     treebank.modeldir = None
 

@@ -288,7 +288,7 @@ class ArcHybridLSTM:
                 if iSwap == max_swap and not reached_swap_for_i_sentence:
                     reached_max_swap += 1
                     reached_swap_for_i_sentence = True
-                    print("reached max swap in %d out of %d sentences"%(reached_max_swap, iSentence))
+                    print(f"reached max swap in {reached_max_swap:d} out of {iSentence:d} sentences")
                 self.apply_transition(best,stack,buf,hoffset)
                 if best[1] == SWAP:
                     iSwap += 1
@@ -325,7 +325,7 @@ class ArcHybridLSTM:
 
         for iSentence, sentence in enumerate(trainData,1):
             if iSentence % 100 == 0:
-                loss_message = 'Processing sentence number: %d'%iSentence + \
+                loss_message = f'Processing sentence number: {iSentence:d}' + \
                 ' Loss: %.3f'%(eloss / etotal)+ \
                 ' Errors: %.3f'%((float(eerrors)) / etotal)+\
                 ' Labeled Errors: %.3f'%(float(lerrors) / etotal)+\
