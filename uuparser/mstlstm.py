@@ -1,17 +1,19 @@
 from operator import itemgetter
-import time, random, decoder
-from chuliu_edmonds import chuliu_edmonds_one_root
+import time, random
 import numpy as np
-from multilayer_perceptron import biMLP
 from collections import defaultdict
 from copy import deepcopy
 
-from uuparser import utils
+from loguru import logger
+
+from uuparser import utils, decoder
+from uuparser.chuliu_edmonds import chuliu_edmonds_one_root
+from uuparser.multilayer_perceptron import biMLP
 
 class MSTParserLSTM:
     def __init__(self, vocab, options):
         import dynet as dy
-        from feature_extractor import FeatureExtractor
+        from uuparser.feature_extractor import FeatureExtractor
         global dy
         self.model = dy.ParameterCollection()
         self.trainer = dy.AdamTrainer(self.model, alpha=options.learning_rate)
