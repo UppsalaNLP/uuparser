@@ -17,7 +17,7 @@ def main(options,args):
     bas_runs = int(args[1]) # number of baseline experiments
     exp_name = args[2] # name of new experiments
     exp_runs = int(args[3]) # number of new experiments
-    print("Results for experiment: " + exp_name)
+    print(f"Results for experiment: {exp_name}")
 
     langs = args[4:]
     bas_means = np.zeros((len(langs),))

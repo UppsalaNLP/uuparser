@@ -43,7 +43,7 @@ class OptionsManager(object):
         if not options.outdir:
             raise Exception("You must specify an output directory via the --outdir option")
         elif not os.path.exists(options.outdir): # create output directory if it doesn't exist
-            print("Creating output directory " + options.outdir)
+            print(f"Creating output directory {options.outdir}")
             os.mkdir(options.outdir)
 
         if not options.graph_based and (not options.predict and not
@@ -141,11 +141,12 @@ class OptionsManager(object):
                 else:
                     treebank.outdir = options.outdir
                 if not os.path.exists(treebank.outdir): # create language-specific output folder if it doesn't exist
-                    print("Creating language-specific output directory " + treebank.outdir)
+                    print(f"Creating language-specific output directory {treebank.outdir}")
                     os.mkdir(treebank.outdir)
                 else:
-                    print("Warning: language-specific subdirectory " + treebank.outdir
-                        + " already exists, contents may be overwritten")
+                    print(
+                        f"Warning: language-specific subdirectory {treebank.outdir} already exists, contents may be overwritten"
+                    )
 
                 if not options.predict:
                     self.prepareDev(treebank,options)
@@ -163,7 +164,7 @@ class OptionsManager(object):
 
                 treebanks.append(treebank)
             else:
-                print("Warning: skipping invalid language code " + iso)
+                print(f"Warning: skipping invalid language code {iso}")
 
         return treebanks
 
@@ -180,8 +181,7 @@ class OptionsManager(object):
                     dev_file = os.path.join(treebank.outdir,'dev-split' + '.conllu') # location for the new dev file
                     train_file = os.path.join(treebank.outdir,'train-split' + '.conllu') # location for the new train file
                     dev_len = int(0.01*options.dev_percent*tot_sen)
-                    print("Taking " + str(dev_len) + " of " + str(tot_sen)
-                            + " sentences from training data as new dev data for " + treebank.name)
+                    print(f"Taking {dev_len} of {tot_sen} sentences from training data as new dev data for {treebank.name}")
                     random.shuffle(train_data)
                     dev_data = train_data[:dev_len]
                     utils.write_conll(dev_file,dev_data) # write the new dev data to file
@@ -196,11 +196,10 @@ class OptionsManager(object):
                         + treebank.name + " (minimum required --min-train-size: " + str(options.min_train_sents) + ")")
                     treebank.pred_dev = False
             else: # option --create-dev not set
-                print("Warning: No dev data for " + treebank.name
-                        + ", consider adding option --create-dev to create dev data from training set")
+                print(f"Warning: No dev data for {treebank.name}, consider adding option --create-dev to create dev data from training set")
                 treebank.pred_dev = False
         if options.model_selection and not treebank.pred_dev:
-            print("Warning: can't do model selection for " + treebank.name + " as prediction on dev data is off")
+            print(f"Warning: can't do model selection for {treebank.name} as prediction on dev data is off")
 
     # if debug options is set, we read in the training, dev and test files as appropriate, cap the number of sentences and store
     # new files with these smaller data sets

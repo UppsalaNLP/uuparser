@@ -106,7 +106,7 @@ class FeatureExtractor(object):
                 2 * (options.char_lstm_output_size
                      if options.char_emb_size > 0 else 0)
         )
-        print("Word-level LSTM input size: " + str(self.lstm_input_size))
+        print(f"Word-level LSTM input size: {self.lstm_input_size}")
 
         self.bilstms = []
         if options.no_bilstms > 0:
