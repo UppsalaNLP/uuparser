@@ -13,9 +13,9 @@ else:
     include_file = sys.argv[1]
     trained_models_dir = sys.argv[2].strip("/")
     #make sure there are no annoying spaces
-    print 'Removing leading and trailing spaces from ' + include_file
+    print('Removing leading and trailing spaces from ' + include_file)
     os.system("sed -i 's/\s*//g' %s"%include_file)
-    print 'Finding best iteration for each language and storing in best_epochs.txt'
+    print('Finding best iteration for each language and storing in best_epochs.txt')
     cmd = './scripts/best_res.sh %s %s >best_epochs.txt'%(include_file, trained_models_dir)
     os.system(cmd)
     d = {}
@@ -24,7 +24,7 @@ if len(sys.argv) == 4:
     outdir = sys.argv[3]
 
 if not os.path.exists(outdir):
-    print 'Creating directory ' + outdir
+    print('Creating directory ' + outdir)
     os.mkdir(outdir)
 for line in open('best_epochs.txt','r'):
     try:
@@ -41,14 +41,14 @@ for line in open('best_epochs.txt','r'):
 for lang in d:
     lpath = outdir + '/' + lang + '/'
     if not os.path.exists(lpath):
-        print 'Creating directory ' + lpath
+        print('Creating directory ' + lpath)
         os.mkdir(lpath)
     infile = trained_models_dir + '/' + lang + '/barchybrid.model' + str(d[lang])
     outfile = lpath + 'barchybrid.model'
     if os.path.exists(infile):
-        print 'Copying ' + infile + ' to ' + outfile
+        print('Copying ' + infile + ' to ' + outfile)
         os.system('cp %s %s'%(infile,outfile))
     if outdir != trained_models_dir: 
         paramfile = trained_models_dir + '/' + lang + '/params.pickle'
-        print 'Copying ' + paramfile + ' to ' + lpath
+        print('Copying ' + paramfile + ' to ' + lpath)
         os.system('cp %s %s'%(paramfile,lpath))
