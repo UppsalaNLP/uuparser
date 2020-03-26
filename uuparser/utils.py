@@ -293,7 +293,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
     # hard lim means capping the corpus size across the whole training procedure
     # soft lim means using a sample of the whole corpus at each epoch
     fh = open(filename,'r',encoding='utf-8')
-    print("Reading " + filename)
+    print(f"Reading {filename}")
     if vocab_prep and not hard_lim:
         maxSize = -1 # when preparing the vocab with a soft limit we need to use the whole corpus
     ts = time.time()
@@ -329,8 +329,8 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
                             yield tokens
                             yield_count += 1
                             if yield_count == maxSize:
-                                print("Capping size of corpus at " + str(yield_count) + " sentences")
-                                break;
+                                print(f"Capping size of corpus at {yield_count} sentences")
+                                break
                     else:
                         yield tokens
                 else:
@@ -352,7 +352,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
                 tokens.append(token)
 
     if hard_lim and yield_count < maxSize:
-        print('Warning: unable to yield ' + str(maxSize) + ' sentences, only ' + str(yield_count) + ' found')
+        print(f'Warning: unable to yield {maxSize} sentences, only {yield_count} found')
 
 # TODO: deal with case where there are still unyielded tokens
 # e.g. when there is no newline at end of file
@@ -364,7 +364,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
     if maxSize > 0 and not hard_lim:
         if len(sents) > maxSize:
             sents = random.sample(sents,maxSize)
-            print("Yielding " + str(len(sents)) + " random sentences")
+            print(f"Yielding {len(sents)} random sentences")
         for toks in sents:
             yield toks
 
@@ -373,7 +373,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
 
 
 def write_conll(fn, conll_gen):
-    print("Writing to " + fn)
+    print(f"Writing to {fn}")
     sents = 0
     with open(fn, 'w', encoding='utf-8') as fh:
         for sentence in conll_gen:
@@ -381,7 +381,7 @@ def write_conll(fn, conll_gen):
             for entry in sentence[1:]:
                 fh.write(str(entry) + '\n')
             fh.write('\n')
-        print("Wrote " + str(sents) + " sentences")
+        print(f"Wrote {sents} sentences")
 
 
 def write_conll_multiling(conll_gen, treebanks):
@@ -389,14 +389,14 @@ def write_conll_multiling(conll_gen, treebanks):
     cur_tbank = conll_gen[0][0].treebank_id
     outfile = tbank_dict[cur_tbank].outfilename
     fh = open(outfile,'w',encoding='utf-8')
-    print("Writing to " + outfile)
+    print(f"Writing to {outfile}")
     for sentence in conll_gen:
         if cur_tbank != sentence[0].treebank_id:
             fh.close()
             cur_tbank = sentence[0].treebank_id
             outfile = tbank_dict[cur_tbank].outfilename
             fh = open(outfile,'w',encoding='utf-8')
-            print("Writing to " + outfile)
+            print(f"Writing to {outfile}")
         for entry in sentence[1:]:
             fh.write(str(entry) + '\n')
         fh.write('\n')
@@ -419,7 +419,7 @@ def normalize(word):
 
 def evaluate(gold,test,conllu):
     scoresfile = test + '.txt'
-    print("Writing to " + scoresfile)
+    print(f"Writing to {scoresfile}")
     with open(scoresfile, "w") as scoresfile_stream:
         if not conllu:
             #os.system('perl src/utils/eval.pl -g ' + gold + ' -s ' + test  + ' > ' + scoresfile + ' &')
@@ -502,7 +502,7 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
                     error_count += 1
                 line_count += 1
                 if line_count % 100000 == 0:
-                    print("Reading line: " + str(line_count))
+                    print(f"Reading line: {line_count}")
             else:
                 break
 
@@ -514,7 +514,7 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
         print(f"{len(embeddings):d} entries found from vocabulary (out of {len(words):d})")
 
     if filtered_filename and embeddings:
-        print("Writing filtered embeddings to " + filtered_filename)
+        print(f"Writing filtered embeddings to {filtered_filename}")
         with open(filtered_filename,'w') as fh_filter:
             no_embeddings = len(embeddings)
             embedding_size = len(embeddings.itervalues().next())

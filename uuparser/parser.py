@@ -25,7 +25,7 @@ def run(experiment,options):
             print('Finished collecting vocab')
 
             with open(paramsfile, 'wb') as paramsfp:
-                print('Saving params to ' + paramsfile)
+                print(f'Saving params to {paramsfile}')
                 pickle.dump((vocab, options), paramsfp)
 
                 print('Initializing the model')
@@ -44,10 +44,10 @@ def run(experiment,options):
 
         for epoch in range(options.first_epoch, options.epochs+1):
 
-            print('Starting epoch ' + str(epoch))
+            print(f'Starting epoch {epoch}')
             traindata = list(utils.read_conll_dir(experiment.treebanks, "train", options.max_sentences))
             parser.Train(traindata,options)
-            print('Finished epoch ' + str(epoch))
+            print(f'Finished epoch {epoch}')
 
             model_file = os.path.join(experiment.outdir, options.model + str(epoch))
             parser.Save(model_file)
@@ -59,7 +59,7 @@ def run(experiment,options):
                 if pred_treebanks:
                     for treebank in pred_treebanks:
                         treebank.outfilename = os.path.join(treebank.outdir, 'dev_epoch_' + str(epoch) + '.conllu')
-                        print("Predicting on dev data for " + treebank.name)
+                        print(f"Predicting on dev data for {treebank.name}")
                     pred = list(parser.Predict(pred_treebanks,"dev",options))
                     utils.write_conll_multiling(pred,pred_treebanks)
 
@@ -84,11 +84,11 @@ def run(experiment,options):
             if epoch == options.epochs:
                 bestmodel_file = os.path.join(experiment.outdir,"barchybrid.model" + str(dev_best[0]))
                 model_file = os.path.join(experiment.outdir,"barchybrid.model")
-                print("Copying " + bestmodel_file + " to " + model_file)
+                print(f"Copying {bestmodel_file} to {model_file}")
                 copyfile(bestmodel_file,model_file)
                 best_dev_file = os.path.join(experiment.outdir,"best_dev_epoch.txt")
                 with open (best_dev_file, 'w') as fh:
-                    print("Writing best scores to: " + best_dev_file)
+                    print(f"Writing best scores to: {best_dev_file}")
                     if len(experiment.treebanks) == 1:
                         fh.write(f"Best dev score {dev_best[1]} at epoch {dev_best[0]:d}\n")
                     else:
@@ -97,7 +97,7 @@ def run(experiment,options):
     else: #if predict - so
 
         params = os.path.join(experiment.modeldir,options.params)
-        print('Reading params from ' + params)
+        print(f'Reading params from {params}')
         with open(params, 'rb') as paramsfp:
             stored_vocab, stored_opt = pickle.load(paramsfp)
 
@@ -129,7 +129,7 @@ def run(experiment,options):
 
             if options.pred_eval:
                 for treebank in experiment.treebanks:
-                    print("Evaluating on " + treebank.name)
+                    print(f"Evaluating on {treebank.name}")
                     score = utils.evaluate(treebank.test_gold,treebank.outfilename,options.conllu)
                     print(f"Obtained LAS F1 score of {score:.2f} on {treebank.name}")
 

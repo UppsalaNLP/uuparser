@@ -118,11 +118,11 @@ class ArcHybridLSTM:
 
 
     def Save(self, filename):
-        print('Saving model to ' + filename)
+        print(f'Saving model to {filename}')
         self.model.save(filename)
 
     def Load(self, filename):
-        print('Loading model from ' + filename)
+        print(f'Loading model from {filename}')
         self.model.populate(filename)
 
 
