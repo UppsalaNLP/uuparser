@@ -339,7 +339,7 @@ class ArcHybridLSTM:
                     f' Labeled Errors: {lerrors / etotal:.3f}'
                     f' Time: {time.time()-start:.3f}'
                 )
-                logger.info(loss_message)
+                logger.debug(loss_message)
                 start = time.time()
                 eerrors = 0
                 eloss = 0.0

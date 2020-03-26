@@ -46,10 +46,10 @@ def run(experiment,options):
 
         for epoch in range(options.first_epoch, options.epochs+1):
 
-            logger.debug(f'Starting epoch {epoch}')
+            logger.info(f'Starting epoch {epoch}')
             traindata = list(utils.read_conll_dir(experiment.treebanks, "train", options.max_sentences))
             parser.Train(traindata,options)
-            logger.debug(f'Finished epoch {epoch}')
+            logger.info(f'Finished epoch {epoch}')
 
             model_file = os.path.join(experiment.outdir, options.model + str(epoch))
             parser.Save(model_file)
@@ -61,7 +61,7 @@ def run(experiment,options):
                 if pred_treebanks:
                     for treebank in pred_treebanks:
                         treebank.outfilename = os.path.join(treebank.outdir, 'dev_epoch_' + str(epoch) + '.conllu')
-                        logger.debug(f"Predicting on dev data for {treebank.name}")
+                        logger.info(f"Predicting on dev data for {treebank.name}")
                     pred = list(parser.Predict(pred_treebanks,"dev",options))
                     utils.write_conll_multiling(pred,pred_treebanks)
 

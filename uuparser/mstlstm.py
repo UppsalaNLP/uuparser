@@ -191,7 +191,7 @@ class MSTParserLSTM:
                     f' Labeled Errors: {lerrors / etotal:.3f}'
                     f' Time: {time.time()-start:.2g}'
                 )
-                logger.info(loss_message)
+                logger.debug(loss_message)
                 start = time.time()
                 eerrors = 0
                 eloss = 0.0
