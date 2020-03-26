@@ -2,6 +2,8 @@ from optparse import OptionParser, OptionGroup
 from uuparser.options_manager import OptionsManager
 import pickle, os, time, sys, copy, itertools, re, random
 import dynet_config
+
+from loguru import logger
 from shutil import copyfile
 
 from uuparser import utils
@@ -10,32 +12,32 @@ from uuparser import utils
 def run(experiment,options):
     if options.graph_based:
         from uuparser.mstlstm import MSTParserLSTM as Parser
-        print('Working with a graph-based parser')
+        logger.info('Working with a graph-based parser')
     else:
         from uuparser.arc_hybrid import ArcHybridLSTM as Parser
-        print('Working with a transition-based parser')
+        logger.info('Working with a transition-based parser')
 
     if not options.predict: # training
 
         paramsfile = os.path.join(experiment.outdir, options.params)
 
         if not options.continueTraining:
-            print('Preparing vocab')
+            logger.debug('Preparing vocab')
             vocab = utils.get_vocab(experiment.treebanks,"train")
-            print('Finished collecting vocab')
+            logger.debug('Finished collecting vocab')
 
             with open(paramsfile, 'wb') as paramsfp:
-                print(f'Saving params to {paramsfile}')
+                logger.info(f'Saving params to {paramsfile}')
                 pickle.dump((vocab, options), paramsfp)
 
-                print('Initializing the model')
+                logger.debug('Initializing the model')
                 parser = Parser(vocab, options)
         else:  #continue
             if options.continueParams:
                 paramsfile = options.continueParams
             with open(paramsfile, 'r') as paramsfp:
                 stored_vocab, stored_options = pickle.load(paramsfp)
-                print('Initializing the model:')
+                logger.debug('Initializing the model:')
                 parser = Parser(stored_vocab, stored_options)
 
             parser.Load(options.continueModel)
@@ -44,10 +46,10 @@ def run(experiment,options):
 
         for epoch in range(options.first_epoch, options.epochs+1):
 
-            print(f'Starting epoch {epoch}')
+            logger.debug(f'Starting epoch {epoch}')
             traindata = list(utils.read_conll_dir(experiment.treebanks, "train", options.max_sentences))
             parser.Train(traindata,options)
-            print(f'Finished epoch {epoch}')
+            logger.debug(f'Finished epoch {epoch}')
 
             model_file = os.path.join(experiment.outdir, options.model + str(epoch))
             parser.Save(model_file)
@@ -59,7 +61,7 @@ def run(experiment,options):
                 if pred_treebanks:
                     for treebank in pred_treebanks:
                         treebank.outfilename = os.path.join(treebank.outdir, 'dev_epoch_' + str(epoch) + '.conllu')
-                        print(f"Predicting on dev data for {treebank.name}")
+                        logger.debug(f"Predicting on dev data for {treebank.name}")
                     pred = list(parser.Predict(pred_treebanks,"dev",options))
                     utils.write_conll_multiling(pred,pred_treebanks)
 
@@ -67,28 +69,28 @@ def run(experiment,options):
                         mean_score = 0.0
                         for treebank in pred_treebanks:
                             score = utils.evaluate(treebank.dev_gold,treebank.outfilename,options.conllu)
-                            print(f"Dev score {score:.2f} at epoch {epoch:d} for {treebank.name}")
+                            logger.info(f"Dev score {score:.2f} at epoch {epoch:d} for {treebank.name}")
                             mean_score += score
                         if len(pred_treebanks) > 1: # multiling case
                             mean_score = mean_score/len(pred_treebanks)
-                            print(f"Mean dev score {mean_score:.2f} at epoch {epoch:d}")
+                            logger.info(f"Mean dev score {mean_score:.2f} at epoch {epoch:d}")
                         if options.model_selection:
                             if mean_score > dev_best[1]:
                                 dev_best = [epoch,mean_score] # update best dev score
                             # hack to printthe word "mean" if the dev score is an average
                             mean_string = "mean " if len(pred_treebanks) > 1 else ""
-                            print(f"Best {mean_string}dev score {dev_best[1]:.2f} at epoch {dev_best[0]:d}")
+                            logger.info(f"Best {mean_string}dev score {dev_best[1]:.2f} at epoch {dev_best[0]:d}")
 
 
             # at the last epoch choose which model to copy to barchybrid.model
             if epoch == options.epochs:
                 bestmodel_file = os.path.join(experiment.outdir,"barchybrid.model" + str(dev_best[0]))
                 model_file = os.path.join(experiment.outdir,"barchybrid.model")
-                print(f"Copying {bestmodel_file} to {model_file}")
+                logger.info(f"Copying {bestmodel_file} to {model_file}")
                 copyfile(bestmodel_file,model_file)
                 best_dev_file = os.path.join(experiment.outdir,"best_dev_epoch.txt")
                 with open(best_dev_file, 'w') as fh:
-                    print(f"Writing best scores to: {best_dev_file}")
+                    logger.info(f"Writing best scores to: {best_dev_file}")
                     if len(experiment.treebanks) == 1:
                         fh.write(f"Best dev score {dev_best[1]} at epoch {dev_best[0]:d}\n")
                     else:
@@ -97,7 +99,7 @@ def run(experiment,options):
     else: #if predict - so
 
         params = os.path.join(experiment.modeldir,options.params)
-        print(f'Reading params from {params}')
+        logger.info(f'Reading params from {params}')
         with open(params, 'rb') as paramsfp:
             stored_vocab, stored_opt = pickle.load(paramsfp)
 
@@ -129,11 +131,11 @@ def run(experiment,options):
 
             if options.pred_eval:
                 for treebank in experiment.treebanks:
-                    print(f"Evaluating on {treebank.name}")
+                    logger.debug(f"Evaluating on {treebank.name}")
                     score = utils.evaluate(treebank.test_gold,treebank.outfilename,options.conllu)
-                    print(f"Obtained LAS F1 score of {score:.2f} on {treebank.name}")
+                    logger.info(f"Obtained LAS F1 score of {score:.2f} on {treebank.name}")
 
-            print('Finished predicting')
+            logger.debug('Finished predicting')
 
 
 def main():
