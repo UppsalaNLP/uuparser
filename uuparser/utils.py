@@ -197,7 +197,7 @@ def get_vocab(treebanks,datasplit,char_map={}):
 
 
 def load_iso_dict(json_file=UTILS_PATH/'ud_iso.json'):
-    logger.info(f"Loading ISO dict from {json_file}")
+    logger.debug(f"Loading ISO dict from {json_file}")
     global iso_dict
     ud_iso_file = open(json_file,encoding='utf-8')
     json_str = ud_iso_file.read()
