@@ -256,7 +256,7 @@ each")
 
     group = OptionGroup(parser, "Neural network options")
     group.add_option("--dynet-seed", type="int", metavar="INTEGER",
-        help="Random seed for Dynet")
+        help="Random seed for Dynet", default=0)
     group.add_option("--dynet-mem", type="int", metavar="INTEGER",
         help="Memory to assign Dynet in MB", default=512)
     group.add_option("--learning-rate", type="float", metavar="FLOAT",
