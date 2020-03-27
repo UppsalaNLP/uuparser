@@ -7,8 +7,11 @@ import random
 import json
 import pathlib
 import subprocess
+import sys
 
 from loguru import logger
+
+import tqdm
 
 UTILS_PATH = pathlib.Path(__file__).parent/"utils"
 
@@ -583,3 +586,24 @@ def fix_stored_options(stored_opt,options):
         stored_opt.char_map_file = options.char_map_file
     if hasattr(stored_opt,'lang_emb_size'):
         stored_opt.tbank_emb_size = stored_opt.lang_emb_size
+
+
+class TqdmCompatibleStream:
+    """Wrapper around a file-like object (usually stderr) that will call
+    `tqdm.write` if a progressbar is active.
+    """
+
+    def __init__(self, file=sys.stderr):
+        self.file = file
+
+    def write(self, x):
+        if getattr(tqdm.tqdm, "_instances", []):
+            # Avoid print() second call (useless \n)
+            x = x.rstrip()
+            if len(x) > 0:
+                tqdm.tqdm.write(x, file=self.file)
+        else:
+            self.file.write(x)
+
+    def flush(self):
+        return getattr(self.file, "flush", lambda: None)

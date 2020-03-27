@@ -8,6 +8,8 @@ from collections import defaultdict
 import json
 from loguru import logger
 
+import tqdm
+
 from uuparser import utils
 
 class ArcHybridLSTM:
@@ -269,7 +271,17 @@ class ArcHybridLSTM:
                     )
 
         data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
-        for iSentence, osentence in enumerate(data,1):
+
+        pbar = tqdm.tqdm(
+            data,
+            desc="Parsing",
+            unit="sentences",
+            mininterval=1.0,
+            leave=False,
+            disable=options.quiet,
+        )
+
+        for iSentence, osentence in enumerate(pbar,1):
             sentence = deepcopy(osentence)
             reached_swap_for_i_sentence = False
             max_swap = 2*len(sentence)
@@ -330,7 +342,16 @@ class ArcHybridLSTM:
 
         self.feature_extractor.Init(options)
 
-        for iSentence, sentence in enumerate(trainData,1):
+        pbar = tqdm.tqdm(
+            trainData,
+            desc="Training",
+            unit="sentences",
+            mininterval=1.0,
+            leave=False,
+            disable=options.quiet,
+        )
+
+        for iSentence, sentence in enumerate(pbar,1):
             if iSentence % 100 == 0:
                 loss_message = (
                     f'Processing sentence number: {iSentence}'

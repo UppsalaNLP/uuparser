@@ -11,6 +11,8 @@ from uuparser.chuliu_edmonds import chuliu_edmonds_one_root
 from uuparser.multilayer_perceptron import biMLP
 from uuparser import utils
 
+import tqdm
+
 class MSTParserLSTM:
     def __init__(self, vocab, options):
         import dynet as dy
@@ -123,7 +125,17 @@ class MSTParserLSTM:
                         )
 
         data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
-        for iSentence, osentence in enumerate(data,1):
+
+        pbar = tqdm.tqdm(
+            data,
+            desc="Parsing",
+            unit="sentences",
+            mininterval=1.0,
+            leave=False,
+            disable=options.quiet,
+        )
+
+        for iSentence, osentence in enumerate(pbar,1):
             sentence = deepcopy(osentence)
             self.feature_extractor.Init(options)
             conll_sentence = [entry for entry in sentence if isinstance(entry, utils.ConllEntry)]
@@ -182,7 +194,16 @@ class MSTParserLSTM:
         eeloss = 0.0
         self.feature_extractor.Init(options)
 
-        for iSentence, sentence in enumerate(trainData,1):
+        pbar = tqdm.tqdm(
+            trainData,
+            desc="Training",
+            unit="sentences",
+            mininterval=1.0,
+            leave=False,
+            disable=options.quiet,
+        )
+
+        for iSentence, sentence in enumerate(pbar,1):
             if iSentence % 100 == 0 and iSentence != 0:
                 loss_message = (
                     f'Processing sentence number: {iSentence}'

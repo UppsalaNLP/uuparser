@@ -156,7 +156,7 @@ def setup_logging(options):
         )
     if not options.quiet:
         logger.add(
-            sys.stderr,
+            utils.TqdmCompatibleStream(sys.stderr),
             level=log_level,
             format=log_fmt,
             colorize=True,
