@@ -258,6 +258,8 @@ each")
     parser.add_option_group(group)
 
     group = OptionGroup(parser, "Debug options")
+    group.add_option("--verbose", action="store_true",
+        help="Display more informations during training", default=False)
     group.add_option("--debug", action="store_true",
         help="Run parser in debug mode, with fewer sentences", default=False)
     group.add_option("--debug-train-sents", type="int", metavar="INTEGER",
@@ -276,6 +278,30 @@ each")
     # really important to do this before anything else to make experiments reproducible
     utils.set_seeds(options)
     dynet_config.set(mem=options.dynet_mem, random_seed=options.dynet_seed)
+
+    logger.remove(0)
+
+    if options.verbose:
+        log_level = "DEBUG"
+        log_fmt = (
+            "[uuparser] "
+            "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> |"
+            "<cyan>{name}</cyan>:<cyan>{function}</cyan>@<cyan>{line}</cyan>: "
+            "<level>{message}</level>"
+        )
+    else:
+        log_level = "INFO"
+        log_fmt = (
+            "[uuparser] "
+            "<green>{time:YYYY-MM-DD}T{time:HH:mm:ss}</green> {level}: "
+            "<level>{message}</level>"
+        )
+    logger.add(
+        sys.stderr,
+        level=log_level,
+        format=log_fmt,
+        colorize=True,
+    )
 
     om = OptionsManager(options)
     experiments = om.create_experiment_list(options) # list of namedtuples
