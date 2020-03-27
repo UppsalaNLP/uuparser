@@ -189,7 +189,7 @@ class MSTParserLSTM:
                     f' Loss: {eloss / etotal:.3f}'
                     f' Errors: {eerrors / etotal:.3f}'
                     f' Labeled Errors: {lerrors / etotal:.3f}'
-                    f' Time: {time.time()-start:.2g}'
+                    f' Time: {time.time()-start:.2g}s'
                 )
                 logger.debug(loss_message)
                 start = time.time()
@@ -262,4 +262,4 @@ class MSTParserLSTM:
 
         self.trainer.update()
         logger.info(f"Loss: {mloss/iSentence}")
-        logger.info(f"Total Training Time: {time.time()-beg:.2g}")
+        logger.info(f"Total Training Time: {time.time()-beg:.2g}s")

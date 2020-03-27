@@ -371,7 +371,7 @@ def read_conll(filename, treebank_id=None, proxy_tbank=None, maxSize=-1, hard_li
             yield toks
 
     te = time.time()
-    logger.info(f'Time: {te-ts:.2g}')
+    logger.info(f'Time: {te-ts:.2g}s')
 
 
 def write_conll(fn, conll_gen):
@@ -510,7 +510,7 @@ def extract_embeddings_from_file(filename, words=None, max_emb=-1, filtered_file
 
     logger.debug(f"Read {line_count:d} embeddings")
     te = time.time()
-    logger.info(f'Time: {te-ts:.2g}')
+    logger.info(f'Time: {te-ts:.2g}s')
     if words:
         logger.debug(f"{len(embeddings):d} entries found from vocabulary (out of {len(words):d})")
 
