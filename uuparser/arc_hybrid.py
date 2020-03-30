@@ -6,6 +6,9 @@ import numpy as np
 from copy import deepcopy
 from collections import defaultdict
 import json
+from loguru import logger
+
+import tqdm
 
 from uuparser import utils
 
@@ -118,11 +121,11 @@ class ArcHybridLSTM:
 
 
     def Save(self, filename):
-        print('Saving model to ' + filename)
+        logger.info(f'Saving model to {filename}')
         self.model.save(filename)
 
     def Load(self, filename):
-        print('Loading model from ' + filename)
+        logger.info(f'Loading model from {filename}')
         self.model.populate(filename)
 
 
@@ -222,8 +225,7 @@ class ArcHybridLSTM:
             new_test_words = \
                 set(test_words) - self.feature_extractor.words.keys()
 
-            print("Number of OOV word types at test time: %i (out of %i)" %
-                  (len(new_test_words), len(test_words)))
+            logger.debug(f"Number of OOV word types at test time: {len(new_test_words)} (out of {len(test_words)})")
 
             if len(new_test_words) > 0:
                 # no point loading embeddings if there are no words to look for
@@ -236,15 +238,19 @@ class ArcHybridLSTM:
                     )
                     test_embeddings["words"].update(embeddings)
                 if len(test_langs) > 1 and test_embeddings["words"]:
-                    print("External embeddings found for %i words "\
-                          "(out of %i)" % \
-                          (len(test_embeddings["words"]), len(new_test_words)))
+                    logger.debug(
+                        "External embeddings found for {0} words (out of {1})".format(
+                            len(test_embeddings["words"]),
+                            len(new_test_words),
+                        ),
+                    )
 
         if options.char_emb_size > 0:
             new_test_chars = \
                 set(test_chars) - self.feature_extractor.chars.keys()
-            print("Number of OOV char types at test time: %i (out of %i)" %
-                  (len(new_test_chars), len(test_chars)))
+            logger.debug(
+                f"Number of OOV char types at test time: {len(new_test_chars)} (out of {len(test_chars)})"
+            )
 
             if len(new_test_chars) > 0:
                 for lang in test_langs:
@@ -257,12 +263,25 @@ class ArcHybridLSTM:
                     )
                     test_embeddings["chars"].update(embeddings)
                 if len(test_langs) > 1 and test_embeddings["chars"]:
-                    print("External embeddings found for %i chars "\
-                          "(out of %i)" % \
-                          (len(test_embeddings["chars"]), len(new_test_chars)))
+                    logger.debug(
+                        "External embeddings found for {0} chars (out of {1})".format(
+                            len(test_embeddings["chars"]),
+                            len(new_test_chars),
+                        ),
+                    )
 
         data = utils.read_conll_dir(treebanks,datasplit,char_map=char_map)
-        for iSentence, osentence in enumerate(data,1):
+
+        pbar = tqdm.tqdm(
+            data,
+            desc="Parsing",
+            unit="sentences",
+            mininterval=1.0,
+            leave=False,
+            disable=options.quiet,
+        )
+
+        for iSentence, osentence in enumerate(pbar,1):
             sentence = deepcopy(osentence)
             reached_swap_for_i_sentence = False
             max_swap = 2*len(sentence)
@@ -288,7 +307,7 @@ class ArcHybridLSTM:
                 if iSwap == max_swap and not reached_swap_for_i_sentence:
                     reached_max_swap += 1
                     reached_swap_for_i_sentence = True
-                    print("reached max swap in %d out of %d sentences"%(reached_max_swap, iSentence))
+                    logger.debug(f"reached max swap in {reached_max_swap:d} out of {iSentence:d} sentences")
                 self.apply_transition(best,stack,buf,hoffset)
                 if best[1] == SWAP:
                     iSwap += 1
@@ -317,20 +336,31 @@ class ArcHybridLSTM:
         start = time.time()
 
         random.shuffle(trainData) # in certain cases the data will already have been shuffled after being read from file or while creating dev data
-        print("Length of training data: ", len(trainData))
+        logger.info(f"Length of training data: {len(trainData)}")
 
         errs = []
 
         self.feature_extractor.Init(options)
 
-        for iSentence, sentence in enumerate(trainData,1):
+        pbar = tqdm.tqdm(
+            trainData,
+            desc="Training",
+            unit="sentences",
+            mininterval=1.0,
+            leave=False,
+            disable=options.quiet,
+        )
+
+        for iSentence, sentence in enumerate(pbar,1):
             if iSentence % 100 == 0:
-                loss_message = 'Processing sentence number: %d'%iSentence + \
-                ' Loss: %.3f'%(eloss / etotal)+ \
-                ' Errors: %.3f'%((float(eerrors)) / etotal)+\
-                ' Labeled Errors: %.3f'%(float(lerrors) / etotal)+\
-                ' Time: %.2gs'%(time.time()-start)
-                print(loss_message)
+                loss_message = (
+                    f'Processing sentence number: {iSentence}'
+                    f' Loss: {eloss / etotal:.3f}'
+                    f' Errors: {eerrors / etotal:.3f}'
+                    f' Labeled Errors: {lerrors / etotal:.3f}'
+                    f' Time: {time.time()-start:.3f}s'
+                )
+                logger.debug(loss_message)
                 start = time.time()
                 eerrors = 0
                 eloss = 0.0
@@ -434,5 +464,5 @@ class ArcHybridLSTM:
             dy.renew_cg()
 
         self.trainer.update()
-        print("Loss: ", mloss/iSentence)
-        print("Total Training Time: %.2gs" % (time.time()-beg))
+        logger.info(f"Loss: {mloss/iSentence}")
+        logger.info(f"Total Training Time: {time.time()-beg:.2g}s")

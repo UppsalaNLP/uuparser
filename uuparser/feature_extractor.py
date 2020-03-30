@@ -5,6 +5,8 @@ import random
 from collections import defaultdict
 import re, os
 
+from loguru import logger
+
 from uuparser import utils
 
 class FeatureExtractor(object):
@@ -106,7 +108,7 @@ class FeatureExtractor(object):
                 2 * (options.char_lstm_output_size
                      if options.char_emb_size > 0 else 0)
         )
-        print("Word-level LSTM input size: " + str(self.lstm_input_size))
+        logger.debug(f"Word-level LSTM input size: {self.lstm_input_size}")
 
         self.bilstms = []
         if options.no_bilstms > 0:
@@ -226,19 +228,21 @@ class FeatureExtractor(object):
     def init_lookups(self,options):
 
         if self.external_embedding["words"]:
-            print('Initialising %i word vectors with external embeddings'%len(self.external_embedding["words"]))
+            n_words = len(self.external_embedding["words"])
+            logger.info(f'Initialising {n_words} word vectors with external embeddings')
             for word in self.external_embedding["words"]:
                 if len(self.external_embedding["words"][word]) != options.word_emb_size:
-                    raise Exception("Size of external embedding does not match specified word embedding size of %s"%(options.word_emb_size))
+                    raise Exception(f"Size of external embedding does not match specified word embedding size of {options.word_emb_size}")
                 self.word_lookup.init_row(self.words[word],self.external_embedding["words"][word])
         elif options.word_emb_size > 0:
-            print('No word external embeddings found: all vectors initialised randomly')
+            logger.info('No word external embeddings found: all vectors initialised randomly')
 
         if self.external_embedding["chars"]:
-            print('Initialising %i char vectors with external embeddings'%len(self.external_embedding["chars"]))
+            n_chars = len(self.external_embedding["chars"])
+            logger.info(f'Initialising {n_chars} char vectors with external embeddings')
             for char in self.external_embedding["chars"]:
                 if len(self.external_embedding["chars"][char]) != options.char_emb_size:
-                    raise Exception("Size of external embedding does not match specified char embedding size of %s"%(options.char_emb_size))
+                    raise Exception(f"Size of external embedding does not match specified char embedding size of {options.char_emb_size}")
                 self.char_lookup.init_row(self.chars[char],self.external_embedding["chars"][char])
         elif options.char_emb_size > 0:
-            print('No character external embeddings found: all vectors initialised randomly')
+            logger.info('No character external embeddings found: all vectors initialised randomly')
