@@ -35,7 +35,7 @@ def run(experiment,options):
         else:  #continue
             if options.continueParams:
                 paramsfile = options.continueParams
-            with open(paramsfile, 'r') as paramsfp:
+            with open(paramsfile, 'rb') as paramsfp:
                 stored_vocab, stored_options = pickle.load(paramsfp)
                 logger.debug('Initializing the model:')
                 parser = Parser(stored_vocab, stored_options)
